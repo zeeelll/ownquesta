@@ -122,6 +122,21 @@ export default function LabPage() {
 
   const addMsg = useCallback((msg: Omit<ChatMsg, 'id'>) => setChatMsgs(p => [...p, { ...msg, id: crypto.randomUUID() }]), []);
 
+  // ── Auto-save chat history to localStorage (keyed by session ID) ────────────
+  useEffect(() => {
+    if (!sid) return;
+    try { localStorage.setItem(`lab_chat_${sid}`, JSON.stringify(chatMsgs)); } catch { /* storage full */ }
+  }, [sid, chatMsgs]);
+
+  // ── Auto-save notebook cells to localStorage (charts stripped to save space) ─
+  useEffect(() => {
+    if (!sid) return;
+    try {
+      const stripped = cells.map(c => ({ ...c, out: c.out ? { ...c.out, charts: [] } : null }));
+      localStorage.setItem(`lab_cells_${sid}`, JSON.stringify(stripped));
+    } catch { /* storage full */ }
+  }, [sid, cells]);
+
   // ── Continuation: restore session when user clicks "Continue" on dashboard ──
   useEffect(() => {
     const raw = localStorage.getItem('mlContinueProject');
@@ -139,7 +154,33 @@ export default function LabPage() {
       if (proj.sessionId) {
         sidRef.current = proj.sessionId;
         setSid(proj.sessionId);
+
+        // Restore saved chat history for this session
+        const savedChat = localStorage.getItem(`lab_chat_${proj.sessionId}`);
+        if (savedChat) {
+          try {
+            const msgs = JSON.parse(savedChat) as ChatMsg[];
+            if (msgs.length > 0) {
+              const divider: ChatMsg = {
+                id: 'history-divider',
+                type: 'info',
+                text: '─── Previous session history ───',
+              };
+              setChatMsgs([divider, ...msgs]);
+            }
+          } catch { /* corrupt — ignore */ }
+        }
+
+        // Restore saved notebook cells (charts were stripped on save — re-run cells to regenerate)
+        const savedCells = localStorage.getItem(`lab_cells_${proj.sessionId}`);
+        if (savedCells) {
+          try {
+            const cs = JSON.parse(savedCells) as Cell[];
+            if (cs.length > 0) setCells(cs);
+          } catch { /* corrupt — ignore */ }
+        }
       }
+
       if (proj.filename)    { setUploadedFilename(proj.filename); }
       if (proj.filePath)    { setUploadedFilePath(proj.filePath); }
       if (proj.targetColumn){ setTargetCol(proj.targetColumn); }
@@ -168,6 +209,7 @@ export default function LabPage() {
           `Last stage: *${stage.replace(/_/g, ' ')}*`,
           '',
           '> The Python kernel is stateless — variables reset each session.',
+          '> Chat history and notebook cells have been restored. Re-run cells to regenerate charts.',
           hint[stage] ?? 'Click **Analyse** to re-run the pipeline.',
         ].join('\n'),
       });
