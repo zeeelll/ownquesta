@@ -11,9 +11,10 @@ const MongoStore = _connectMongo && typeof _connectMongo.create === "function"
   ? _connectMongo.default
   : _connectMongo;
 
-const authRoutes = require("./routes/auth.routes");
-const userRoutes = require("./routes/user.routes");
-const adminRoutes = require("./routes/admin.routes");
+const authRoutes    = require("./routes/auth.routes");
+const userRoutes    = require("./routes/user.routes");
+const adminRoutes   = require("./routes/admin.routes");
+const projectRoutes = require("./routes/project.routes");
 require("./config/passport");
 
 const app = express();
@@ -70,8 +71,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/auth",         authRoutes);
+app.use("/api/user",         userRoutes);
+app.use("/api/admin",        adminRoutes);
+app.use("/api/user/projects", projectRoutes);
 
 module.exports = app;

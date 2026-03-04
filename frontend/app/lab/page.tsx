@@ -8,8 +8,9 @@ import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
 
-const LAB_URL   = 'http://localhost:8010';
-const AGENT_URL = 'http://localhost:8020';
+const LAB_URL     = 'http://localhost:8010';
+const AGENT_URL   = 'http://localhost:8020';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 // ── Restrictions ──────────────────────────────────────────────────────────────
 const BLOCKED: { re: RegExp; msg: string }[] = [
@@ -121,6 +122,58 @@ export default function LabPage() {
 
   const addMsg = useCallback((msg: Omit<ChatMsg, 'id'>) => setChatMsgs(p => [...p, { ...msg, id: crypto.randomUUID() }]), []);
 
+  // ── Continuation: restore session when user clicks "Continue" on dashboard ──
+  useEffect(() => {
+    const raw = localStorage.getItem('mlContinueProject');
+    if (!raw) return;
+    localStorage.removeItem('mlContinueProject');
+    try {
+      const proj = JSON.parse(raw) as {
+        sessionId?: string; name?: string; stage?: string;
+        filename?: string; filePath?: string; targetColumn?: string;
+      };
+
+      // Restore the lab-backend session ID so getSession() reuses it.
+      // The Python executor auto-recovers on the first /execute call,
+      // and the uploaded file is still on disk at its original path.
+      if (proj.sessionId) {
+        sidRef.current = proj.sessionId;
+        setSid(proj.sessionId);
+      }
+      if (proj.filename)    { setUploadedFilename(proj.filename); }
+      if (proj.filePath)    { setUploadedFilePath(proj.filePath); }
+      if (proj.targetColumn){ setTargetCol(proj.targetColumn); }
+
+      // Always keep analysisStage as 'idle' — the Python kernel resets every
+      // session, so the Analyse button must always be available regardless of
+      // the previous stage.  The user simply clicks Analyse to re-run.
+      const stage = proj.stage ?? 'initialized';
+      setAnalysisStage('idle');
+
+      // Stage-specific resume hint shown in the chat panel
+      const hint: Record<string, string> = {
+        dataset_uploaded: 'Your dataset is ready on the server. Click **Analyse** to run the AI analysis.',
+        eda_completed:    'EDA was previously completed. Click **Analyse** to re-run, then select a model to build the pipeline.',
+        model_selected:   'A model was selected last time. Click **Analyse** to re-run, then rebuild the pipeline.',
+        training:         'The pipeline was building. Click **Analyse** to re-run from scratch.',
+        trained:          'The model was trained. Click **Analyse** → select model → build pipeline to retrain.',
+        evaluated:        'The model was evaluated. Click **Analyse** to run the full workflow again.',
+        completed:        'Project was completed. Click **Analyse** to re-run the full workflow.',
+      };
+
+      addMsg({
+        type: 'info',
+        text: [
+          `🔄 **Resuming "${proj.name || 'your project'}"**`,
+          `Last stage: *${stage.replace(/_/g, ' ')}*`,
+          '',
+          '> The Python kernel is stateless — variables reset each session.',
+          hint[stage] ?? 'Click **Analyse** to re-run the pipeline.',
+        ].join('\n'),
+      });
+    } catch { /* ignore */ }
+  }, []);   // runs once on mount only
+
   // ── Dashboard integration ──────────────────────────────────────────────────
   /** Save a new project entry to localStorage so the dashboard picks it up. */
   const saveLabProjectToDashboard = useCallback((filename: string): string => {
@@ -165,6 +218,24 @@ export default function LabPage() {
     const activityData = { id: Date.now().toString(), action: `Completed analysis for ${filename} in Lab Playground`, timestamp: new Date().toLocaleTimeString(), type: 'completion' };
     const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
     localStorage.setItem('userActivities', JSON.stringify([activityData, ...activities]));
+  }, []);
+
+  /** Push the current workflow stage to the Express backend so the dashboard
+   *  can show accurate progress.  Fails silently — lab works without backend. */
+  const updateProjectProgress = useCallback(async (
+    stage: string,
+    extra: Record<string, unknown> = {},
+  ) => {
+    const session = sidRef.current;
+    if (!session) return;
+    try {
+      await fetch(`${BACKEND_URL}/api/user/projects`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: session, stage, ...extra }),
+      });
+    } catch { /* backend unavailable — ignore */ }
   }, []);
 
   const addCellFromSSE = useCallback((code: string, output: string, error: string | null, charts: string[]): Cell => {
@@ -230,6 +301,10 @@ export default function LabPage() {
       setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
       addMsg({ type: 'info', text: `📄 **${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
       saveLabProjectToDashboard(d.filename);
+      updateProjectProgress('dataset_uploaded', {
+        name:    d.filename.replace(/\.[^/.]+$/, ''),
+        dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() },
+      });
     } catch (e: any) { setUploadErr(e.message); }
     finally { setUploading(false); }
   }, [getSession, addMsg]);
@@ -250,7 +325,7 @@ export default function LabPage() {
         const type = ev.type as string;
         if (type === 'status')        addMsg({ type: 'info',     text: ev.text as string });
         if (type === 'code_cell')     addCellFromSSE(ev.code as string, ev.output as string, ev.error as string|null, ev.charts as string[]);
-        if (type === 'analysis')      addMsg({ type: 'analysis', analysis: ev.data as AnalysisData });
+        if (type === 'analysis')      { addMsg({ type: 'analysis', analysis: ev.data as AnalysisData }); const ad = ev.data as AnalysisData; updateProjectProgress('eda_completed', { problemType: ad.problem_type, targetColumn: ad.target_column }); }
         if (type === 'fe_cell')       { addCellFromSSE(ev.code as string, ev.output as string, ev.error as string|null, ev.charts as string[]); addMsg({ type: 'fe', fe: { code: ev.code as string, output: ev.output as string, error: ev.error as string|null } }); }
         if (type === 'eda_cell')      addCellFromSSE(ev.code as string, ev.output as string, ev.error as string|null, ev.charts as string[]);
         if (type === 'eda_summary')   { const d = ev.data as { summary: string; feature_importance: string; preprocessing: string }; addMsg({ type: 'eda_summary', edaSummary: { summary: d.summary, featureImportance: d.feature_importance, preprocessing: d.preprocessing } }); }
@@ -293,6 +368,7 @@ export default function LabPage() {
           setAnalysisStage('pipeline_built');
           addMsg({ type: 'ai',   text: '✅ Pipeline complete! All cells have been added to the notebook.' });
           if (cols.length > 0) addMsg({ type: 'predict_form', text: 'predict' });
+          updateProjectProgress('trained', { selectedModel: modelName });
         }
         // Guard events
         if (type === 'guard_analyzing') addMsg({ type: 'guard', guardStep: 'analyzing', text: `**${ev.title}** — ${lastErrLine(ev.error_preview)}` });
@@ -319,6 +395,7 @@ export default function LabPage() {
       // Add prediction code as a notebook cell
       addCellFromSSE(d.code, d.output ?? '', d.error ?? null, []);
       addMsg({ type: 'ai', text: d.error ? `⚠️ Prediction error: ${d.error}` : `🎯 Prediction result:\n\`\`\`\n${d.output}\n\`\`\`` });
+      if (!d.error) updateProjectProgress('evaluated');
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setPredicting(false); }
   }, [getSession, predictInputs, addMsg, addCellFromSSE]);
