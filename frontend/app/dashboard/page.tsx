@@ -151,8 +151,10 @@ export default function DashboardPage() {
   const [loading, setLoading]     = useState(true);
   const [backendOk, setBackendOk] = useState(true);
   const [notice, setNotice]       = useState<{ msg: string; ok: boolean } | null>(null);
-  const [dropOpen, setDropOpen]   = useState(false);
-  const [deleting, setDeleting]   = useState<string | null>(null);
+  const [dropOpen, setDropOpen]     = useState(false);
+  const [deleting, setDeleting]     = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+  const [showNewProj, setShowNewProj]   = useState(false);
 
   const toast = useCallback((msg: string, ok = true) => {
     setNotice({ msg, ok });
@@ -229,14 +231,21 @@ export default function DashboardPage() {
     window.location.href = "/";
   };
 
-  const handleDelete = async (project: Project) => {
-    if (!confirm(`Delete "${project.name}"? This cannot be undone.`)) return;
+  // Opens the type-to-confirm modal
+  const handleDelete = (project: Project) => {
+    setDeleteTarget(project);
+  };
+
+  // Runs after the user types "delete" and confirms
+  const executeDelete = useCallback(async () => {
+    const project = deleteTarget;
+    if (!project) return;
+    setDeleteTarget(null);
     setDeleting(project._id);
     try {
       if (backendOk) {
         await api(`/api/user/projects/${project._id}`, { method: "DELETE" });
       } else {
-        // Remove from localStorage
         const raw = localStorage.getItem("userProjects");
         if (raw) {
           const saved = JSON.parse(raw).filter((p: { id: string }) => p.id !== project._id);
@@ -251,7 +260,14 @@ export default function DashboardPage() {
     } finally {
       setDeleting(null);
     }
-  };
+  }, [deleteTarget, backendOk, toast]);
+
+  // Collects new-project fields then navigates to /lab
+  const handleNewProject = useCallback((name: string, goal: string, targetCol: string) => {
+    setShowNewProj(false);
+    localStorage.setItem("mlNewProject", JSON.stringify({ name, goal, targetCol }));
+    router.push("/lab");
+  }, [router]);
 
   const handleContinue = (project: Project) => {
     // Store full project context so the lab page can restore the session,
@@ -373,7 +389,7 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-500 mt-1">Your ML workspace — track every project from dataset to deployment.</p>
           </div>
           <button
-            onClick={() => router.push("/lab")}
+            onClick={() => setShowNewProj(true)}
             className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -437,10 +453,10 @@ export default function DashboardPage() {
                 </p>
               </div>
               <button
-                onClick={() => router.push("/lab")}
+                onClick={() => setShowNewProj(true)}
                 className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20"
               >
-                Open Lab Playground
+                New Project
               </button>
             </div>
           ) : (
@@ -495,6 +511,21 @@ export default function DashboardPage() {
           </section>
         )}
       </main>
+
+      {/* ── Modals ────────────────────────────────────────────────────────── */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          project={deleteTarget}
+          onConfirm={executeDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+      {showNewProj && (
+        <NewProjectModal
+          onStart={handleNewProject}
+          onCancel={() => setShowNewProj(false)}
+        />
+      )}
     </div>
   );
 }
@@ -596,6 +627,222 @@ function ProjectCard({
             </svg>
           )}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Delete Confirm Modal ───────────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  project,
+  onConfirm,
+  onCancel,
+}: {
+  project: Project;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const [input, setInput] = useState("");
+  const canDelete = input === "delete";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+
+        {/* Icon + title */}
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-xl shrink-0">
+            🗑️
+          </div>
+          <div>
+            <h3 className="font-semibold text-white text-base">Delete Project</h3>
+            <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone</p>
+          </div>
+        </div>
+
+        <p className="text-sm text-slate-300 mb-5 leading-relaxed">
+          You are about to permanently delete{" "}
+          <span className="font-semibold text-white">"{project.name}"</span> and all its data.
+        </p>
+
+        {/* Type-to-confirm */}
+        <p className="text-xs text-slate-400 mb-2">
+          Type{" "}
+          <code className="font-mono font-bold text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded">
+            delete
+          </code>{" "}
+          to confirm:
+        </p>
+        <input
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder='Type "delete" here'
+          autoFocus
+          onKeyDown={e => {
+            if (e.key === "Enter" && canDelete) onConfirm();
+            if (e.key === "Escape") onCancel();
+          }}
+          className="w-full bg-slate-800/80 border border-slate-600/50 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-red-500/60 focus:ring-1 focus:ring-red-500/20 mb-5 transition-all font-mono"
+        />
+
+        {/* Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 text-sm text-slate-400 border border-slate-600/50 rounded-xl hover:bg-slate-800 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!canDelete}
+            className={`flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+              canDelete
+                ? "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-600/20"
+                : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/40"
+            }`}
+          >
+            Delete Project
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── New Project Modal ─────────────────────────────────────────────────────────
+
+const GOAL_OPTIONS: { value: string; label: string; desc: string; icon: string }[] = [
+  { value: "auto",           icon: "🤖", label: "Auto-detect",           desc: "Let the AI figure out the best approach" },
+  { value: "classification", icon: "🏷️", label: "Predict a category",    desc: "e.g. spam detection, churn, diagnosis" },
+  { value: "regression",     icon: "📈", label: "Predict a number",       desc: "e.g. house price, sales forecast" },
+  { value: "clustering",     icon: "🔵", label: "Group similar items",    desc: "e.g. customer segments, topic discovery" },
+  { value: "anomaly",        icon: "⚠️", label: "Detect anomalies",       desc: "e.g. fraud detection, equipment failure" },
+];
+
+function NewProjectModal({
+  onStart,
+  onCancel,
+}: {
+  onStart: (name: string, goal: string, targetCol: string) => void;
+  onCancel: () => void;
+}) {
+  const [name,   setName]   = useState("");
+  const [goal,   setGoal]   = useState("");
+  const [target, setTarget] = useState("");
+
+  const canStart = name.trim().length > 0 && goal !== "";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-slate-900 border border-slate-700/60 rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-xl shrink-0">
+            🧪
+          </div>
+          <div>
+            <h3 className="font-bold text-white text-base">New Project</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Set up your project before uploading data</p>
+          </div>
+        </div>
+
+        {/* Project Name — required */}
+        <div className="mb-5">
+          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            Project Name <span className="text-red-400">*</span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="e.g. Customer Churn Prediction"
+            autoFocus
+            onKeyDown={e => { if (e.key === "Escape") onCancel(); }}
+            className="w-full bg-slate-800/80 border border-slate-600/50 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+          />
+        </div>
+
+        {/* Prediction Goal — required */}
+        <div className="mb-5">
+          <label className="block text-xs font-semibold text-slate-300 mb-2">
+            Prediction Goal <span className="text-red-400">*</span>
+          </label>
+          <div className="flex flex-col gap-1.5">
+            {GOAL_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setGoal(opt.value)}
+                className={`text-left px-3 py-2.5 rounded-xl border text-sm transition-all flex items-start gap-3 ${
+                  goal === opt.value
+                    ? "bg-indigo-600/20 border-indigo-500/60 text-white"
+                    : "bg-slate-800/50 border-slate-700/40 text-slate-400 hover:border-slate-600 hover:text-slate-300"
+                }`}
+              >
+                <span className="text-base shrink-0 mt-0.5">{opt.icon}</span>
+                <span>
+                  <span className="font-semibold block">{opt.label}</span>
+                  <span className="text-xs text-slate-500 mt-0.5 block">{opt.desc}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Target Column — optional */}
+        <div className="mb-6">
+          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            Target Column{" "}
+            <span className="text-slate-500 font-normal">(optional — can be set later)</span>
+          </label>
+          <input
+            type="text"
+            value={target}
+            onChange={e => setTarget(e.target.value)}
+            placeholder="e.g. Churn, Price, label — leave blank to auto-detect"
+            className="w-full bg-slate-800/80 border border-slate-600/50 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none focus:border-indigo-500/70 focus:ring-1 focus:ring-indigo-500/20 transition-all font-mono"
+          />
+        </div>
+
+        {/* Validation hint */}
+        {!canStart && (
+          <p className="text-xs text-amber-400/80 mb-4 flex items-center gap-1.5">
+            <span>⚠</span>
+            {!name.trim() && !goal
+              ? "Project Name and Prediction Goal are required."
+              : !name.trim()
+              ? "Project Name is required."
+              : "Please select a Prediction Goal."}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2.5 text-sm text-slate-400 border border-slate-600/50 rounded-xl hover:bg-slate-800 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onStart(name.trim(), goal, target.trim())}
+            disabled={!canStart}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+              canStart
+                ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20"
+                : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/40"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Start Project
+          </button>
+        </div>
       </div>
     </div>
   );

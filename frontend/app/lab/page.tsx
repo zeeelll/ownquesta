@@ -8,6 +8,8 @@ import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
 
+import { fetchAvailableModels, canUseModel, recordModelUsage, type AIModel } from '../../lib/aiModels';
+
 const LAB_URL     = 'http://localhost:8010';
 const AGENT_URL   = 'http://localhost:8020';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
@@ -44,6 +46,15 @@ function lastErrLine(preview: unknown): string {
   return lines[lines.length - 1] ?? preview.slice(0, 120);
 }
 
+// ── Blob download helper ──────────────────────────────────────────────────────
+function triggerBlobDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
 // ── SSE reader helper ─────────────────────────────────────────────────────────
 async function* readSSE(response: Response): AsyncGenerator<Record<string, unknown>> {
   const reader = response.body!.getReader();
@@ -74,6 +85,7 @@ export default function LabPage() {
   const sidRef    = useRef<string | null>(null);
   const cellsRef  = useRef<Cell[]>(cells);
   const execCount = useRef(0);
+  const newProjectNameRef = useRef<string | null>(null); // set from dashboard New Project modal
   useEffect(() => { cellsRef.current = cells; }, [cells]);
 
   // Upload state
@@ -109,6 +121,14 @@ export default function LabPage() {
   const [predicting,     setPredicting]     = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // AI model selection
+  const [availableModels,  setAvailableModels]  = useState<AIModel[]>([]);
+  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('gpt-4o-mini');
+
+  // Easy mode
+  const [easyMode, setEasyMode] = useState(false);
+  const [downloadingModel, setDownloadingModel] = useState(false);
+
   // Panel resize
   const [panelW, setPanelW] = useState(430);
   const dragRef = useRef<{ startX: number; startW: number } | null>(null);
@@ -121,6 +141,19 @@ export default function LabPage() {
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMsgs]);
 
   const addMsg = useCallback((msg: Omit<ChatMsg, 'id'>) => setChatMsgs(p => [...p, { ...msg, id: crypto.randomUUID() }]), []);
+
+  // Fetch available AI models from backend when agent comes online
+  useEffect(() => {
+    if (!agentUp) return;
+    fetchAvailableModels(AGENT_URL).then(models => {
+      if (models.length > 0) {
+        setAvailableModels(models);
+        // Keep default only if it's actually available, otherwise fall back to first
+        const ids = models.map(m => m.id);
+        setSelectedAiModelId(prev => ids.includes(prev) ? prev : ids[0]);
+      }
+    });
+  }, [agentUp]);
 
   // ── Auto-save chat history to localStorage (keyed by session ID) ────────────
   useEffect(() => {
@@ -216,6 +249,35 @@ export default function LabPage() {
     } catch { /* ignore */ }
   }, []);   // runs once on mount only
 
+  // ── New project setup: pre-fill fields from dashboard New Project modal ──────
+  useEffect(() => {
+    const raw = localStorage.getItem('mlNewProject');
+    if (!raw) return;
+    localStorage.removeItem('mlNewProject');
+    try {
+      const proj = JSON.parse(raw) as { name?: string; goal?: string; targetCol?: string };
+      if (proj.name)      newProjectNameRef.current = proj.name;
+      if (proj.targetCol) setTargetCol(proj.targetCol);
+
+      const goalLabel: Record<string, string> = {
+        auto:           'Auto-detect the best ML approach',
+        classification: 'Predict a category (Classification)',
+        regression:     'Predict a number (Regression)',
+        clustering:     'Group similar items (Clustering)',
+        anomaly:        'Detect anomalies',
+      };
+      addMsg({
+        type: 'info',
+        text: [
+          `🚀 **Project: "${proj.name ?? 'New Project'}"**`,
+          `Goal: *${goalLabel[proj.goal ?? ''] ?? proj.goal ?? 'Auto-detect'}*`,
+          proj.targetCol ? `Target column pre-set to \`${proj.targetCol}\`.` : '',
+          'Upload your dataset using the button above to begin.',
+        ].filter(Boolean).join('\n'),
+      });
+    } catch { /* ignore */ }
+  }, []);   // runs once on mount only
+
   // ── Dashboard integration ──────────────────────────────────────────────────
   /** Save a new project entry to localStorage so the dashboard picks it up. */
   const saveLabProjectToDashboard = useCallback((filename: string): string => {
@@ -223,7 +285,7 @@ export default function LabPage() {
     const projectId = `lab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const projectData = {
       id: projectId,
-      name: filename.replace(/\.[^/.]+$/, ''),
+      name: newProjectNameRef.current || filename.replace(/\.[^/.]+$/, ''),
       dataset: filename,
       taskType: 'lab-playground',
       status: 'in-progress',
@@ -355,12 +417,21 @@ export default function LabPage() {
   const analyze = useCallback(async () => {
     if (!uploadedFilePath || !uploadedFilename) return;
     const session = await getSession(); if (!session) return;
+
+    // Quota guard
+    const modelObj = availableModels.find(m => m.id === selectedAiModelId);
+    if (modelObj && !canUseModel(modelObj)) {
+      addMsg({ type: 'error', text: `You've used all ${modelObj.free_quota} free session(s) for **${modelObj.display_name}**. Please choose a different model.` });
+      return;
+    }
+    if (modelObj) recordModelUsage(modelObj.id);
+
     setAnalyzing(true);
     addMsg({ type: 'info', text: `🔍 Analysing **${uploadedFilename}**… this may take 20–40 s.` });
     try {
       const r = await fetch(`${AGENT_URL}/v2/analyze-stream`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session, uploaded_file_path: uploadedFilePath, uploaded_filename: uploadedFilename, target_column: targetCol.trim() || null }),
+        body: JSON.stringify({ session_id: session, uploaded_file_path: uploadedFilePath, uploaded_filename: uploadedFilename, target_column: targetCol.trim() || null, model_id: selectedAiModelId }),
       });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       for await (const ev of readSSE(r)) {
@@ -383,7 +454,7 @@ export default function LabPage() {
       }
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setAnalyzing(false); }
-  }, [uploadedFilePath, uploadedFilename, targetCol, getSession, addMsg, addCellFromSSE]);
+  }, [uploadedFilePath, uploadedFilename, targetCol, getSession, addMsg, addCellFromSSE, selectedAiModelId, availableModels]);
 
   // ── Build pipeline (SSE) ──────────────────────────────────────────────────────
   const buildPipeline = useCallback(async (modelName: string) => {
@@ -393,7 +464,7 @@ export default function LabPage() {
     try {
       const r = await fetch(`${AGENT_URL}/v2/build-pipeline-stream`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session, selected_model: modelName, target_column: targetCol.trim() || null }),
+        body: JSON.stringify({ session_id: session, selected_model: modelName, target_column: targetCol.trim() || null, model_id: selectedAiModelId }),
       });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       for await (const ev of readSSE(r)) {
@@ -421,7 +492,7 @@ export default function LabPage() {
       }
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setBuildingPipeline(false); }
-  }, [targetCol, getSession, addMsg, addCellFromSSE]);
+  }, [targetCol, getSession, addMsg, addCellFromSSE, selectedAiModelId]);
 
   // ── Predict ───────────────────────────────────────────────────────────────────
   const predict = useCallback(async () => {
@@ -430,7 +501,7 @@ export default function LabPage() {
     try {
       const r = await fetch(`${AGENT_URL}/v2/predict`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session, input_values: predictInputs }),
+        body: JSON.stringify({ session_id: session, input_values: predictInputs, model_id: selectedAiModelId }),
       });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json();
@@ -440,17 +511,18 @@ export default function LabPage() {
       if (!d.error) updateProjectProgress('evaluated');
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setPredicting(false); }
-  }, [getSession, predictInputs, addMsg, addCellFromSSE]);
+  }, [getSession, predictInputs, addMsg, addCellFromSSE, selectedAiModelId]);
 
   // ── Chat ──────────────────────────────────────────────────────────────────────
-  const sendChat = useCallback(async () => {
-    const msg = chatInput.trim(); if (!msg) return;
+  const sendChat = useCallback(async (directMsg?: string) => {
+    const msg = (directMsg ?? chatInput).trim(); if (!msg) return;
     const session = await getSession(); if (!session) return;
-    setChatInput(''); addMsg({ type: 'user', text: msg }); setChatSending(true);
+    if (!directMsg) setChatInput('');
+    addMsg({ type: 'user', text: msg }); setChatSending(true);
     try {
       const r = await fetch(`${AGENT_URL}/v2/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session, message: msg }),
+        body: JSON.stringify({ session_id: session, message: msg, model_id: selectedAiModelId }),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
@@ -475,7 +547,72 @@ export default function LabPage() {
     } catch (e: any) {
       addMsg({ type: 'error', text: agentUp === false ? 'lab-agent is offline. Start it: uvicorn main:app --port 8020' : e.message });
     } finally { setChatSending(false); }
-  }, [chatInput, getSession, addMsg, addCellFromSSE, agentUp]);
+  }, [chatInput, getSession, addMsg, addCellFromSSE, agentUp, selectedAiModelId]);
+
+  // ── Download Model ────────────────────────────────────────────────────────────
+  const downloadModel = useCallback(async () => {
+    const session = sid || sidRef.current;
+    if (!session) return;
+    setDownloadingModel(true);
+    addMsg({ type: 'info', text: '📦 Serialising model… this may take a few seconds.' });
+    try {
+      // 1. Try a dedicated backend endpoint first (if the server supports it)
+      const dedicated = await fetch(`${LAB_URL}/download-model?session_id=${session}`).catch(() => null);
+      if (dedicated && dedicated.ok) {
+        const blob = await dedicated.blob();
+        const disposition = dedicated.headers.get('content-disposition');
+        const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? `model_${session.slice(0, 7)}.pkl`;
+        triggerBlobDownload(blob, filename);
+        addMsg({ type: 'ai', text: `✅ Model downloaded as \`${filename}\`` });
+        return;
+      }
+
+      // 2. Fallback: execute Python in the live session to serialise model → base64
+      //    Uses pickle + base64 so no extra libraries are needed.
+      const serializeCode = [
+        'import pickle as _pkl, base64 as _b64, io as _io',
+        '_m = (globals().get("model") or globals().get("pipeline") or',
+        '       globals().get("clf") or globals().get("reg") or',
+        '       globals().get("best_model") or globals().get("estimator"))',
+        'if _m is not None:',
+        '    _buf = _io.BytesIO()',
+        '    _pkl.dump(_m, _buf)',
+        '    _buf.seek(0)',
+        '    print("__MODEL_B64__:" + _b64.b64encode(_buf.read()).decode())',
+        'else:',
+        '    print("__MODEL_NOT_FOUND__")',
+      ].join('\n');
+
+      const execRes = await fetch(`${LAB_URL}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: session, cell_id: `_dl_${Date.now()}`, code: serializeCode }),
+      });
+      if (!execRes.ok) throw new Error(`Execution HTTP ${execRes.status}`);
+      const execData = await execRes.json();
+      if (execData.error) throw new Error(execData.error);
+
+      const stdout: string = execData.stdout ?? '';
+      if (stdout.includes('__MODEL_NOT_FOUND__'))
+        throw new Error('No trained model found in the session. Build the pipeline first, then click Download.');
+
+      const match = stdout.match(/__MODEL_B64__:([A-Za-z0-9+/=\s]+)/);
+      if (!match) throw new Error('Could not read model data from the session output.');
+
+      // 3. Decode base64 → Blob → auto-download
+      const b64 = match[1].replace(/\s/g, '');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
+      const filename = `trained_model_${session.slice(0, 7)}.pkl`;
+      triggerBlobDownload(blob, filename);
+      addMsg({ type: 'ai', text: `✅ Model downloaded as \`${filename}\`` });
+
+    } catch (e: any) {
+      addMsg({ type: 'error', text: `Download failed: ${e.message}` });
+    } finally { setDownloadingModel(false); }
+  }, [sid, addMsg]);
 
   // ── Reset ─────────────────────────────────────────────────────────────────────
   const reset = () => {
@@ -511,6 +648,16 @@ export default function LabPage() {
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: sid ? '#4ade80' : '#475569', display: 'inline-block' }} />
             {sid ? `session ${sid.slice(0,7)}…` : 'no session'}
           </span>
+          {analysisStage === 'pipeline_built' && (
+            <button onClick={downloadModel} disabled={downloadingModel}
+              style={{ ...ghostBtn, color: downloadingModel ? '#475569' : '#4ade80', borderColor: 'rgba(74,222,128,0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
+              {downloadingModel ? <><SpinIcon size={10}/><span>Downloading…</span></> : <><span>📥</span><span>Download Model</span></>}
+            </button>
+          )}
+          <button onClick={() => setEasyMode(e => !e)}
+            style={{ ...ghostBtn, color: easyMode ? '#c4b5fd' : '#94a3b8', borderColor: easyMode ? 'rgba(110,84,200,0.5)' : 'rgba(255,255,255,0.1)', background: easyMode ? 'rgba(110,84,200,0.15)' : 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {easyMode ? <><span>💻</span><span>Code Mode</span></> : <><span>✨</span><span>Easy Mode</span></>}
+          </button>
           <button onClick={reset} style={ghostBtn}>Reset Kernel</button>
         </div>
       </header>
@@ -518,20 +665,42 @@ export default function LabPage() {
       {/* Body */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' }}>
 
-        {/* Left: Notebook */}
+        {/* Left: Notebook or Easy Mode */}
         <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', padding: '20px 24px 60px' }}>
-          {connErr && <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.28)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, color: '#fca5a5', fontSize: 12 }}>⚠ {connErr}</div>}
-          <div style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: '#fbbf24', display: 'flex', gap: 6 }}>
-            🔒 <span><code style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '0 4px', borderRadius: 3 }}>pip install</code> and heavy DL libraries are restricted.</span>
-          </div>
-          {cells.map((cell, idx) => (
-            <CellBlock key={cell.id} cell={cell} index={idx} total={cells.length}
-              onRun={() => run(cell.id)} onCode={v => setCode(cell.id, v)}
-              onInsert={() => insertAfter(cell.id)} onMoveUp={() => moveUp(cell.id)}
-              onMoveDown={() => moveDown(cell.id)} onDelete={() => deleteCell(cell.id)}
-              onToggleOut={() => toggleOut(cell.id)} />
-          ))}
-          <AddCellBtn onClick={() => setCells(p => [...p, newCell()])} />
+          {easyMode ? (
+            <EasyModePanel
+              analysisStage={analysisStage}
+              uploadedFilename={uploadedFilename}
+              cells={cells}
+              analyzing={analyzing}
+              buildingPipeline={buildingPipeline}
+              selectedModel={selectedModel}
+              chatSending={chatSending}
+              predicting={predicting}
+              downloadingModel={downloadingModel}
+              onDownloadModel={downloadModel}
+              onSendPrompt={(msg) => sendChat(msg)}
+              featureColumns={featureColumns}
+              predictInputs={predictInputs}
+              setPredictInputs={setPredictInputs}
+              onPredict={predict}
+            />
+          ) : (
+            <>
+              {connErr && <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.28)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, color: '#fca5a5', fontSize: 12 }}>⚠ {connErr}</div>}
+              <div style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: '#fbbf24', display: 'flex', gap: 6 }}>
+                🔒 <span><code style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '0 4px', borderRadius: 3 }}>pip install</code> and heavy DL libraries are restricted.</span>
+              </div>
+              {cells.map((cell, idx) => (
+                <CellBlock key={cell.id} cell={cell} index={idx} total={cells.length}
+                  onRun={() => run(cell.id)} onCode={v => setCode(cell.id, v)}
+                  onInsert={() => insertAfter(cell.id)} onMoveUp={() => moveUp(cell.id)}
+                  onMoveDown={() => moveDown(cell.id)} onDelete={() => deleteCell(cell.id)}
+                  onToggleOut={() => toggleOut(cell.id)} />
+              ))}
+              <AddCellBtn onClick={() => setCells(p => [...p, newCell()])} />
+            </>
+          )}
         </div>
 
         {/* Drag handle */}
@@ -548,7 +717,22 @@ export default function LabPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <span style={{ fontSize: 13 }}>🤖</span>
               <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>ML Agent</span>
-              <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>
+              {availableModels.length > 0 ? (
+                <select
+                  value={selectedAiModelId}
+                  onChange={e => setSelectedAiModelId(e.target.value)}
+                  disabled={analyzing || buildingPipeline}
+                  style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf', cursor: 'pointer', outline: 'none', fontFamily: 'inherit' }}>
+                  {availableModels.map(m => {
+                    const used = m.free_quota !== null ? (typeof localStorage !== 'undefined' ? (JSON.parse(localStorage.getItem('ownquesta_model_usage') || '{}')[m.id] ?? 0) : 0) : null;
+                    const quota = m.free_quota !== null ? ` (${Math.max(0, m.free_quota - (used as number))} left)` : '';
+                    const disabled = m.free_quota !== null && (used as number) >= m.free_quota;
+                    return <option key={m.id} value={m.id} disabled={disabled}>{m.short_name}{quota}</option>;
+                  })}
+                </select>
+              ) : (
+                <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>
+              )}
             </div>
 
             {/* Upload */}
@@ -612,7 +796,7 @@ export default function LabPage() {
               placeholder="Ask anything about your data or pipeline… (Enter to send)"
               rows={2}
               style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '8px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5 }} />
-            <button onClick={sendChat} disabled={chatSending || !chatInput.trim()}
+            <button onClick={() => sendChat()} disabled={chatSending || !chatInput.trim()}
               style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: chatInput.trim() ? 'linear-gradient(135deg,rgba(110,84,200,0.8),rgba(124,92,191,0.8))' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(110,84,200,0.4)', color: chatInput.trim() ? '#e2e8f0' : '#475569', cursor: chatInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
               {chatSending ? <SpinIcon size={11}/> : '↑'}
             </button>
@@ -892,6 +1076,296 @@ function Section({ title, text }: { title: string; text: string }) {
 }
 function Row({ label, val, mono }: { label: string; val: string; mono?: boolean }) {
   return (<div style={{ display: 'flex', gap: 6, marginBottom: 2 }}><span style={{ color: '#475569', minWidth: 80 }}>{label}</span><span style={{ color: '#e2e8f0', fontFamily: mono ? 'monospace' : 'inherit' }}>{val}</span></div>);
+}
+
+// ── Easy Mode Panel ───────────────────────────────────────────────────────────
+interface EasyModePanelProps {
+  analysisStage: 'idle' | 'analyzed' | 'pipeline_built';
+  uploadedFilename: string | null;
+  cells: Cell[];
+  analyzing: boolean;
+  buildingPipeline: boolean;
+  selectedModel: string | null;
+  chatSending: boolean;
+  predicting: boolean;
+  downloadingModel: boolean;
+  onDownloadModel(): void;
+  onSendPrompt(msg: string): void;
+  featureColumns: string[];
+  predictInputs: Record<string, string>;
+  setPredictInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onPredict(): void;
+}
+
+function EasyModePanel({
+  analysisStage, uploadedFilename, cells, analyzing, buildingPipeline,
+  selectedModel, chatSending, predicting, downloadingModel,
+  onDownloadModel, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict,
+}: EasyModePanelProps) {
+  const [aiPrompt, setAiPrompt]       = useState('');
+  const [testSize, setTestSize]       = useState(0.2);
+  const [cvFolds, setCvFolds]         = useState(5);
+  const [settingsNote, setSettingsNote] = useState('');
+  const [showParams, setShowParams]   = useState(false);
+
+  // Collect all charts from notebook cells
+  const allCharts: string[] = [];
+  cells.forEach(cell => { (cell.out?.charts ?? []).forEach(c => allCharts.push(c)); });
+
+  // Extract ML metrics from cell stdout via regex
+  const metricPatterns: { re: RegExp; label: string }[] = [
+    { re: /test[_\s]?accuracy[:\s=]+([0-9.]+)/gi,  label: 'Test Accuracy' },
+    { re: /train[_\s]?accuracy[:\s=]+([0-9.]+)/gi, label: 'Train Accuracy' },
+    { re: /accuracy[:\s=]+([0-9.]+)/gi,             label: 'Accuracy' },
+    { re: /f1[_\s-]?score[:\s=]+([0-9.]+)/gi,       label: 'F1 Score' },
+    { re: /precision[:\s=]+([0-9.]+)/gi,             label: 'Precision' },
+    { re: /recall[:\s=]+([0-9.]+)/gi,                label: 'Recall' },
+    { re: /r2[_\s]?score[:\s=]+([0-9.]+)/gi,        label: 'R² Score' },
+    { re: /auc[_\s]?roc[:\s=]+([0-9.]+)/gi,         label: 'AUC-ROC' },
+    { re: /auc[:\s=]+([0-9.]+)/gi,                  label: 'AUC' },
+    { re: /cv[_\s]?score[:\s=]+([0-9.]+)/gi,        label: 'CV Score' },
+    { re: /best[_\s]?score[:\s=]+([0-9.]+)/gi,      label: 'Best Score' },
+    { re: /rmse[:\s=]+([0-9.]+)/gi,                 label: 'RMSE' },
+    { re: /\bmae[:\s=]+([0-9.]+)/gi,                label: 'MAE' },
+    { re: /\bmse[:\s=]+([0-9.]+)/gi,                label: 'MSE' },
+  ];
+  const rawMetrics: { label: string; value: string }[] = [];
+  cells.forEach(cell => {
+    const stdout = cell.out?.stdout ?? '';
+    metricPatterns.forEach(({ re, label }) => {
+      for (const m of stdout.matchAll(re)) {
+        const v = parseFloat(m[1]);
+        if (!isNaN(v)) rawMetrics.push({ label, value: v <= 1.01 ? `${(v * 100).toFixed(1)}%` : v.toFixed(4) });
+      }
+    });
+  });
+  // Deduplicate — keep last occurrence of each label
+  const seen = new Set<string>();
+  const metrics = [...rawMetrics].reverse().filter(m => !seen.has(m.label) && seen.add(m.label)).reverse();
+
+  const steps = [
+    { label: 'Upload',       done: !!uploadedFilename,                        active: false },
+    { label: 'Analyse',      done: analysisStage !== 'idle',                  active: analyzing },
+    { label: 'Train Model',  done: analysisStage === 'pipeline_built',        active: buildingPipeline },
+    { label: 'Done',         done: analysisStage === 'pipeline_built' && !buildingPipeline, active: false },
+  ];
+
+  const busy = chatSending || analyzing || buildingPipeline;
+
+  const handleApplySettings = () => {
+    const parts: string[] = [`test_size=${testSize}`, `cross_validation_folds=${cvFolds}`];
+    if (settingsNote.trim()) parts.push(settingsNote.trim());
+    onSendPrompt(`Please retrain the model using these settings: ${parts.join(', ')}.`);
+    setSettingsNote('');
+  };
+
+  return (
+    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+
+      {/* Header card */}
+      <div style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(110,84,200,0.13),rgba(74,222,128,0.05))', border: '1px solid rgba(110,84,200,0.28)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 16px rgba(110,84,200,0.4)' }}>✨</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#c4b5fd' }}>Easy Mode</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>No code needed — the AI handles everything. Use the panel on the right to upload & analyse.</div>
+          </div>
+        </div>
+
+        {/* Step progress */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {steps.map((step, i) => (
+            <div key={step.label} style={{ display: 'flex', alignItems: 'center', ...(i < steps.length - 1 ? { flex: 1 } : {}) }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0,
+                  background: step.done ? 'rgba(74,222,128,0.18)' : step.active ? 'rgba(110,84,200,0.28)' : 'rgba(255,255,255,0.05)',
+                  border: step.done ? '1.5px solid rgba(74,222,128,0.6)' : step.active ? '1.5px solid rgba(110,84,200,0.7)' : '1.5px solid rgba(255,255,255,0.1)',
+                  color: step.done ? '#4ade80' : step.active ? '#c4b5fd' : '#475569' }}>
+                  {step.active ? <SpinIcon size={12}/> : step.done ? '✓' : (i + 1)}
+                </div>
+                <span style={{ fontSize: 10, whiteSpace: 'nowrap', color: step.done ? '#4ade80' : step.active ? '#c4b5fd' : '#475569', fontWeight: step.active ? 700 : 400 }}>{step.label}</span>
+              </div>
+              {i < steps.length - 1 && (
+                <div style={{ flex: 1, height: 1.5, background: step.done ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.07)', margin: '0 6px', marginBottom: 18 }} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Status card */}
+      <EasyStatusCard analysisStage={analysisStage} analyzing={analyzing} buildingPipeline={buildingPipeline} selectedModel={selectedModel} uploadedFilename={uploadedFilename} />
+
+      {/* Metrics */}
+      {metrics.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📊</span> Model Performance</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 8 }}>
+            {metrics.map((m, i) => (
+              <div key={i} style={{ padding: '12px 10px', borderRadius: 10, background: 'rgba(110,84,200,0.09)', border: '1px solid rgba(110,84,200,0.22)', textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#c4b5fd', marginBottom: 3 }}>{m.value}</div>
+                <div style={{ fontSize: 10, color: '#64748b' }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Charts gallery */}
+      {allCharts.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
+          <div style={{ display: 'grid', gridTemplateColumns: allCharts.length === 1 ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 10 }}>
+            {allCharts.map((b64, i) => (
+              <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)' }}>
+                <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ width: '100%', display: 'block' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Test your model */}
+      {analysisStage === 'pipeline_built' && featureColumns.length > 0 && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.07)', fontSize: 13, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span>🧪</span> Test Your Model
+          </div>
+          <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 8 }}>
+              {featureColumns.map(col => (
+                <div key={col}>
+                  <label style={{ fontSize: 11, color: '#64748b', display: 'block', marginBottom: 3, fontFamily: 'monospace' }}>{col}</label>
+                  <input value={predictInputs[col] ?? ''} onChange={e => setPredictInputs(p => ({ ...p, [col]: e.target.value }))}
+                    placeholder="enter value"
+                    style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 7, padding: '6px 10px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'monospace' }} />
+                </div>
+              ))}
+            </div>
+            <button onClick={onPredict} disabled={predicting}
+              style={{ padding: '9px', borderRadius: 9, cursor: predicting ? 'not-allowed' : 'pointer', background: predicting ? 'rgba(251,191,36,0.06)' : 'linear-gradient(135deg,rgba(251,191,36,0.28),rgba(245,158,11,0.28))', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              {predicting ? <><SpinIcon size={12}/><span>Predicting…</span></> : <><span>▶</span><span>Run Prediction</span></>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Adjust Settings */}
+      {uploadedFilename && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(99,102,241,0.22)', overflow: 'hidden' }}>
+          <button onClick={() => setShowParams(p => !p)}
+            style={{ width: '100%', padding: '10px 14px', background: 'rgba(99,102,241,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#818cf8', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
+            <span>⚙️</span>
+            <span style={{ flex: 1 }}>Adjust Settings</span>
+            <span style={{ transform: showParams ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', fontSize: 12 }}>▾</span>
+          </button>
+          {showParams && (
+            <div style={{ padding: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span>Test Split</span>
+                    <span style={{ fontWeight: 700, color: '#c4b5fd' }}>{Math.round(testSize * 100)}%</span>
+                  </label>
+                  <input type="range" min={10} max={40} value={Math.round(testSize * 100)} onChange={e => setTestSize(Number(e.target.value) / 100)} style={{ width: '100%', accentColor: '#7c5cbf' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569', marginTop: 2 }}><span>10%</span><span>40%</span></div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#94a3b8', display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                    <span>CV Folds</span>
+                    <span style={{ fontWeight: 700, color: '#c4b5fd' }}>{cvFolds}</span>
+                  </label>
+                  <input type="range" min={3} max={10} value={cvFolds} onChange={e => setCvFolds(Number(e.target.value))} style={{ width: '100%', accentColor: '#7c5cbf' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569', marginTop: 2 }}><span>3</span><span>10</span></div>
+                </div>
+              </div>
+              <textarea value={settingsNote} onChange={e => setSettingsNote(e.target.value)}
+                placeholder="Additional notes: e.g. 'handle class imbalance', 'tune hyperparameters', 'use grid search'…"
+                rows={2}
+                style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, marginBottom: 10 }} />
+              <button onClick={handleApplySettings} disabled={busy}
+                style={{ width: '100%', padding: '9px', borderRadius: 9, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(110,84,200,0.07)' : 'linear-gradient(135deg,rgba(110,84,200,0.5),rgba(124,92,191,0.5))', border: '1px solid rgba(110,84,200,0.4)', color: busy ? '#475569' : '#e2e8f0', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                {busy ? <><SpinIcon size={12}/><span>Working…</span></> : <><span>✨</span><span>Apply Settings & Retrain</span></>}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Ask AI */}
+      <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.22)', fontSize: 13, fontWeight: 700, color: '#94a3b8', display: 'flex', gap: 6, alignItems: 'center' }}>
+          <span>💬</span> Ask the AI Agent
+        </div>
+        <div style={{ padding: '10px 12px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <textarea value={aiPrompt} onChange={e => setAiPrompt(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (aiPrompt.trim()) { onSendPrompt(aiPrompt); setAiPrompt(''); } } }}
+            placeholder="Ask anything: 'Show feature importance', 'Try a different model', 'Explain the results'… (Enter to send)"
+            rows={2}
+            style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '8px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5 }} />
+          <button onClick={() => { if (aiPrompt.trim()) { onSendPrompt(aiPrompt); setAiPrompt(''); } }} disabled={busy || !aiPrompt.trim()}
+            style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0, background: aiPrompt.trim() ? 'linear-gradient(135deg,rgba(110,84,200,0.8),rgba(124,92,191,0.8))' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(110,84,200,0.4)', color: aiPrompt.trim() ? '#e2e8f0' : '#475569', cursor: aiPrompt.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>
+            {busy ? <SpinIcon size={12}/> : '↑'}
+          </button>
+        </div>
+      </div>
+
+      {/* Download Model */}
+      {analysisStage === 'pipeline_built' && (
+        <div style={{ marginBottom: 16 }}>
+          <button onClick={onDownloadModel} disabled={downloadingModel}
+            style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: downloadingModel ? 'not-allowed' : 'pointer', background: downloadingModel ? 'rgba(74,222,128,0.04)' : 'linear-gradient(135deg,rgba(74,222,128,0.16),rgba(16,185,129,0.16))', border: '1px solid rgba(74,222,128,0.4)', color: downloadingModel ? '#475569' : '#4ade80', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
+            {downloadingModel ? <><SpinIcon size={14}/><span>Downloading…</span></> : <><span style={{ fontSize: 18 }}>📥</span><span>Download Trained Model</span></>}
+          </button>
+          <p style={{ margin: '6px 0 0', fontSize: 11, color: '#475569', textAlign: 'center' }}>Exports your trained model as a <code style={{ fontFamily: 'monospace' }}>.pkl</code> file</p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!uploadedFilename && (
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
+          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
+          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Easy Mode Status Card ─────────────────────────────────────────────────────
+function EasyStatusCard({ analysisStage, analyzing, buildingPipeline, selectedModel, uploadedFilename }: {
+  analysisStage: 'idle' | 'analyzed' | 'pipeline_built';
+  analyzing: boolean; buildingPipeline: boolean;
+  selectedModel: string | null; uploadedFilename: string | null;
+}) {
+  type Cfg = { icon: string; title: string; desc: string; color: string; border: string; bg: string };
+  let cfg: Cfg = { icon: '⏳', title: 'Waiting for dataset', desc: 'Upload a CSV or Excel file using the panel on the right to begin.', color: '#475569', border: 'rgba(255,255,255,0.07)', bg: 'rgba(255,255,255,0.02)' };
+
+  if (uploadedFilename && analysisStage === 'idle' && !analyzing)
+    cfg = { icon: '📄', title: 'Dataset Ready', desc: `"${uploadedFilename}" is uploaded. Click Analyse in the AI panel to start.`, color: '#60a5fa', border: 'rgba(96,165,250,0.25)', bg: 'rgba(96,165,250,0.06)' };
+  if (analyzing)
+    cfg = { icon: '🔍', title: 'Analysing Dataset…', desc: 'The AI is exploring your data, detecting patterns and recommending models.', color: '#a78bfa', border: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.06)' };
+  if (analysisStage === 'analyzed' && !buildingPipeline)
+    cfg = { icon: '🏆', title: 'Analysis Complete', desc: 'AI has analysed your data and suggested models. Select one in the AI panel to build the pipeline.', color: '#fbbf24', border: 'rgba(251,191,36,0.3)', bg: 'rgba(251,191,36,0.06)' };
+  if (buildingPipeline)
+    cfg = { icon: '🏗️', title: `Training ${selectedModel ?? 'Model'}…`, desc: 'The agent is writing and executing the ML pipeline in the background. This may take a moment.', color: '#4ade80', border: 'rgba(74,222,128,0.3)', bg: 'rgba(74,222,128,0.06)' };
+  if (analysisStage === 'pipeline_built' && !buildingPipeline)
+    cfg = { icon: '✅', title: 'Model Trained Successfully!', desc: `Your ${selectedModel ?? 'ML'} model is ready. View results and charts above, or download the model below.`, color: '#4ade80', border: 'rgba(74,222,128,0.38)', bg: 'rgba(74,222,128,0.07)' };
+
+  return (
+    <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: cfg.bg, border: `1px solid ${cfg.border}` }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ fontSize: 22, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>
+          {(analyzing || buildingPipeline) ? <SpinIcon size={20}/> : cfg.icon}
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: cfg.color, marginBottom: 3 }}>{cfg.title}</div>
+          <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.55 }}>{cfg.desc}</div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── Cell Block ────────────────────────────────────────────────────────────────
