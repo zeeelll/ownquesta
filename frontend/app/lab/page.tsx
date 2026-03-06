@@ -170,6 +170,58 @@ export default function LabPage() {
     } catch { /* storage full */ }
   }, [sid, cells]);
 
+  // ── Auto-save active session state for back-navigation restore ──────────────
+  useEffect(() => {
+    if (!sid) return;
+    try {
+      localStorage.setItem('lab_active_state', JSON.stringify({
+        sid, analysisStage, selectedModel, featureColumns,
+        uploadedFilename, uploadedFilePath, targetCol, predictInputs,
+      }));
+    } catch { /* storage full */ }
+  }, [sid, analysisStage, selectedModel, featureColumns, uploadedFilename, uploadedFilePath, targetCol, predictInputs]);
+
+  // ── Restore last session on back-navigation (skip if coming from dashboard) ─
+  useEffect(() => {
+    if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
+    const raw = localStorage.getItem('lab_active_state');
+    if (!raw) return;
+    try {
+      const s = JSON.parse(raw) as {
+        sid: string; analysisStage: string; selectedModel: string | null;
+        featureColumns: string[]; uploadedFilename: string | null;
+        uploadedFilePath: string | null; targetCol: string;
+        predictInputs: Record<string, string>;
+      };
+      if (!s.sid) return;
+      sidRef.current = s.sid;
+      setSid(s.sid);
+      if (s.analysisStage) setAnalysisStage(s.analysisStage as any);
+      if (s.selectedModel) setSelectedModel(s.selectedModel);
+      if (s.featureColumns?.length) {
+        setFeatureColumns(s.featureColumns);
+        setPredictInputs(s.predictInputs || Object.fromEntries(s.featureColumns.map((c: string) => [c, ''])));
+      }
+      if (s.uploadedFilename) setUploadedFilename(s.uploadedFilename);
+      if (s.uploadedFilePath) setUploadedFilePath(s.uploadedFilePath);
+      if (s.targetCol) setTargetCol(s.targetCol);
+      const savedChat = localStorage.getItem(`lab_chat_${s.sid}`);
+      if (savedChat) {
+        try {
+          const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider');
+          if (msgs.length > 0) setChatMsgs(msgs);
+        } catch { /* corrupt — ignore */ }
+      }
+      const savedCells = localStorage.getItem(`lab_cells_${s.sid}`);
+      if (savedCells) {
+        try {
+          const cs = JSON.parse(savedCells) as Cell[];
+          if (cs.length > 0) setCells(cs);
+        } catch { /* corrupt — ignore */ }
+      }
+    } catch { /* corrupt — ignore */ }
+  }, []);   // runs once on mount only
+
   // ── Continuation: restore session when user clicks "Continue" on dashboard ──
   useEffect(() => {
     const raw = localStorage.getItem('mlContinueProject');
@@ -549,6 +601,15 @@ export default function LabPage() {
     } finally { setChatSending(false); }
   }, [chatInput, getSession, addMsg, addCellFromSSE, agentUp, selectedAiModelId]);
 
+  // ── Open Script Editor ────────────────────────────────────────────────────────
+  const openScriptEditor = useCallback(() => {
+    const session = sid || sidRef.current;
+    if (!session) return;
+    const cellCodes = cellsRef.current.map(c => c.code).filter(Boolean);
+    localStorage.setItem('lab_script_session', JSON.stringify({ sessionId: session, cells: cellCodes }));
+    router.push('/lab/script');
+  }, [sid, router]);
+
   // ── Download Model ────────────────────────────────────────────────────────────
   const downloadModel = useCallback(async () => {
     const session = sid || sidRef.current;
@@ -622,6 +683,7 @@ export default function LabPage() {
     setUploadedFilename(null); setUploadedFilePath(null); setUploadErr(null); setTargetCol('');
     setChatMsgs([{ id: 'w', type: 'welcome', text: 'Upload a CSV or Excel dataset to begin. The AI agent will analyse it, suggest top models, and build a complete ML pipeline for you.' }]);
     setChatInput(''); setAnalysisStage('idle'); setSelectedModel(null); setFeatureColumns([]); setPredictInputs({});
+    localStorage.removeItem('lab_active_state');
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -649,10 +711,16 @@ export default function LabPage() {
             {sid ? `session ${sid.slice(0,7)}…` : 'no session'}
           </span>
           {analysisStage === 'pipeline_built' && (
-            <button onClick={downloadModel} disabled={downloadingModel}
-              style={{ ...ghostBtn, color: downloadingModel ? '#475569' : '#4ade80', borderColor: 'rgba(74,222,128,0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
-              {downloadingModel ? <><SpinIcon size={10}/><span>Downloading…</span></> : <><span>📥</span><span>Download Model</span></>}
-            </button>
+            <>
+              <button onClick={downloadModel} disabled={downloadingModel}
+                style={{ ...ghostBtn, color: downloadingModel ? '#475569' : '#4ade80', borderColor: 'rgba(74,222,128,0.35)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                {downloadingModel ? <><SpinIcon size={10}/><span>Downloading…</span></> : <><span>📥</span><span>Download Model</span></>}
+              </button>
+              <button onClick={() => openScriptEditor()}
+                style={{ ...ghostBtn, color: '#60a5fa', borderColor: 'rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.08)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span>🐍</span><span>Python Script</span>
+              </button>
+            </>
           )}
           <button onClick={() => setEasyMode(e => !e)}
             style={{ ...ghostBtn, color: easyMode ? '#c4b5fd' : '#94a3b8', borderColor: easyMode ? 'rgba(110,84,200,0.5)' : 'rgba(255,255,255,0.1)', background: easyMode ? 'rgba(110,84,200,0.15)' : 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -679,6 +747,7 @@ export default function LabPage() {
               predicting={predicting}
               downloadingModel={downloadingModel}
               onDownloadModel={downloadModel}
+              onOpenScript={openScriptEditor}
               onSendPrompt={(msg) => sendChat(msg)}
               featureColumns={featureColumns}
               predictInputs={predictInputs}
@@ -1080,6 +1149,7 @@ interface EasyModePanelProps {
   predicting: boolean;
   downloadingModel: boolean;
   onDownloadModel(): void;
+  onOpenScript(): void;
   onSendPrompt(msg: string): void;
   featureColumns: string[];
   predictInputs: Record<string, string>;
@@ -1090,7 +1160,7 @@ interface EasyModePanelProps {
 function EasyModePanel({
   analysisStage, uploadedFilename, cells, analyzing, buildingPipeline,
   selectedModel, chatSending, predicting, downloadingModel,
-  onDownloadModel, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict,
+  onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict,
 }: EasyModePanelProps) {
   const [aiPrompt, setAiPrompt]       = useState('');
   const [testSize, setTestSize]       = useState(0.2);
@@ -1300,14 +1370,18 @@ function EasyModePanel({
         </div>
       </div>
 
-      {/* Download Model */}
+      {/* Download Model + Python Script */}
       {analysisStage === 'pipeline_built' && (
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onDownloadModel} disabled={downloadingModel}
             style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: downloadingModel ? 'not-allowed' : 'pointer', background: downloadingModel ? 'rgba(74,222,128,0.04)' : 'linear-gradient(135deg,rgba(74,222,128,0.16),rgba(16,185,129,0.16))', border: '1px solid rgba(74,222,128,0.4)', color: downloadingModel ? '#475569' : '#4ade80', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
-            {downloadingModel ? <><SpinIcon size={14}/><span>Downloading…</span></> : <><span style={{ fontSize: 18 }}>📥</span><span>Download Trained Model</span></>}
+            {downloadingModel ? <><SpinIcon size={14}/><span>Downloading…</span></> : <><span style={{ fontSize: 18 }}>📥</span><span>Download Trained Model (.pkl)</span></>}
           </button>
-          <p style={{ margin: '6px 0 0', fontSize: 11, color: '#475569', textAlign: 'center' }}>Exports your trained model as a <code style={{ fontFamily: 'monospace' }}>.pkl</code> file</p>
+          <button onClick={onOpenScript}
+            style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(96,165,250,0.14),rgba(59,130,246,0.14))', border: '1px solid rgba(96,165,250,0.45)', color: '#60a5fa', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
+            <span style={{ fontSize: 18 }}>🐍</span><span>Open Python Script Editor</span>
+          </button>
+          <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'center' }}>Run, edit, and export your pipeline as <code style={{ fontFamily: 'monospace' }}>.py</code> or <code style={{ fontFamily: 'monospace' }}>.ipynb</code></p>
         </div>
       )}
 
