@@ -8,7 +8,7 @@ import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
 
-import { fetchAvailableModels, canUseModel, recordModelUsage, type AIModel } from '../../lib/aiModels';
+import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
 
 const LAB_URL     = 'http://localhost:8010';
 const AGENT_URL   = 'http://localhost:8020';
@@ -192,7 +192,7 @@ export default function LabPage() {
         const savedChat = localStorage.getItem(`lab_chat_${proj.sessionId}`);
         if (savedChat) {
           try {
-            const msgs = JSON.parse(savedChat) as ChatMsg[];
+            const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider');
             if (msgs.length > 0) {
               const divider: ChatMsg = {
                 id: 'history-divider',
@@ -717,22 +717,12 @@ export default function LabPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <span style={{ fontSize: 13 }}>🤖</span>
               <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>ML Agent</span>
-              {availableModels.length > 0 ? (
-                <select
-                  value={selectedAiModelId}
-                  onChange={e => setSelectedAiModelId(e.target.value)}
-                  disabled={analyzing || buildingPipeline}
-                  style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf', cursor: 'pointer', outline: 'none', fontFamily: 'inherit' }}>
-                  {availableModels.map(m => {
-                    const used = m.free_quota !== null ? (typeof localStorage !== 'undefined' ? (JSON.parse(localStorage.getItem('ownquesta_model_usage') || '{}')[m.id] ?? 0) : 0) : null;
-                    const quota = m.free_quota !== null ? ` (${Math.max(0, m.free_quota - (used as number))} left)` : '';
-                    const disabled = m.free_quota !== null && (used as number) >= m.free_quota;
-                    return <option key={m.id} value={m.id} disabled={disabled}>{m.short_name}{quota}</option>;
-                  })}
-                </select>
-              ) : (
-                <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>
-              )}
+              <ModelSelector
+                models={availableModels}
+                selectedId={selectedAiModelId}
+                onChange={setSelectedAiModelId}
+                disabled={analyzing || buildingPipeline}
+              />
             </div>
 
             {/* Upload */}
@@ -1491,6 +1481,138 @@ function ServiceDot({ label, up }: { label: string; up: boolean | null }) {
 
 function SpinIcon({ size = 10 }: { size?: number }) {
   return <span style={{ display: 'inline-block', width: size, height: size, border: '1.5px solid rgba(99,102,241,0.35)', borderTopColor: '#818cf8', borderRadius: '50%', animation: 'lab-spin 0.7s linear infinite' }} />;
+}
+
+// ── Model selector dropdown ────────────────────────────────────────────────────
+function ModelSelector({ models, selectedId, onChange, disabled }: {
+  models:     AIModel[];
+  selectedId: string;
+  onChange:   (id: string) => void;
+  disabled?:  boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const selected = models.find(m => m.id === selectedId) ?? models[0];
+  const openaiModels     = models.filter(m => m.provider === 'openai');
+  const anthropicModels  = models.filter(m => m.provider === 'anthropic');
+
+  const providerIcon = (p: string) => p === 'anthropic' ? '◆' : '⬡';
+  const providerColor = (p: string) => p === 'anthropic' ? '#d4a0ff' : '#4ade80';
+
+  if (!models.length) {
+    return <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>;
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      {/* Trigger pill */}
+      <button
+        onClick={() => !disabled && setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '3px 8px', borderRadius: 20, cursor: disabled ? 'not-allowed' : 'pointer',
+          background: open ? 'rgba(110,84,200,0.28)' : 'rgba(110,84,200,0.18)',
+          border: `1px solid ${open ? 'rgba(110,84,200,0.6)' : 'rgba(110,84,200,0.35)'}`,
+          color: disabled ? '#475569' : '#c4b5fd', fontSize: 10, fontWeight: 700,
+          letterSpacing: '0.06em', fontFamily: 'inherit', outline: 'none',
+          transition: 'all 0.15s',
+        }}>
+        <span style={{ color: providerColor(selected?.provider ?? 'openai'), fontSize: 8 }}>
+          {providerIcon(selected?.provider ?? 'openai')}
+        </span>
+        <span style={{ textTransform: 'uppercase' }}>{selected?.short_name ?? selectedId}</span>
+        <span style={{ fontSize: 8, opacity: 0.7, marginLeft: 1 }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 9999,
+          background: '#13141f', border: '1px solid rgba(110,84,200,0.35)',
+          borderRadius: 10, padding: '6px 0', minWidth: 220, maxHeight: 320,
+          overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+        }}>
+          {/* OpenAI group */}
+          {openaiModels.length > 0 && (
+            <>
+              <div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#4ade80', opacity: 0.7 }}>
+                ⬡ OpenAI
+              </div>
+              {openaiModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}
+            </>
+          )}
+
+          {/* Separator */}
+          {openaiModels.length > 0 && anthropicModels.length > 0 && (
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '5px 0' }} />
+          )}
+
+          {/* Anthropic group */}
+          {anthropicModels.length > 0 && (
+            <>
+              <div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#d4a0ff', opacity: 0.7 }}>
+                ◆ Anthropic
+              </div>
+              {anthropicModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModelOption({ m, selectedId, onChange }: {
+  m:          AIModel;
+  selectedId: string;
+  onChange:   (id: string) => void;
+}) {
+  const used      = getModelUsageCount(m.id);
+  const exhausted = m.free_quota !== null && used >= m.free_quota;
+  const remaining = m.free_quota !== null ? Math.max(0, m.free_quota - used) : null;
+  const isSelected = m.id === selectedId;
+
+  return (
+    <button
+      disabled={exhausted}
+      onClick={() => !exhausted && onChange(m.id)}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', padding: '7px 12px', background: isSelected ? 'rgba(110,84,200,0.2)' : 'transparent',
+        border: 'none', cursor: exhausted ? 'not-allowed' : 'pointer',
+        color: exhausted ? '#3a3d55' : isSelected ? '#c4b5fd' : '#94a3b8',
+        textAlign: 'left', fontFamily: 'inherit', gap: 8,
+        transition: 'background 0.12s',
+      }}
+      onMouseEnter={e => { if (!exhausted && !isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+      onMouseLeave={e => { if (!exhausted && !isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+      <span style={{ fontSize: 12, fontWeight: isSelected ? 700 : 400, flex: 1 }}>{m.display_name}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        {remaining !== null && (
+          <span style={{
+            fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700,
+            background: exhausted ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)',
+            color: exhausted ? '#ef4444' : '#4ade80',
+            border: `1px solid ${exhausted ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)'}`,
+          }}>
+            {exhausted ? 'used up' : `${remaining} left`}
+          </span>
+        )}
+        {isSelected && <span style={{ fontSize: 10, color: '#a87edf' }}>✓</span>}
+      </span>
+    </button>
+  );
 }
 
 const ghostBtn: React.CSSProperties = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 12px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' };

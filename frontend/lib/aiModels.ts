@@ -78,39 +78,14 @@ export async function fetchAvailableModels(agentUrl: string): Promise<AIModel[]>
 // ── Fallback static list (used when backend is offline) ──────────────────────
 
 export const STATIC_MODELS: AIModel[] = [
-  {
-    id:           'gpt-4o-mini',
-    display_name: 'GPT-4o Mini',
-    short_name:   'GPT-4o-mini',
-    provider:     'openai',
-    free_quota:   null,
-  },
-  {
-    id:           'gpt-4',
-    display_name: 'GPT-4',
-    short_name:   'GPT-4',
-    provider:     'openai',
-    free_quota:   null,
-  },
-  {
-    id:           'gpt-5',
-    display_name: 'GPT-5',
-    short_name:   'GPT-5',
-    provider:     'openai',
-    free_quota:   null,
-  },
-  {
-    id:           'claude-sonnet-4-5',
-    display_name: 'Claude Sonnet 4.5',
-    short_name:   'Claude',
-    provider:     'anthropic',
-    free_quota:   1,
-  },
-  {
-    id:           'gpt-5-codex',
-    display_name: 'GPT-5 Codex',
-    short_name:   'Codex',
-    provider:     'openai',
-    free_quota:   1,
-  },
+  // ── OpenAI ────────────────────────────────────────────────────────────────
+  { id: 'gpt-4o-mini',      display_name: 'GPT-4o Mini',      short_name: 'GPT-4o Mini',  provider: 'openai',     free_quota: null },
+  { id: 'gpt-4',            display_name: 'GPT-4',             short_name: 'GPT-4',        provider: 'openai',     free_quota: null },
+  { id: 'gpt-5',            display_name: 'GPT-5',             short_name: 'GPT-5',        provider: 'openai',     free_quota: null },
+  { id: 'gpt-5-codex',      display_name: 'GPT-5 Codex',      short_name: 'GPT-5 Codex',  provider: 'openai',     free_quota: 1    },
+  // ── Anthropic ─────────────────────────────────────────────────────────────
+  { id: 'claude-opus-4-6',    display_name: 'Claude Opus 4.6',    short_name: 'Opus 4.6',    provider: 'anthropic', free_quota: 1 },
+  { id: 'claude-sonnet-4-6',  display_name: 'Claude Sonnet 4.6',  short_name: 'Sonnet 4.6',  provider: 'anthropic', free_quota: 1 },
+  { id: 'claude-sonnet-4-5',  display_name: 'Claude Sonnet 4.5',  short_name: 'Sonnet 4.5',  provider: 'anthropic', free_quota: 1 },
+  { id: 'claude-haiku-4-5',   display_name: 'Claude Haiku 4.5',   short_name: 'Haiku 4.5',   provider: 'anthropic', free_quota: 3 },
 ];

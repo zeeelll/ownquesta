@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Logo from './components/Logo';
+import NeuralBackground from './components/NeuralBackground';
 
 type AuthUser = {
   authenticated: boolean;
@@ -18,9 +19,6 @@ export default function Home() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const lastScrollY = useRef(0);
-  const orb1Ref = useRef<HTMLDivElement | null>(null);
-  const orb2Ref = useRef<HTMLDivElement | null>(null);
-  const orb3Ref = useRef<HTMLDivElement | null>(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -66,30 +64,17 @@ export default function Home() {
     };
   }, [BACKEND_URL, user]);
 
+  // Smooth scroll (lenis — no orb side-effects)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let lenis: any;
     let rafId: number;
-    if (typeof window === 'undefined') return;
-
     import('lenis').then(({ default: Lenis }) => {
-      lenis = new Lenis({ duration: 1.2, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-
-      function raf(time: number) {
-        lenis.raf(time);
-        const scroll = lenis?.scroll ?? window.scrollY ?? 0;
-        const t = performance.now() / 1000;
-        if (orb1Ref.current) orb1Ref.current.style.transform = `translate3d(${Math.sin(t * 0.9) * 8}px,${-scroll * 0.03 + Math.cos(t * 0.7) * 6}px,0)`;
-        if (orb2Ref.current) orb2Ref.current.style.transform = `translate3d(${Math.cos(t * 0.8) * 10}px,${scroll * 0.02 + Math.sin(t * 0.6) * 8}px,0)`;
-        if (orb3Ref.current) orb3Ref.current.style.transform = `translate3d(${Math.sin(t * 0.6) * 6}px,${scroll * 0.01 + Math.sin(t * 0.9) * 5}px,0)`;
-        rafId = requestAnimationFrame(raf);
-      }
+      lenis = new Lenis({ duration: 1.1, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+      const raf = (time: number) => { lenis.raf(time); rafId = requestAnimationFrame(raf); };
       rafId = requestAnimationFrame(raf);
     }).catch(() => {});
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      if (lenis?.destroy) lenis.destroy();
-    };
+    return () => { cancelAnimationFrame(rafId); if (lenis?.destroy) lenis.destroy(); };
   }, []);
 
   useEffect(() => {
@@ -112,17 +97,8 @@ export default function Home() {
   return (
     <div className="relative text-[#e6eef8] overflow-x-hidden min-h-screen font-chillax">
 
-      {/* Background Video */}
-      <video
-        className="fixed top-0 left-0 w-full h-full object-cover"
-        autoPlay muted loop playsInline preload="auto"
-        style={{ zIndex: -10 }}
-      >
-        <source src="/videos/background.mp4" type="video/mp4" />
-      </video>
-
-      {/* Dark overlay */}
-      <div className="fixed inset-0 bg-black/40" style={{ zIndex: -9 }} />
+      {/* Neural Background */}
+      <NeuralBackground />
 
       {/* Scroll Progress Bar */}
       <div
@@ -141,7 +117,7 @@ export default function Home() {
           navHidden ? '-translate-y-full' : 'translate-y-0'
         } ${
           isScrolled
-            ? 'bg-[rgba(10,11,20,0.75)] backdrop-blur-xl border-b border-white/[0.06]'
+            ? 'bg-[rgba(20,4,40,0.80)] backdrop-blur-xl border-b border-white/[0.06]'
             : 'bg-transparent'
         }`}
       >
