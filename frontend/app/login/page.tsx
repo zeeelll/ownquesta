@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Logo from '../components/Logo';
+import NeuralBackground from '../components/NeuralBackground';
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -177,6 +178,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-5 md:p-8 relative overflow-x-hidden font-chillax" style={{ background: 'radial-gradient(ellipse at top left, #1a1040 0%, #0a0b14 55%, #0e1020 100%)' }}>
+      <NeuralBackground showText={false} />
+      
       {/* Ambient orbs */}
       <div className="fixed top-1/4 -left-32 w-80 h-80 rounded-full opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, #7c5cbf 0%, transparent 70%)', filter: 'blur(40px)' }} />
       <div className="fixed bottom-1/4 -right-32 w-80 h-80 rounded-full opacity-15 pointer-events-none" style={{ background: 'radial-gradient(circle, #4f3ba0 0%, transparent 70%)', filter: 'blur(40px)' }} />

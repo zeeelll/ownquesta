@@ -51,7 +51,7 @@ interface Particle {
  * Neural-network canvas background.
  * Neurons smoothly assemble into "OwnQuesta" with wave motion and cursor repulsion.
  */
-export default function NeuralBackground() {
+export default function NeuralBackground({ showText = true }: { showText?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgRef     = useRef<HTMLCanvasElement>(null);
 
@@ -188,30 +188,39 @@ export default function NeuralBackground() {
     const initParticles = () => {
       startTime = performance.now();
 
-      const pts = sampleTextPositions();
+      if (showText) {
+        const pts = sampleTextPositions();
 
-      // Shuffle text points
-      for (let i = pts.length - 1; i > 0; i--) {
-        const j = (Math.random() * (i + 1)) | 0;
-        [pts[i], pts[j]] = [pts[j], pts[i]];
+        // Shuffle text points
+        for (let i = pts.length - 1; i > 0; i--) {
+          const j = (Math.random() * (i + 1)) | 0;
+          [pts[i], pts[j]] = [pts[j], pts[i]];
+        }
+
+        // Dedicate more particles to the text for clear letter shapes; keep free count
+        // modest so O(n²) link checks stay fast at 60 fps.
+        const textCount = Math.min(pts.length, Math.min(1400, Math.max(700, (W * H / 1400) | 0)));
+        const freeCount = Math.min(160, Math.max(80, (W * H / 10000) | 0));
+
+        textParticles = pts.slice(0, textCount).map(p =>
+          makeParticle(
+            Math.random() * W, Math.random() * H,
+            true, p.x, p.y,
+            Math.random() * STAGGER_MAX,
+          )
+        );
+
+        freeParticles = Array.from({ length: freeCount }, () =>
+          makeParticle(Math.random() * W, Math.random() * H, false)
+        );
+      } else {
+        // No text mode — only free floating particles
+        const freeCount = Math.min(320, Math.max(160, (W * H / 5000) | 0));
+        textParticles = [];
+        freeParticles = Array.from({ length: freeCount }, () =>
+          makeParticle(Math.random() * W, Math.random() * H, false)
+        );
       }
-
-      // Dedicate more particles to the text for clear letter shapes; keep free count
-      // modest so O(n²) link checks stay fast at 60 fps.
-      const textCount = Math.min(pts.length, Math.min(1400, Math.max(700, (W * H / 1400) | 0)));
-      const freeCount = Math.min(160, Math.max(80, (W * H / 10000) | 0));
-
-      textParticles = pts.slice(0, textCount).map(p =>
-        makeParticle(
-          Math.random() * W, Math.random() * H,
-          true, p.x, p.y,
-          Math.random() * STAGGER_MAX,
-        )
-      );
-
-      freeParticles = Array.from({ length: freeCount }, () =>
-        makeParticle(Math.random() * W, Math.random() * H, false)
-      );
     };
 
     // ── Easing ────────────────────────────────────────────────────────────────
