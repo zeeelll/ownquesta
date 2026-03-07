@@ -39,7 +39,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -139,6 +139,18 @@ input, textarea, select, button, label {
   /* Chillax font utility */
   .font-chillax {
     font-family: 'Chillax', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Performance optimizations for smooth scrolling */
+  .performance-optimized {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .scroll-container {
+    contain: layout style paint;
   }
 }
 

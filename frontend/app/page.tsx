@@ -47,7 +47,13 @@ export default function Home() {
     let lenis: any;
     let rafId: number;
     import('lenis').then(({ default: Lenis }) => {
-      lenis = new Lenis({ duration: 1.1, easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
+      lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        smoothWheel: true,
+        wheelMultiplier: 1.0,
+        touchMultiplier: 2.0,
+      });
       const raf = (time: number) => { lenis.raf(time); rafId = requestAnimationFrame(raf); };
       rafId = requestAnimationFrame(raf);
     }).catch(() => {});
@@ -74,8 +80,8 @@ export default function Home() {
   return (
     <div className="relative text-[#e6eef8] overflow-x-hidden min-h-screen font-chillax">
 
-      {/* Neural Background */}
-      <NeuralBackground />
+      {/* Neural Background with performance optimization */}
+      <NeuralBackground performanceMode={true} />
 
       {/* Navigation Bar */}
       <nav

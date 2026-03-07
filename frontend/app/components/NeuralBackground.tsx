@@ -24,10 +24,13 @@ const SPRING_DECAY     = 0.975;   // smooth auto-return after cursor leaves
 const SPRING_CLAMP     = 50;      // moderate scatter radius
 
 // Links
-const FREE_LINK_DIST = 120;    // reduced slightly for better scroll performance
+const FREE_LINK_DIST = 100;    // reduced for better scroll performance
 const FREE_LINK_SQ   = FREE_LINK_DIST * FREE_LINK_DIST;
 const TEXT_LINK_DIST = 16;     // step=4: covers adjacent + 1-step diagonal cleanly
 const TEXT_LINK_SQ   = TEXT_LINK_DIST * TEXT_LINK_DIST;
+
+// Performance mode (for homepage scrolling smoothness)
+let PERF_MODE = false;  // Set to true for heavy scroll scenarios
 
 interface Particle {
   x: number; y: number;
@@ -51,7 +54,7 @@ interface Particle {
  * Neural-network canvas background.
  * Neurons smoothly assemble into "OwnQuesta" with wave motion and cursor repulsion.
  */
-export default function NeuralBackground({ showText = true }: { showText?: boolean } = {}) {
+export default function NeuralBackground({ showText = true, performanceMode = false }: { showText?: boolean; performanceMode?: boolean } = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgRef     = useRef<HTMLCanvasElement>(null);
 
@@ -63,12 +66,15 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
     const ctx   = canvas.getContext('2d')!;
     const bgCtx = bgCanvas.getContext('2d')!;
 
+    PERF_MODE = performanceMode;
     let W = 0, H = 0, DPR = 1;
     let textParticles: Particle[] = [];
     let freeParticles: Particle[] = [];
     const mouse = { x: -9999, y: -9999 };
     let rafId = 0;
     let startTime = 0;
+    let isScrolling = false;
+    let scrollTimeout: NodeJS.Timeout;
 
     // ── Text pixel sampling ────────────────────────────────────────────────────
     // Render text onto an offscreen canvas, scan alpha channel for neuron targets.
@@ -215,9 +221,10 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
         );
       } else {
         // No text mode — only free floating particles
-        const freeCount = Math.min(320, Math.max(160, (W * H / 5000) | 0));
+        // Reduce particle count in performance mode for better scroll
+        const baseFreeCount = performanceMode ? Math.min(200, Math.max(100, (W * H / 8000) | 0)) : Math.min(320, Math.max(160, (W * H / 5000) | 0));
         textParticles = [];
-        freeParticles = Array.from({ length: freeCount }, () =>
+        freeParticles = Array.from({ length: baseFreeCount }, () =>
           makeParticle(Math.random() * W, Math.random() * H, false)
         );
       }
@@ -229,25 +236,30 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
 
     // ── Link drawing ──────────────────────────────────────────────────────────
     const drawLinks = (formProgress: number) => {
-      // 1 · Background neuron network (free particles)
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(148,68,230,0.13)';
-      ctx.lineWidth   = 0.4;
-      for (let i = 0; i < freeParticles.length - 1; i++) {
-        const a = freeParticles[i];
-        for (let j = i + 1; j < freeParticles.length; j++) {
-          const b = freeParticles[j];
-          const dx = a.x - b.x, dy = a.y - b.y;
-          if (dx * dx + dy * dy < FREE_LINK_SQ) {
-            ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+      // Skip link drawing in perf mode during scroll
+      if (PERF_MODE && isScrolling) return;
+
+      // 1 · Background neuron network (free particles) — skip every other frame in perf mode
+      if (!PERF_MODE || formProgress % 2 === 0) {
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(148,68,230,0.13)';
+        ctx.lineWidth   = 0.4;
+        for (let i = 0; i < freeParticles.length - 1; i++) {
+          const a = freeParticles[i];
+          for (let j = i + 1; j < freeParticles.length; j++) {
+            const b = freeParticles[j];
+            const dx = a.x - b.x, dy = a.y - b.y;
+            if (dx * dx + dy * dy < FREE_LINK_SQ) {
+              ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
+            }
           }
         }
+        ctx.stroke();
       }
-      ctx.stroke();
 
       // 2 · Text-particle micro-links (fade in once mostly formed)
-      if (formProgress > 0.42) {
-        const la = Math.min(0.36, (formProgress - 0.42) * 0.62);  // slightly toned down
+      if (formProgress > 0.42 && !PERF_MODE) {
+        const la = Math.min(0.36, (formProgress - 0.42) * 0.62);
         ctx.beginPath();
         ctx.strokeStyle = `rgba(220,170,255,${la.toFixed(3)})`;
         ctx.lineWidth   = 0.40;
@@ -271,7 +283,7 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
       for (const n of freeParticles) {
         const r = n.r * (0.82 + 0.18 * Math.sin(n.phase));
         ctx.shadowColor = `hsl(${n.hue},70%,70%)`;
-        ctx.shadowBlur  = r * 2;
+        ctx.shadowBlur  = PERF_MODE ? r : r * 2;  // No shadow in perf mode
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, PI2);
         ctx.fillStyle = `hsla(${n.hue},86%,76%,${n.alpha.toFixed(2)})`;
@@ -281,7 +293,7 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
       for (const n of textParticles) {
         const r = n.r * (0.82 + 0.18 * Math.sin(n.phase));
         ctx.shadowColor = `hsl(${n.hue},90%,80%)`;
-        ctx.shadowBlur  = r * 2.5;   // less blur = sharper, more legible dots
+        ctx.shadowBlur  = PERF_MODE ? 0 : r * 2.5;  // No shadow in perf mode
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, PI2);
         ctx.fillStyle = `hsla(${n.hue},90%,88%,${n.alpha.toFixed(3)})`;
@@ -411,9 +423,19 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
       }
     };
 
+    // Handle scroll events to reduce heavy calculations during scrolling
+    const onScroll = () => {
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+      }, 150);
+    };
+
     window.addEventListener('resize',     resize,  { passive: true });
     window.addEventListener('mousemove',  onMove,  { passive: true });
     window.addEventListener('mouseleave', onLeave);
+    window.addEventListener('scroll',     onScroll, { passive: true });
     document.addEventListener('visibilitychange', onVisChange);
 
     resize();
@@ -421,13 +443,15 @@ export default function NeuralBackground({ showText = true }: { showText?: boole
     rafId = requestAnimationFrame(tick);
 
     return () => {
+      clearTimeout(scrollTimeout);
       cancelAnimationFrame(rafId);
       window.removeEventListener('resize',     resize);
       window.removeEventListener('mousemove',  onMove);
       window.removeEventListener('mouseleave', onLeave);
+      window.removeEventListener('scroll',     onScroll);
       document.removeEventListener('visibilitychange', onVisChange);
     };
-  }, []);
+  }, [performanceMode]);
 
   return (
     <>
