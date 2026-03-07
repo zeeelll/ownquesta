@@ -289,10 +289,72 @@ export default function DashboardPage() {
   // ── Loading skeleton ─────────────────────────────────────────────────────
   if (!user || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="flex items-center gap-3 text-slate-400">
-          <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm">Loading dashboard…</span>
+      <div className="min-h-screen bg-slate-950">
+        {/* Nav */}
+        <div className="h-14 border-b border-white/5 bg-slate-950/60 flex items-center justify-between px-6">
+          <div className="skel h-7 w-32 rounded-lg" />
+          <div className="flex items-center gap-3">
+            <div className="skel h-7 w-20 rounded-lg" />
+            <div className="skel w-8 h-8 rounded-full" />
+          </div>
+        </div>
+        {/* Body */}
+        <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
+          {/* Page header */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="skel h-8 w-64 rounded-lg" />
+              <div className="skel h-4 w-80 rounded" />
+            </div>
+            <div className="skel h-10 w-32 rounded-xl" />
+          </div>
+          {/* Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[0,1,2].map(i => (
+              <div key={i} className="rounded-xl border border-white/5 bg-slate-900/60 p-5 space-y-3">
+                <div className="skel h-4 w-28 rounded" />
+                <div className="skel h-8 w-12 rounded-lg" />
+                <div className="skel h-3 w-20 rounded" />
+              </div>
+            ))}
+          </div>
+          {/* Pipeline block */}
+          <div className="rounded-xl border border-slate-700/30 bg-slate-900/40 p-5 space-y-4">
+            <div className="skel h-3 w-36 rounded" />
+            <div className="flex flex-wrap gap-6">
+              {[0,1,2,3].map(i => (
+                <div key={i} className="flex items-start gap-3 min-w-[180px]">
+                  <div className="skel w-7 h-7 rounded-full shrink-0" />
+                  <div className="space-y-1.5">
+                    <div className="skel h-4 w-28 rounded" />
+                    <div className="skel h-3 w-40 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* Projects */}
+          <div className="space-y-4">
+            <div className="skel h-6 w-28 rounded-lg" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[0,1,2,3,4,5].map(i => (
+                <div key={i} className="rounded-xl border border-white/5 bg-slate-900/50 p-5 space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1.5">
+                      <div className="skel h-5 w-36 rounded" />
+                      <div className="skel h-3 w-24 rounded" />
+                    </div>
+                    <div className="skel h-6 w-20 rounded-full" />
+                  </div>
+                  <div className="skel h-1.5 w-full rounded-full" />
+                  <div className="flex gap-2">
+                    <div className="skel h-8 flex-1 rounded-lg" />
+                    <div className="skel h-8 flex-1 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

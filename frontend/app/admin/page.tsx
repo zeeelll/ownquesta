@@ -327,10 +327,49 @@ export default function AdminPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="animate-spin h-12 w-12 text-blue-500 mx-auto mb-4" />
-        <p className="text-gray-400">Loading admin panel...</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {/* Header */}
+      <div className="bg-gray-900/95 border-b border-gray-700 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="skel h-7 w-28 rounded-lg" />
+            <div className="skel h-6 w-28 rounded-lg" />
+          </div>
+          <div className="skel h-9 w-32 rounded-lg" />
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Tab bar */}
+        <div className="rounded-xl border border-gray-700 bg-gray-800/50 p-2 flex gap-1">
+          {[0,1,2].map(i => (
+            <div key={i} className="skel flex-1 h-11 rounded-lg" />
+          ))}
+        </div>
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[0,1,2,3].map(i => (
+            <div key={i} className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 space-y-3">
+              <div className="skel h-4 w-24 rounded" />
+              <div className="skel h-9 w-16 rounded-lg" />
+              <div className="skel h-3 w-28 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Table */}
+        <div className="rounded-xl border border-gray-700 bg-gray-800/50 overflow-hidden">
+          <div className="p-4 border-b border-gray-700">
+            <div className="skel h-5 w-32 rounded" />
+          </div>
+          {[0,1,2,3,4].map(i => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-gray-700/50">
+              <div className="skel w-8 h-8 rounded-full shrink-0" />
+              <div className="skel h-4 w-32 rounded flex-1" />
+              <div className="skel h-4 w-40 rounded" />
+              <div className="skel h-6 w-16 rounded-full" />
+              <div className="skel h-7 w-20 rounded-lg" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Logo from './components/Logo';
 import NeuralBackground from './components/NeuralBackground';
@@ -12,13 +12,9 @@ type AuthUser = {
 };
 
 export default function Home() {
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [navHidden, setNavHidden] = useState(false);
-  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const lastScrollY = useRef(0);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -37,31 +33,12 @@ export default function Home() {
       .catch(() => setUser({ authenticated: false }));
 
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const progress = scrollY / (documentHeight - windowHeight);
-      setScrollProgress(progress);
-      setIsScrolled(scrollY > 60);
-      setNavHidden(scrollY > 120 && scrollY > lastScrollY.current);
-      setShowScrollIndicator(scrollY < 100);
-      lastScrollY.current = scrollY;
+      setIsScrolled(window.scrollY > 60);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    let timer: NodeJS.Timeout | undefined;
-    let hideTimer: NodeJS.Timeout | undefined;
-    if (!user?.authenticated) {
-      timer = setTimeout(() => setShowScrollIndicator(true), 2000);
-      hideTimer = setTimeout(() => setShowScrollIndicator(false), 8000);
-    }
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (timer) clearTimeout(timer);
-      if (hideTimer) clearTimeout(hideTimer);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [BACKEND_URL, user]);
 
   // Smooth scroll (lenis — no orb side-effects)
@@ -100,22 +77,9 @@ export default function Home() {
       {/* Neural Background */}
       <NeuralBackground />
 
-      {/* Scroll Progress Bar */}
-      <div
-        className="fixed top-0 left-0 h-[2px] z-[1000]"
-        style={{
-          width: `${scrollProgress * 100}%`,
-          background: 'linear-gradient(90deg, #6e54c8, #a87edf, #7c49a9)',
-          transition: 'width 0.1s linear',
-          boxShadow: '0 0 8px rgba(168, 126, 223, 0.6)',
-        }}
-      />
-
       {/* Navigation Bar */}
       <nav
         className={`fixed top-0 left-0 right-0 px-4 sm:px-6 md:px-10 py-3 md:py-4 flex justify-between items-center z-[100] transition-all duration-500 ${
-          navHidden ? '-translate-y-full' : 'translate-y-0'
-        } ${
           isScrolled
             ? 'bg-[rgba(20,4,40,0.80)] backdrop-blur-xl border-b border-white/[0.06]'
             : 'bg-transparent'
