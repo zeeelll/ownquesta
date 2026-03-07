@@ -12,8 +12,8 @@ const STAGGER_MAX    = 1300;   // ms max stagger offset between particles
 
 // Wave motion (only when particles are settled)
 const WAVE_SPEED  = 0.00060;  // slow, subtle drift — watermark stays readable
-const WAVE_AMP_Y  = 1.0;      // very subtle vertical sway
-const WAVE_AMP_X  = 0.35;     // subtle horizontal sway
+const WAVE_AMP_Y  = 0.45;     // reduced — keeps letters crisp and legible
+const WAVE_AMP_X  = 0.12;     // minimal horizontal sway
 const WAVE_LEN    = 170;      // long wavelength spans the wide watermark text
 
 // Cursor spring repulsion
@@ -26,7 +26,7 @@ const SPRING_CLAMP     = 50;      // moderate scatter radius
 // Links
 const FREE_LINK_DIST = 120;    // reduced slightly for better scroll performance
 const FREE_LINK_SQ   = FREE_LINK_DIST * FREE_LINK_DIST;
-const TEXT_LINK_DIST = 22;     // adjusted for wider particle spacing at step=5
+const TEXT_LINK_DIST = 16;     // step=4: covers adjacent + 1-step diagonal cleanly
 const TEXT_LINK_SQ   = TEXT_LINK_DIST * TEXT_LINK_DIST;
 
 interface Particle {
@@ -88,10 +88,17 @@ export default function NeuralBackground() {
       const g   = oc.getContext('2d')!;
 
       g.imageSmoothingEnabled = false;
-      g.fillStyle    = '#fff';
-      g.font         = `900 ${fontSize}px "Arial Black", Arial, sans-serif`;
+      g.font         = `900 ${fontSize}px "Arial Black", "Impact", Arial, sans-serif`;
       g.textAlign    = 'center';
       g.textBaseline = 'middle';
+
+      // Stroke first with thick width to fatten the letter strokes, then fill —
+      // this ensures even thin letters (like 'i', 'l') have enough particle density.
+      g.strokeStyle = '#fff';
+      g.lineWidth   = Math.max(6, fontSize * 0.032);
+      g.lineJoin    = 'round';
+      g.strokeText(TEXT_WORD, W / 2, oH / 2);
+      g.fillStyle   = '#fff';
       g.fillText(TEXT_WORD, W / 2, oH / 2);
 
       const data = g.getImageData(0, 0, oc.width, oH).data;
@@ -100,12 +107,12 @@ export default function NeuralBackground() {
       // Watermark centred vertically in the viewport
       const textCY = H * 0.5;
 
-      // Step = 5 px — balanced density for the large watermark font
-      const step = 5;
+      // Step = 4 px — denser grid gives crisper letter shapes
+      const step = 4;
 
       for (let row = 0; row < oH; row += step) {
         for (let col = 0; col < oc.width; col += step) {
-          if (data[(row * oc.width + col) * 4 + 3] > 50) {
+          if (data[(row * oc.width + col) * 4 + 3] > 40) {
             pts.push({ x: col, y: textCY + row - oH / 2 });
           }
         }
@@ -148,10 +155,10 @@ export default function NeuralBackground() {
       vx: (Math.random() - .5) * .15,
       vy: (Math.random() - .5) * .15,
       ox: 0, oy: 0,
-      r:         isText ? 1.4 + Math.random() * 0.7  : .5 + Math.random() * .8,
-      hue:       isText ? 262 + Math.random() * 55   : 268 + Math.random() * 52,
-      alpha:     isText ? .04 : .32 + Math.random() * .22,
-      baseAlpha: isText ? .22 + Math.random() * .10  : .32 + Math.random() * .22,
+      r:         isText ? 1.3 + Math.random() * 0.9  : .5 + Math.random() * .8,
+      hue:       isText ? 272 + Math.random() * 38   : 268 + Math.random() * 52,
+      alpha:     isText ? .06 : .32 + Math.random() * .22,
+      baseAlpha: isText ? .48 + Math.random() * .12  : .32 + Math.random() * .22,
       phase:      Math.random() * PI2,
       phaseSpeed: .011 + Math.random() * .019,
       waveOff:    tx / WAVE_LEN,
@@ -189,10 +196,10 @@ export default function NeuralBackground() {
         [pts[i], pts[j]] = [pts[j], pts[i]];
       }
 
-      // 400–750 total: lower count for smooth 60 fps scrolling; ~75 % text, ~25 % free
-      const total     = Math.min(750, Math.max(400, (W * H / 3200) | 0));
-      const textCount = Math.min(pts.length, (total * 0.75) | 0);
-      const freeCount = total - textCount;
+      // Dedicate more particles to the text for clear letter shapes; keep free count
+      // modest so O(n²) link checks stay fast at 60 fps.
+      const textCount = Math.min(pts.length, Math.min(1400, Math.max(700, (W * H / 1400) | 0)));
+      const freeCount = Math.min(160, Math.max(80, (W * H / 10000) | 0));
 
       textParticles = pts.slice(0, textCount).map(p =>
         makeParticle(
@@ -231,10 +238,10 @@ export default function NeuralBackground() {
 
       // 2 · Text-particle micro-links (fade in once mostly formed)
       if (formProgress > 0.42) {
-        const la = Math.min(0.22, (formProgress - 0.42) * 0.38);  // watermark links
+        const la = Math.min(0.36, (formProgress - 0.42) * 0.62);  // slightly toned down
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(215,150,255,${la.toFixed(3)})`;
-        ctx.lineWidth   = 0.28;
+        ctx.strokeStyle = `rgba(220,170,255,${la.toFixed(3)})`;
+        ctx.lineWidth   = 0.40;
         for (let i = 0; i < textParticles.length - 1; i++) {
           const a = textParticles[i];
           for (let j = i + 1; j < textParticles.length; j++) {
@@ -261,14 +268,14 @@ export default function NeuralBackground() {
         ctx.fillStyle = `hsla(${n.hue},86%,76%,${n.alpha.toFixed(2)})`;
         ctx.fill();
       }
-      // Text particles — watermark: visible but stays behind UI content
+      // Text particles — crisp bright nodes that clearly trace each letter
       for (const n of textParticles) {
-        const r = n.r * (0.80 + 0.20 * Math.sin(n.phase));
-        ctx.shadowColor = `hsl(${n.hue},80%,80%)`;
-        ctx.shadowBlur  = r * 5.0;
+        const r = n.r * (0.82 + 0.18 * Math.sin(n.phase));
+        ctx.shadowColor = `hsl(${n.hue},90%,80%)`;
+        ctx.shadowBlur  = r * 2.5;   // less blur = sharper, more legible dots
         ctx.beginPath();
         ctx.arc(n.x, n.y, r, 0, PI2);
-        ctx.fillStyle = `hsla(${n.hue},80%,82%,${n.alpha.toFixed(3)})`;
+        ctx.fillStyle = `hsla(${n.hue},90%,88%,${n.alpha.toFixed(3)})`;
         ctx.fill();
       }
       ctx.shadowBlur = 0;
@@ -326,7 +333,7 @@ export default function NeuralBackground() {
           n.y = n.sy + (n.ty - n.sy) * t + waveDy + n.oy;
 
           // Fade alpha in as formation progresses
-          n.alpha = .04 + (n.baseAlpha - .04) * Math.min(1, rawT * 1.5);
+          n.alpha = .06 + (n.baseAlpha - .06) * Math.min(1, rawT * 1.5);
         }
 
         // Mouse repulsion — pushes the spring offset (ox/oy)
