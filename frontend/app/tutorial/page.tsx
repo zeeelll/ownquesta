@@ -1583,6 +1583,292 @@ function Step5Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
+// LAB PLAYGROUND MOCKUP — Step 6 Visual Component
+// ─────────────────────────────────────────────
+function LabPlaygroundMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-cyan-500/20 shadow-2xl shadow-cyan-900/30"
+      style={{ aspectRatio: '16/9', background: '#080a0f' }}
+    >
+      {/* Very dark background */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
+
+      {/* TOP NAVBAR */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
+        {/* Left: Dashboard button + Lab Playground title */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50">
+            <span>←</span><span>Dashboard</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div>
+            <span className="text-white text-[10px] font-black">Lab Playground</span>
+            <span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span>
+          </div>
+        </div>
+        {/* Right: status indicators + buttons */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-[7px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">backend</span>
+          </div>
+          <div className="flex items-center gap-1 text-[7px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">agent</span>
+          </div>
+          <div className="flex items-center gap-1 text-[7px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-white/20" /><span className="text-white/30">no session</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">
+            ⚡ Easy Mode
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">
+            Reset Kernel
+          </div>
+        </div>
+      </div>
+
+      {/* TWO-COLUMN LAYOUT */}
+      <div className="absolute inset-0 top-8 flex z-10">
+
+        {/* LEFT — Code editor area */}
+        <div className="flex-1 flex flex-col border-r border-white/[0.05]">
+          {/* Warning banner */}
+          <div className="flex items-center gap-2 px-3 py-1.5 border-b border-yellow-500/20 bg-yellow-500/5">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" />
+            <span className="text-[7px] text-yellow-300/80">
+              <strong className="font-bold">pip install</strong> and heavy DL libraries are restricted.
+            </span>
+          </div>
+
+          {/* Code cell */}
+          <div className="m-2 rounded-lg border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+            {/* Cell toolbar */}
+            <div className="flex items-center gap-2 px-2 py-1 border-b border-white/[0.05]">
+              <span className="text-white/30 text-[7px]">[1]</span>
+              <div className="w-4 h-4 rounded-full border border-green-400/50 flex items-center justify-center">
+                <span className="text-green-400 text-[8px]">▶</span>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                {['↑','↓','+','🗑'].map((ic) => (
+                  <div key={ic} className="w-4 h-4 rounded flex items-center justify-center text-[8px] text-white/30 border border-white/[0.06]">{ic}</div>
+                ))}
+              </div>
+            </div>
+            {/* Code line */}
+            <div className="px-3 py-2 font-mono text-[8px] text-white/40">
+              <span className="text-white/20 mr-2">1</span>
+              <span className="text-white/35"># Cell 1 — Ctrl+Enter to run</span>
+            </div>
+          </div>
+
+          {/* Add Cell button */}
+          <div className="mx-2 py-1.5 rounded-lg border border-dashed border-white/[0.07] text-center text-[7px] text-white/25">
+            + Add Cell
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — ML Agent sidebar */}
+        <div className="w-48 flex flex-col border-l border-white/[0.05]" style={{ background: '#0a0c14' }}>
+          {/* ML Agent header */}
+          <div className="px-3 py-2 border-b border-white/[0.05]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[8px]">🤖</span>
+              <span className="text-white text-[9px] font-black">ML Agent</span>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[6px] font-bold border border-violet-400/30 bg-violet-500/10 text-violet-300 ml-auto">
+                ✦ GPT-4O-MINI
+              </div>
+            </div>
+          </div>
+
+          {/* Upload + target column */}
+          <div className="px-3 py-2 space-y-2 border-b border-white/[0.05]">
+            <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] cursor-pointer">
+              <span className="text-[9px]">📁</span>
+              <span className="text-[8px] text-white/60 font-medium">Upload CSV / Excel</span>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg overflow-hidden border border-white/[0.08]">
+              <input
+                className="flex-1 bg-transparent px-2 py-1 text-[7px] text-white/30 outline-none pointer-events-none"
+                placeholder="target column (optional)"
+                readOnly
+              />
+              <div className="px-2 py-1 text-[7px] font-bold text-white border-l border-white/[0.08]" style={{ background: '#7c3aed' }}>
+                Analyse
+              </div>
+            </div>
+          </div>
+
+          {/* Agent welcome message */}
+          <div className="px-3 py-2 flex-1">
+            <div className="flex items-start gap-1.5">
+              <span className="text-[9px] mt-0.5">🤖</span>
+              <div>
+                <div className="text-[7px] font-bold text-white/60 mb-1">ML Agent</div>
+                <p className="text-[7px] text-white/40 leading-relaxed">
+                  Upload a CSV or Excel dataset to begin. The AI agent will analyse it, suggest top models, and build a complete ML pipeline for you.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat input at bottom */}
+          <div className="px-3 py-2 border-t border-white/[0.05]">
+            <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-[7px] text-white/20">
+              Ask anything about your data or pipeline… (Enter to send)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 6
+// ─────────────────────────────────────────────
+const labAnnotations = [
+  {
+    icon: '🧪',
+    label: 'Lab Playground (BETA)',
+    color: '#67e8f9',
+    bg: 'rgba(103,232,249,0.08)',
+    border: 'rgba(103,232,249,0.2)',
+    description: 'The Lab Playground is Ownquesta\'s interactive coding + AI workspace. The BETA badge means it\'s actively being improved. The top-left "← Dashboard" button takes you back anytime.',
+  },
+  {
+    icon: '🟢',
+    label: 'Status Indicators (backend / agent)',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.08)',
+    border: 'rgba(74,222,128,0.2)',
+    description: 'Three live status dots in the top-right: green "backend" (server running), green "agent" (ML Agent ready), and grey "no session" (no active kernel session yet). All three should be green before running code.',
+  },
+  {
+    icon: '⚡',
+    label: 'Easy Mode + Reset Kernel',
+    color: '#a78bfa',
+    bg: 'rgba(167,139,250,0.08)',
+    border: 'rgba(167,139,250,0.2)',
+    description: '"Easy Mode" (violet button) simplifies the interface for non-coders — the AI handles all code generation for you. "Reset Kernel" clears the current execution session and restarts it fresh.',
+  },
+  {
+    icon: '⚠️',
+    label: 'pip install Warning Banner',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.08)',
+    border: 'rgba(251,191,36,0.2)',
+    description: 'A yellow notice at the top of the code area: "pip install and heavy DL libraries are restricted." This means you can\'t install arbitrary packages — the platform provides a curated set of ML libraries.',
+  },
+  {
+    icon: '💻',
+    label: 'Code Cell Editor',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.08)',
+    border: 'rgba(96,165,250,0.2)',
+    description: 'A Jupyter-style code cell numbered [1]. The ▶ green button runs the cell (or press Ctrl+Enter). The toolbar has up/down arrows to reorder cells, + to add a cell below, and 🗑 to delete. "# Cell 1 — Ctrl+Enter to run" is the default placeholder comment.',
+  },
+  {
+    icon: '🤖',
+    label: 'ML Agent Sidebar',
+    color: '#f472b6',
+    bg: 'rgba(244,114,182,0.08)',
+    border: 'rgba(244,114,182,0.2)',
+    description: 'The right panel is your AI co-pilot powered by GPT-4O-MINI. It shows: an "Upload CSV / Excel" button to load your dataset, a "target column (optional)" field, an "Analyse" button to trigger AI analysis, a welcome message, and a chat input at the bottom to ask questions about your data.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 6 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step6Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro */}
+      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        After clicking <strong className="text-white">"⊞ Start Project"</strong>, you're taken to the <strong className="text-white">Lab Playground</strong> — a Jupyter-style interactive workspace with an AI agent on the right. This is where you upload your dataset and let the ML Agent analyse it, suggest models, and build a complete pipeline automatically.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-cyan-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Lab Playground</p>
+        </div>
+        <LabPlaygroundMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Lab Playground</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {labAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Two-panel explainer */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-5 space-y-3">
+          <h4 className="text-sm font-bold text-cyan-300 flex items-center gap-2"><span>💻</span> Left Panel — Code Editor</h4>
+          <p className="text-[13px] text-white/55 leading-relaxed">A full Jupyter-style notebook where code cells can be written, edited, and executed. The ML Agent auto-generates all code here — you don't need to write any yourself. You can also write your own Python if you prefer.</p>
+        </div>
+        <div className="rounded-2xl border border-pink-500/15 bg-pink-500/5 p-5 space-y-3">
+          <h4 className="text-sm font-bold text-pink-300 flex items-center gap-2"><span>🤖</span> Right Panel — ML Agent</h4>
+          <p className="text-[13px] text-white/55 leading-relaxed">Your AI co-pilot powered by GPT-4O-MINI. Upload your CSV/Excel, set the target column, click Analyse — and the agent writes code, runs EDA, selects the best ML models, and builds the full pipeline automatically.</p>
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-cyan-300 flex items-center gap-2">
+          <span>🧪</span> What To Do In The Lab Playground
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Check the top-right status dots — both "backend" and "agent" should be green before proceeding. If they\'re grey, wait a few seconds for the kernel to initialize.' },
+            { step: '2', text: 'In the right ML Agent panel, click "📁 Upload CSV / Excel" to upload your dataset file. Supported formats: .csv, .xlsx, .xls.' },
+            { step: '3', text: 'Optionally type your target column name in the "target column (optional)" field — e.g. "Churn" or "Price". Leave blank to let the AI auto-detect it.' },
+            { step: '4', text: 'Click the violet "Analyse" button. The ML Agent will analyse your data, generate EDA code in the left panel, and suggest the best ML models for your dataset.' },
+            { step: '5', text: 'Use the chat input at the bottom of the right panel to ask the agent anything — "What models did you pick?", "Why is accuracy low?", or "Explain this chart".' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-[11px] font-bold text-cyan-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
@@ -1639,6 +1925,17 @@ export default function TutorialPage() {
       accentColor: '#f472b6',
       borderColor: 'border-pink-500/40',
       badge: 'Project Setup',
+      isCustom: true,
+      fullDescription: '',
+    },
+    {
+      number: 6,
+      title: 'Lab Playground — Upload & Analyse Your Dataset',
+      icon: '🧪',
+      color: 'from-cyan-600/20 to-teal-800/20',
+      accentColor: '#67e8f9',
+      borderColor: 'border-cyan-500/40',
+      badge: 'AI Workspace',
       isCustom: true,
       fullDescription: '',
     },
@@ -1815,6 +2112,8 @@ export default function TutorialPage() {
                   <Step4Content accentColor={step.accentColor} />
                 ) : step.number === 5 ? (
                   <Step5Content accentColor={step.accentColor} />
+                ) : step.number === 6 ? (
+                  <Step6Content accentColor={step.accentColor} />
                 ) : (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
