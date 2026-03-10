@@ -859,6 +859,226 @@ function Step2Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
+// WELCOME PAGE MOCKUP — Step 3 Visual Component
+// ─────────────────────────────────────────────
+function WelcomeMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-orange-500/20 shadow-2xl shadow-purple-900/40"
+      style={{ aspectRatio: '16/9', background: '#0d0b1e' }}
+    >
+      {/* Deep purple starfield */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 60%, #1e1040 0%, #0d0b1e 65%)' }}>
+        {Array.from({ length: 70 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: i % 6 === 0 ? '2px' : '1px',
+              height: i % 6 === 0 ? '2px' : '1px',
+              top: `${(i * 13 + 5) % 100}%`,
+              left: `${(i * 19 + 11) % 100}%`,
+              opacity: 0.1 + (i % 5) * 0.08,
+            }}
+          />
+        ))}
+        {/* Purple glow blobs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-48 rounded-full blur-3xl" style={{ background: 'rgba(109,40,217,0.18)' }} />
+        <div className="absolute bottom-1/4 right-1/3 w-48 h-48 rounded-full blur-3xl" style={{ background: 'rgba(88,28,220,0.12)' }} />
+      </div>
+
+      {/* Top navbar */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 py-2.5 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[10px] font-bold text-white">✦</div>
+          <span className="text-white text-xs font-bold tracking-tight">Ownquesta</span>
+        </div>
+        {/* User avatar */}
+        <div className="flex items-center gap-1.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 border border-white/20 flex items-center justify-center text-[10px] font-bold text-white">S</div>
+          <span className="text-white/40 text-[9px]">▾</span>
+        </div>
+      </div>
+
+      {/* Center content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 z-10">
+        {/* WELCOME BACK badge */}
+        <div className="inline-flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-widest text-white/50 border border-white/10 rounded-full px-3 py-1 mb-4 bg-white/5">
+          <span className="w-1 h-1 rounded-full bg-violet-400" />
+          Welcome Back
+        </div>
+
+        {/* Hero headline */}
+        <h1 className="font-black text-white leading-tight mb-2" style={{ fontSize: 'clamp(14px, 3vw, 28px)' }}>
+          Hey sumit,{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-fuchsia-300">
+            ready to build?
+          </span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-[9px] text-white/40 max-w-xs mb-5 leading-relaxed">
+          Transform your data into powerful AI models — no coding required. Your next breakthrough is just one click away.
+        </p>
+
+        {/* Go to Dashboard button */}
+        <div className="flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-bold text-white mb-6 shadow-lg"
+          style={{ background: 'linear-gradient(90deg, #7c3aed, #8b5cf6)', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}>
+          <span className="text-[11px]">⊞</span>
+          Go to Dashboard
+        </div>
+
+        {/* 3 stat cards */}
+        <div className="flex gap-2.5">
+          {[
+            { value: '50+', label: 'Models' },
+            { value: 'Auto', label: 'Algorithms' },
+            { value: '95%', label: 'Time Saved' },
+          ].map((stat) => (
+            <div key={stat.label} className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/[0.06] text-center min-w-[60px]">
+              <div className="text-white font-black text-sm leading-none mb-0.5">{stat.value}</div>
+              <div className="text-white/40 text-[8px]">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 3
+// ─────────────────────────────────────────────
+const welcomeAnnotations = [
+  {
+    icon: '🔷',
+    label: 'Top Navbar',
+    color: '#818cf8',
+    bg: 'rgba(99,102,241,0.1)',
+    border: 'rgba(99,102,241,0.25)',
+    description: 'The top-left shows the Ownquesta logo. The top-right shows your profile avatar (a circular icon with your initial) plus a dropdown arrow — click it to access account settings or sign out.',
+  },
+  {
+    icon: '✦',
+    label: '"WELCOME BACK" Badge',
+    color: '#a78bfa',
+    bg: 'rgba(139,92,246,0.1)',
+    border: 'rgba(139,92,246,0.25)',
+    description: 'A small pill badge at the top of the center content confirms you\'re authenticated and back in your workspace. It appears every time you return after signing in.',
+  },
+  {
+    icon: '👋',
+    label: 'Personalized Headline',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.25)',
+    description: '"Hey [your name], ready to build?" — the headline uses your actual account name. "ready to build?" is rendered in a violet-to-fuchsia gradient, reinforcing the platform\'s action-oriented tone.',
+  },
+  {
+    icon: '💬',
+    label: 'Subtitle Text',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.25)',
+    description: '"Transform your data into powerful AI models — no coding required. Your next breakthrough is just one click away." This confirms the no-code promise and primes you to click the CTA below.',
+  },
+  {
+    icon: '🚀',
+    label: '"Go to Dashboard" Button',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+    description: 'The main CTA — a glowing violet button with a grid icon (⊞) and the label "Go to Dashboard". Clicking this takes you to Step 4: your project command center where all ML work happens.',
+  },
+  {
+    icon: '📊',
+    label: '3 Platform Stat Cards',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.25)',
+    description: 'Three dark rounded cards below the button highlight platform capabilities: 50+ Models (pre-built algorithms), Auto Algorithms (automatic model selection), and 95% Time Saved (vs manual ML coding).',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 3 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step3Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro */}
+      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        After signing in, you're taken directly to the <strong className="text-white">Welcome Page</strong> — a full-screen dark interface that greets you by name and gives you a one-click path to your workspace. Below is an exact replica of what you'll see, with a breakdown of every element.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-orange-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Welcome Page</p>
+        </div>
+        <WelcomeMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Welcome page</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {welcomeAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-orange-500/15 bg-orange-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-orange-300 flex items-center gap-2">
+          <span>🏠</span> What To Do On The Welcome Page
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Confirm it greets you by name — if it shows the wrong name, check your account profile from the avatar dropdown in the top-right.' },
+            { step: '2', text: 'Note the 3 stat cards: 50+ Models, Auto Algorithms, and 95% Time Saved — these represent the platform\'s core strengths you\'ll experience through the tutorial.' },
+            { step: '3', text: 'Click "Go to Dashboard" (the violet button with the ⊞ icon) — this is your next step and takes you to your main project workspace.' },
+            { step: '4', text: 'This page reappears each time you sign in, so it\'s always a clean, focused entry point back into your work.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[11px] font-bold text-orange-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
@@ -893,15 +1113,8 @@ export default function TutorialPage() {
       accentColor: '#fb923c',
       borderColor: 'border-orange-500/40',
       badge: 'Onboarding',
-      fullDescription: `After signing in, you're greeted with a personalized Welcome Page — "Hey [Your Name], ready to build?"
-
-This page celebrates what's possible with Ownquesta:
-
-• 50+ Pre-built ML Models available instantly
-• Auto Algorithms that select the best approach for your specific data
-• 95% Time Saved versus traditional manual ML coding
-
-A large "Go to Dashboard" button is your gateway to the workspace. You'll also notice the AI Chatbot in the bottom-right corner — it's always available to guide you through any step.`,
+      isCustom: true,
+      fullDescription: '',
     },
     {
       number: 4,
@@ -1275,6 +1488,8 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
                   <Step1Content accentColor={step.accentColor} />
                 ) : step.number === 2 ? (
                   <Step2Content accentColor={step.accentColor} />
+                ) : step.number === 3 ? (
+                  <Step3Content accentColor={step.accentColor} />
                 ) : (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
