@@ -616,6 +616,249 @@ function Step1Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
+// SIGN IN PAGE MOCKUP — Step 2 Visual Component
+// ─────────────────────────────────────────────
+function SignInMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-blue-500/20 shadow-2xl shadow-blue-900/40"
+      style={{ aspectRatio: '16/9', background: '#0d0b1e' }}
+    >
+      {/* Starfield background */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 60% 40%, #1a1040 0%, #0d0b1e 70%)' }}>
+        {Array.from({ length: 55 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: i % 5 === 0 ? '2px' : '1px',
+              height: i % 5 === 0 ? '2px' : '1px',
+              top: `${(i * 17 + 3) % 100}%`,
+              left: `${(i * 23 + 7) % 100}%`,
+              opacity: 0.15 + (i % 4) * 0.1,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Centered card container */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="flex rounded-2xl overflow-hidden shadow-2xl" style={{ width: '68%', maxWidth: 520 }}>
+
+          {/* LEFT PANEL — violet branding */}
+          <div className="flex flex-col justify-between p-5 flex-shrink-0" style={{ width: '42%', background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 60%, #5b21b6 100%)' }}>
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white text-sm font-bold">✦</div>
+              <span className="text-white text-sm font-bold">Ownquesta</span>
+            </div>
+            {/* Tagline */}
+            <div className="mt-4">
+              <h2 className="text-white font-black text-base leading-snug mb-2">
+                Unlock the power of your data
+              </h2>
+              <p className="text-white/65 text-[9px] leading-relaxed mb-4">
+                Join thousands of teams using Ownquesta to build production-ready AI models without writing a single line of code.
+              </p>
+              <div className="space-y-1.5">
+                {['Advanced AI-powered tools', 'Secure cloud storage', 'Explainable AI results'].map((feat) => (
+                  <div key={feat} className="flex items-center gap-2">
+                    <div className="w-3.5 h-3.5 rounded-full bg-white/20 border border-white/40 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-[7px]">✓</span>
+                    </div>
+                    <span className="text-white/80 text-[9px]">{feat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT PANEL — sign in form */}
+          <div className="flex flex-col justify-center p-5 flex-1" style={{ background: '#111827' }}>
+            <h3 className="text-white font-black text-base mb-0.5">Welcome Back</h3>
+            <p className="text-[9px] text-white/45 mb-4">
+              Don't have an account? <span className="text-violet-400 font-semibold">Create one</span>
+            </p>
+
+            {/* Email field */}
+            <div className="mb-3">
+              <label className="text-[8px] font-bold text-white/50 uppercase tracking-widest mb-1 block">EMAIL</label>
+              <div className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[9px] text-white/25">
+                you@example.com
+              </div>
+            </div>
+
+            {/* Password field */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-[8px] font-bold text-white/50 uppercase tracking-widest">PASSWORD</label>
+                <span className="text-[8px] text-white/35">Forgot password?</span>
+              </div>
+              <div className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[9px] text-white/25 flex items-center justify-between">
+                <span>Enter your password</span>
+                <span className="text-white/30 text-[10px]">👁</span>
+              </div>
+            </div>
+
+            {/* Sign In button */}
+            <div className="w-full py-2 rounded-lg text-center text-[10px] font-bold text-white mb-3"
+              style={{ background: 'linear-gradient(90deg, #7c3aed, #8b5cf6)' }}>
+              Sign In
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-[8px] text-white/25">or continue with</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+
+            {/* Google button */}
+            <div className="w-full py-2 rounded-lg border border-white/10 bg-white/5 text-center text-[9px] text-white/70 flex items-center justify-center gap-2">
+              <span className="font-bold text-[10px]">G</span>
+              <span>Continue with Google</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 2
+// ─────────────────────────────────────────────
+const signInAnnotations = [
+  {
+    icon: '🟣',
+    label: 'Left Branding Panel',
+    color: '#a78bfa',
+    bg: 'rgba(139,92,246,0.1)',
+    border: 'rgba(139,92,246,0.25)',
+    description: 'The violet left panel shows the Ownquesta logo and a short pitch: "Unlock the power of your data." Below it are three feature highlights — Advanced AI-powered tools, Secure cloud storage, and Explainable AI results.',
+  },
+  {
+    icon: '👋',
+    label: 'Welcome Back Heading',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.25)',
+    description: '"Welcome Back" is shown for returning users. If you don\'t have an account yet, click "Create one" (the violet link next to the subtext) to be taken to the registration form.',
+  },
+  {
+    icon: '📧',
+    label: 'Email Field',
+    color: '#34d399',
+    bg: 'rgba(52,211,153,0.1)',
+    border: 'rgba(52,211,153,0.25)',
+    description: 'Enter the email address you used to register. The placeholder shows "you@example.com" as a hint. This field is required for both Sign In and account creation.',
+  },
+  {
+    icon: '🔒',
+    label: 'Password Field + Forgot',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.1)',
+    border: 'rgba(251,191,36,0.25)',
+    description: 'Enter your password here. The 👁 icon on the right toggles visibility. If you\'ve forgotten your password, click "Forgot password?" (top-right of this field) to receive a reset email.',
+  },
+  {
+    icon: '🚀',
+    label: 'Sign In Button',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.25)',
+    description: 'The full-width violet gradient "Sign In" button submits your email and password. On success, you\'re taken directly to your Dashboard or the Welcome page.',
+  },
+  {
+    icon: '🔵',
+    label: 'Continue with Google',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.25)',
+    description: 'Skip the form entirely — click this button to sign in (or register) using your Google account. No password needed. This is the fastest way to get started.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 2 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step2Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro */}
+      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        After clicking <strong className="text-white">"Get Started Free"</strong> on the home page, you land on the <strong className="text-white">Sign In page</strong> — a two-panel card centered on a dark starfield background. The left panel reinforces what Ownquesta offers; the right panel is where you authenticate. Here's everything you'll see.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-blue-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Sign In Page</p>
+        </div>
+        <SignInMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Sign In page</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {signInAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-blue-500/15 bg-blue-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-blue-300 flex items-center gap-2">
+          <span>🔐</span> What To Do On The Sign In Page
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'New user? Click "Create one" next to "Don\'t have an account?" to register with your name, email, and password.' },
+            { step: '2', text: 'Returning user? Enter your email and password, then click "Sign In" — you\'ll be taken straight to your Dashboard.' },
+            { step: '3', text: 'Prefer Google? Click "Continue with Google" to authenticate instantly — no form-filling needed.' },
+            { step: '4', text: 'Forgot your password? Click "Forgot password?" above the password field to get a reset link sent to your email.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-[11px] font-bold text-blue-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
@@ -639,13 +882,8 @@ export default function TutorialPage() {
       accentColor: '#60a5fa',
       borderColor: 'border-blue-500/40',
       badge: 'Authentication',
-      fullDescription: `The Sign In page gives you two paths to get started quickly:
-
-Google Sign-In: Click the Google button for instant access using your existing Google account — no passwords required.
-
-New Account: If it's your first time, you'll be guided through a simple registration with your name, email, and a secure password. After signing up, verify your email and you're in.
-
-Returning users simply enter credentials and go. The system remembers you and brings you straight back to your workspace.`,
+      isCustom: true,
+      fullDescription: '',
     },
     {
       number: 3,
@@ -1035,6 +1273,8 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
                 {/* Step 1 gets the custom component, all others use the original prose renderer */}
                 {step.number === 1 ? (
                   <Step1Content accentColor={step.accentColor} />
+                ) : step.number === 2 ? (
+                  <Step2Content accentColor={step.accentColor} />
                 ) : (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
