@@ -327,13 +327,10 @@ export default function AdminPage() {
   };
 
   if (loading) return (
-    <div className="admin-root min-h-screen flex items-center justify-center">
-      <style>{adminStyles}</style>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
       <div className="text-center">
-        <div className="loader-ring mx-auto mb-6">
-          <Loader2 className="animate-spin h-10 w-10 text-cyan-400" />
-        </div>
-        <p className="text-slate-400 font-mono text-sm tracking-widest uppercase">Initialising Command Center...</p>
+        <Loader2 className="animate-spin h-12 w-12 text-blue-500 mx-auto mb-4" />
+        <p className="text-gray-400">Loading admin panel...</p>
       </div>
     </div>
   );

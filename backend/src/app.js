@@ -11,10 +11,17 @@ const MongoStore = _connectMongo && typeof _connectMongo.create === "function"
   ? _connectMongo.default
   : _connectMongo;
 
+<<<<<<< HEAD
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const adminRoutes = require("./routes/admin.routes");
 const genRoutes = require("./routes/gen.routes");
+=======
+const authRoutes    = require("./routes/auth.routes");
+const userRoutes    = require("./routes/user.routes");
+const adminRoutes   = require("./routes/admin.routes");
+const projectRoutes = require("./routes/project.routes");
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
 require("./config/passport");
 
 const app = express();
@@ -71,9 +78,16 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes
+<<<<<<< HEAD
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/gen", genRoutes);
+=======
+app.use("/api/auth",         authRoutes);
+app.use("/api/user",         userRoutes);
+app.use("/api/admin",        adminRoutes);
+app.use("/api/user/projects", projectRoutes);
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
 
 module.exports = app;

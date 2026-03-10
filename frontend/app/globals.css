@@ -39,7 +39,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -140,6 +140,18 @@ input, textarea, select, button, label {
   .font-chillax {
     font-family: 'Chillax', ui-sans-serif, system-ui, sans-serif;
   }
+
+  /* Performance optimizations for smooth scrolling */
+  .performance-optimized {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .scroll-container {
+    contain: layout style paint;
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -228,6 +240,11 @@ input, textarea, select, button, label {
   .btn-primary:active {
     transform: translateY(0);
   }
+}
+
+/* Lab Playground spin animation */
+@keyframes lab-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ─────────────────────────────────────────────
@@ -379,6 +396,21 @@ input, textarea, select, button, label {
 ───────────────────────────────────────────── */
 a, button {
   transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────
+   SKELETON LOADING
+───────────────────────────────────────────── */
+.skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 6px;
 }
 
 /* ─────────────────────────────────────────────

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+<<<<<<< HEAD
 import './ml.css';
 import { explainModelViaGen } from '../../services/api';
 import Logo from '../components/Logo';
@@ -53,105 +54,20 @@ const MLPage: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<{ name?: string; avatar?: string } | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+=======
+
+/**
+ * /ml  →  redirects to /lab (Lab Playground)
+ *
+ * The Lab Playground is the new unified ML experience, powered by
+ * lab-agent (port 8020) + lab-backend (port 8010).
+ */
+export default function MLRedirectPage() {
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
   const router = useRouter();
 
-  const saveProjectToLocalStorage = (fileData: DataFile, rowCount?: number) => {
-    if (typeof window === 'undefined') return;
-    
-    // Create project data for dashboard
-    const projectData = {
-      id: Date.now().toString(),
-      name: fileData.name.replace(/\.[^/.]+$/, ""), // Remove extension
-      dataset: fileData.name,
-      taskType: selectedTask || 'classification',
-      status: 'processing',
-      confidence: Math.floor(Math.random() * 25) + 65, // 65-89%
-      createdDate: new Date().toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric' 
-      }),
-      filePath: fileData.name, // Store for opening
-      rowCount: rowCount || 0, // Store actual row count
-      fileData: {
-        name: fileData.name,
-        size: fileData.size,
-        type: fileData.type,
-        uploadTime: fileData.uploadTime
-      }
-    };
-
-    // Get existing projects and add new one
-    const existingProjects = JSON.parse(localStorage.getItem('userProjects') || '[]');
-    const updatedProjects = [projectData, ...existingProjects];
-    localStorage.setItem('userProjects', JSON.stringify(updatedProjects));
-
-    // Also save ML validation stats for dashboard
-    const mlStats = {
-      totalDatasets: updatedProjects.length,
-      successfulValidations: updatedProjects.filter(p => p.status === 'completed').length,
-      averageAccuracy: Math.floor(Math.random() * 20) + 75, // 75-94%
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem('mlValidationStats', JSON.stringify(mlStats));
-
-    // Add activity to dashboard
-    const activityData = {
-      id: Date.now().toString(),
-      action: `Uploaded dataset ${fileData.name} for analysis (${rowCount?.toLocaleString() || 'unknown'} rows)`,
-      timestamp: new Date().toLocaleTimeString(),
-      type: 'upload'
-    };
-    
-    const existingActivities = JSON.parse(localStorage.getItem('userActivities') || '[]');
-    const updatedActivities = [activityData, ...existingActivities];
-    localStorage.setItem('userActivities', JSON.stringify(updatedActivities));
-  };
-
-  // Save current ML session to localStorage
-  const saveCurrentSession = () => {
-    if (typeof window !== 'undefined' && uploadedFile) {
-      const sessionData = {
-        uploadedFile,
-        dataPreview,
-        selectedTask,
-        currentStep,
-        chatMessages,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('currentMLSession', JSON.stringify(sessionData));
-    }
-  };
-
-  // Clear all ML data
-  const clearAllData = () => {
-    if (typeof window !== 'undefined') {
-      // Clear current session
-      localStorage.removeItem('currentMLSession');
-      
-      // Reset component state
-      setUploadedFile(null);
-      setDataPreview(null);
-      setSelectedTask('');
-      setCurrentStep('upload');
-      setChatMessages([]);
-      setUserQuery('');
-      
-      // Add activity for clearing data
-      const activityData = {
-        id: Date.now().toString(),
-        action: 'Cleared ML workspace data',
-        timestamp: new Date().toLocaleTimeString(),
-        type: 'action'
-      };
-      
-      const existingActivities = JSON.parse(localStorage.getItem('userActivities') || '[]');
-      const updatedActivities = [activityData, ...existingActivities];
-      localStorage.setItem('userActivities', JSON.stringify(updatedActivities));
-    }
-  };
-
   useEffect(() => {
+<<<<<<< HEAD
     // Fetch user data and load previous session
     if (typeof window !== 'undefined') {
       const savedAvatar = localStorage.getItem('userAvatar');
@@ -470,14 +386,23 @@ const MLPage: React.FC = () => {
   }, [currentStep]);
 
   if (!isHydrated) return null;
+=======
+    router.replace('/lab');
+  }, [router]);
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
       minHeight: '100vh',
-      width: '100%',
-      position: 'relative'
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#0a0b14',
+      color: '#94a3b8',
+      fontFamily: "'Inter', sans-serif",
+      fontSize: 14,
     }}>
+<<<<<<< HEAD
       {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 h-16 z-50 flex items-center justify-between px-8 bg-black/20 backdrop-blur-lg border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -1031,8 +956,9 @@ const MLPage: React.FC = () => {
       <div className="ml-footer">
         <p>💡 Pro Tip: The more details you provide, the better the AI can assist you in building your model!</p>
       </div>
+=======
+      Redirecting to Lab Playground…
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
     </div>
   );
-};
-
-export default MLPage;
+}

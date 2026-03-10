@@ -305,16 +305,36 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center relative overflow-hidden">
-        <div className="text-center relative z-10">
-          <div className="inline-block animate-spin rounded-full h-20 w-20 border-4 border-indigo-500 border-t-transparent shadow-lg shadow-indigo-500/50"></div>
-          <p className="mt-8 text-gray-300 text-xl font-medium">Loading your profile...</p>
-          <div className="mt-6 flex justify-center space-x-2">
-            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
-            <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
-            <div className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '600ms' }}></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+        {/* Nav */}
+        <div className="h-16 border-b border-white/5 flex items-center px-8 gap-4">
+          <div className="skel h-7 w-28 rounded-lg" />
+          <div className="ml-auto skel h-7 w-20 rounded-lg" />
+        </div>
+        <div className="max-w-4xl mx-auto px-6 py-10 space-y-6">
+          {/* Avatar + name block */}
+          <div className="rounded-2xl border border-white/5 bg-slate-900/60 p-8 flex items-center gap-6">
+            <div className="skel w-24 h-24 rounded-full shrink-0" />
+            <div className="space-y-3 flex-1">
+              <div className="skel h-7 w-48 rounded-lg" />
+              <div className="skel h-4 w-64 rounded" />
+              <div className="skel h-4 w-40 rounded" />
+            </div>
           </div>
+          {/* Info sections */}
+          {[0,1,2].map(i => (
+            <div key={i} className="rounded-2xl border border-white/5 bg-slate-900/60 p-6 space-y-4">
+              <div className="skel h-5 w-40 rounded-lg" />
+              <div className="grid grid-cols-2 gap-4">
+                {[0,1,2,3].map(j => (
+                  <div key={j} className="space-y-2">
+                    <div className="skel h-3 w-24 rounded" />
+                    <div className="skel h-10 w-full rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );

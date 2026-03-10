@@ -4,6 +4,11 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Logo from '../components/Logo';
 import Button from '../components/Button';
+<<<<<<< HEAD
+=======
+import Chatbot from '../components/Chatbot';
+import NeuralBackground from '../components/NeuralBackground';
+>>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
 
 type AuthUser = {
   authenticated: boolean;
@@ -18,7 +23,6 @@ export default function HomePage() {
   const [navHidden, setNavHidden] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const lastScrollY = useRef(0);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
@@ -78,16 +82,8 @@ export default function HomePage() {
 
   return (
     <div className="relative text-[#e6eef8] overflow-x-hidden min-h-screen font-chillax">
-      {/* Video Background */}
-      <div className="fixed inset-0 z-0 overflow-hidden bg-[#0a0b14]">
-        <video
-          ref={videoRef}
-          autoPlay loop muted playsInline
-          className="absolute min-w-full min-h-full w-auto h-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover"
-          src="/videos/background.mp4"
-        />
-        <div className="absolute inset-0 bg-black/50" />
-      </div>
+      {/* Neural Background */}
+      <NeuralBackground />
 
       {/* Scroll Progress Bar */}
       <div
@@ -106,7 +102,7 @@ export default function HomePage() {
           navHidden ? '-translate-y-full' : 'translate-y-0'
         } ${
           isScrolled
-            ? 'bg-[rgba(10,11,20,0.75)] backdrop-blur-xl border-b border-white/[0.06]'
+            ? 'bg-[rgba(20,4,40,0.80)] backdrop-blur-xl border-b border-white/[0.06]'
             : 'bg-transparent'
         }`}
       >
