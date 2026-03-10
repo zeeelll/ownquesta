@@ -1079,6 +1079,510 @@ function Step3Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
+// DASHBOARD MOCKUP — Step 4 Visual Component
+// ─────────────────────────────────────────────
+function DashboardMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-purple-900/40"
+      style={{ aspectRatio: '16/9', background: '#0b0d14' }}
+    >
+      {/* Dark navy background */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, #0d0f1a 0%, #090b12 100%)' }} />
+
+      {/* TOP NAVBAR */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-2 z-10 border-b border-white/[0.05]" style={{ background: '#0b0d14' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px] font-bold text-white">✦</div>
+          <span className="text-white text-[11px] font-bold">Ownquesta</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-[8px] text-white/50">
+            <span>→</span><span>Home</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-violet-400 to-indigo-500 flex items-center justify-center text-[8px] font-bold text-white">S</div>
+            <span className="text-[8px] text-white/60">sumit sarodiya</span>
+            <span className="text-white/30 text-[8px]">▾</span>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN CONTENT */}
+      <div className="absolute inset-0 pt-8 px-5 pb-3 overflow-hidden z-10">
+
+        {/* Header row */}
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h2 className="text-white font-black text-sm leading-none mb-0.5">
+              Welcome back, <span className="text-violet-400">sumit</span>
+            </h2>
+            <p className="text-[8px] text-white/35">Your ML workspace — track every project from dataset to deployment.</p>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[8px] font-bold text-white"
+            style={{ background: 'linear-gradient(90deg,#7c3aed,#8b5cf6)' }}>
+            <span>+</span> New Project
+          </div>
+        </div>
+
+        {/* 3 STAT CARDS */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {[
+            { label: 'TOTAL PROJECTS', value: '0', sub: 'all time', border: 'border-white/[0.07]', bg: 'bg-white/[0.03]' },
+            { label: 'ACTIVE PROJECTS', value: '0', sub: 'in progress', border: 'border-white/[0.07]', bg: 'bg-white/[0.03]' },
+            { label: 'COMPLETED MODELS', value: '2', sub: 'trained or evaluated', border: 'border-green-500/20', bg: 'bg-green-500/[0.04]' },
+          ].map((card) => (
+            <div key={card.label} className={`rounded-xl border ${card.border} ${card.bg} p-3`}>
+              <div className="text-[7px] font-bold uppercase tracking-widest text-white/30 mb-1">{card.label}</div>
+              <div className="text-white font-black text-xl leading-none mb-0.5">{card.value}</div>
+              <div className="text-[7px] text-white/30">{card.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ML PIPELINE STAGES */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 mb-3">
+          <div className="text-[7px] font-bold uppercase tracking-widest text-white/30 mb-2">ML Pipeline Stages</div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+            {[
+              { n: '1', title: 'Upload Dataset', sub: 'CSV / Excel file loaded into the lab', color: '#7c3aed' },
+              { n: '2', title: 'EDA & Analysis', sub: 'AI profiles data and suggests models', color: '#6d28d9' },
+              { n: '3', title: 'Model Training', sub: 'Full ML pipeline generated & executed', color: '#5b21b6' },
+              { n: '4', title: 'Evaluation', sub: 'Predictions tested with real inputs', color: '#4c1d95' },
+            ].map((s) => (
+              <div key={s.n} className="flex items-start gap-2">
+                <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[7px] font-bold flex-shrink-0 mt-0.5"
+                  style={{ background: s.color }}>
+                  {s.n}
+                </div>
+                <div>
+                  <div className="text-white text-[8px] font-semibold leading-none mb-0.5">{s.title}</div>
+                  <div className="text-white/35 text-[7px] leading-tight">{s.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* MY PROJECTS section */}
+        <div>
+          <div className="text-white text-[10px] font-black mb-2">My Projects</div>
+          <div className="rounded-xl border border-white/[0.06] border-dashed bg-white/[0.015] p-4 flex flex-col items-center justify-center text-center" style={{ minHeight: 80 }}>
+            <div className="w-7 h-7 rounded-xl bg-indigo-900/60 flex items-center justify-center text-sm mb-1.5">✏️</div>
+            <div className="text-white text-[9px] font-bold mb-0.5">No projects yet</div>
+            <div className="text-white/30 text-[7px] leading-relaxed mb-2 max-w-[180px]">
+              Start a new ML project in the Lab Playground — upload a dataset and let the AI agent build a complete pipeline for you.
+            </div>
+            <div className="px-3 py-1 rounded-lg text-[8px] font-bold text-white" style={{ background: '#7c3aed' }}>
+              New Project
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 4
+// ─────────────────────────────────────────────
+const dashboardAnnotations = [
+  {
+    icon: '🔷',
+    label: 'Top Navbar',
+    color: '#818cf8',
+    bg: 'rgba(99,102,241,0.1)',
+    border: 'rgba(99,102,241,0.25)',
+    description: 'Fixed top bar with the Ownquesta logo, a "→ Home" button to return to the Welcome page, and your profile (avatar + "sumit sarodiya" + dropdown arrow) for account settings and sign out.',
+  },
+  {
+    icon: '👋',
+    label: 'Welcome Header + New Project',
+    color: '#a78bfa',
+    bg: 'rgba(139,92,246,0.1)',
+    border: 'rgba(139,92,246,0.25)',
+    description: '"Welcome back, sumit" with your name in violet, plus the subtitle "Your ML workspace — track every project from dataset to deployment." The "＋ New Project" violet button top-right starts a new ML project.',
+  },
+  {
+    icon: '📊',
+    label: '3 Stat Cards',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.25)',
+    description: 'Three cards show live workspace stats: Total Projects (all time), Active Projects (in progress), and Completed Models (trained or evaluated — shown in green). These update automatically as you work.',
+  },
+  {
+    icon: '⚙️',
+    label: 'ML Pipeline Stages',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.25)',
+    description: 'Four numbered stages show the full ML workflow: 1 Upload Dataset → 2 EDA & Analysis → 3 Model Training → 4 Evaluation. Each has a short description of what happens at that stage automatically.',
+  },
+  {
+    icon: '📁',
+    label: 'My Projects Section',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+    description: 'Lists all your ML projects. When empty, it shows "No projects yet" with a ✏️ icon and an explanation. Once you create projects, each appears here with name, status, and model accuracy.',
+  },
+  {
+    icon: '➕',
+    label: '"New Project" CTA (in empty state)',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.25)',
+    description: 'The violet "New Project" button inside the empty projects area — clicking either this or the top-right button opens the project creation flow, which is covered in Step 5 of this tutorial.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 4 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step4Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro */}
+      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        After clicking <strong className="text-white">"Go to Dashboard"</strong> on the Welcome page, this is your central workspace — the <strong className="text-white">Dashboard</strong>. It shows your project stats, the ML pipeline overview, and all your projects at a glance. Below is an exact replica of what you'll see.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-purple-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Dashboard</p>
+        </div>
+        <DashboardMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Dashboard</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {dashboardAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-purple-500/15 bg-purple-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-purple-300 flex items-center gap-2">
+          <span>📊</span> What To Do On The Dashboard
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Check your 3 stat cards at the top — Total Projects, Active Projects, and Completed Models. These update in real time as you work.' },
+            { step: '2', text: 'Read the ML Pipeline Stages panel to understand the 4-step automated workflow: Upload Dataset → EDA & Analysis → Model Training → Evaluation.' },
+            { step: '3', text: 'When you\'re ready to start, click either "＋ New Project" button (top-right or inside the empty state) to begin building your first ML model.' },
+            { step: '4', text: 'As your projects grow, each will appear in "My Projects" with its status and accuracy. You can resume any project from here at any time.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-[11px] font-bold text-purple-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// NEW PROJECT MODAL MOCKUP — Step 5
+// ─────────────────────────────────────────────
+function NewProjectMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-pink-500/20 shadow-2xl shadow-purple-900/40"
+      style={{ aspectRatio: '16/9', background: '#080a10' }}
+    >
+      {/* Dark blurred dashboard background */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0b0d18 0%,#070810 100%)' }} />
+
+      {/* Blurred bg content hint */}
+      <div className="absolute inset-0 opacity-25">
+        {/* navbar hint */}
+        <div className="absolute top-0 left-0 right-0 h-8 border-b border-white/5" style={{ background: '#0b0d14' }} />
+        {/* welcome text hint */}
+        <div className="absolute left-8 top-12">
+          <div className="h-3 w-32 rounded bg-white/10 mb-1" />
+          <div className="h-2 w-48 rounded bg-white/5" />
+        </div>
+        {/* new project button hint top right */}
+        <div className="absolute right-8 top-10 h-6 w-20 rounded-lg" style={{ background: 'rgba(124,58,237,0.4)' }} />
+      </div>
+
+      {/* MODAL CARD — centered */}
+      <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div
+          className="rounded-2xl border border-white/10 shadow-2xl w-[52%]"
+          style={{ background: '#151929', boxShadow: '0 25px 60px rgba(0,0,0,0.7)' }}
+        >
+          {/* Modal header */}
+          <div className="flex items-center gap-3 px-5 pt-4 pb-3 border-b border-white/[0.06]">
+            <div className="w-7 h-7 rounded-xl bg-indigo-800/60 flex items-center justify-center text-sm">✏️</div>
+            <div>
+              <div className="text-white text-[11px] font-black">New Project</div>
+              <div className="text-white/35 text-[8px]">Set up your project before uploading data</div>
+            </div>
+          </div>
+
+          <div className="px-5 py-3 space-y-3">
+            {/* Project Name field */}
+            <div>
+              <label className="text-[8px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1 mb-1">
+                Project Name <span className="text-red-400">*</span>
+              </label>
+              <div className="w-full rounded-lg border border-violet-500/50 bg-white/[0.04] px-3 py-1.5 text-[9px] text-white/25 ring-1 ring-violet-500/20">
+                🖊 Customer Churn Prediction
+              </div>
+            </div>
+
+            {/* Prediction Goal */}
+            <div>
+              <label className="text-[8px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1 mb-1.5">
+                Prediction Goal <span className="text-red-400">*</span>
+              </label>
+              <div className="space-y-1">
+                {[
+                  { icon: '🤖', title: 'Auto-detect', sub: 'Let the AI figure out the best approach', color: '#6d28d9' },
+                  { icon: '🏷️', title: 'Predict a category', sub: 'e.g. spam detection, churn, diagnosis', color: '#5b21b6' },
+                  { icon: '🔢', title: 'Predict a number', sub: 'e.g. house price, sales forecast', color: '#4c1d95' },
+                  { icon: '🔵', title: 'Group similar items', sub: 'e.g. customer segments, topic discovery', color: '#4338ca' },
+                  { icon: '⚠️', title: 'Detect anomalies', sub: 'e.g. fraud detection, equipment failure', color: '#3730a3' },
+                ].map((opt) => (
+                  <div key={opt.title}
+                    className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03]">
+                    <div className="w-4 h-4 rounded flex items-center justify-center text-[9px] flex-shrink-0"
+                      style={{ background: `${opt.color}55` }}>
+                      {opt.icon}
+                    </div>
+                    <div>
+                      <div className="text-white text-[8px] font-semibold leading-none mb-0.5">{opt.title}</div>
+                      <div className="text-white/30 text-[7px]">{opt.sub}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Target Column */}
+            <div>
+              <label className="text-[8px] font-bold text-white/50 uppercase tracking-widest mb-1 flex items-center gap-1">
+                Target Column <span className="text-white/25 font-normal normal-case">(optional – can be set later)</span>
+              </label>
+              <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[8px] text-white/20">
+                e.g. Churn, Price, label — leave blank to auto-detect
+              </div>
+            </div>
+
+            {/* Validation warning */}
+            <div className="flex items-center gap-1.5 text-[8px] text-yellow-400/80">
+              <span>⚠</span>
+              <span>Project Name and Prediction Goal are required.</span>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-2 pt-1 pb-1">
+              <div className="px-4 py-1.5 rounded-lg border border-white/10 text-[9px] text-white/50 bg-white/[0.03]">
+                Cancel
+              </div>
+              <div className="flex-1 py-1.5 rounded-lg text-[9px] font-bold text-white text-center flex items-center justify-center gap-1.5"
+                style={{ background: 'linear-gradient(90deg,#4f46e5,#7c3aed)' }}>
+                <span className="text-[10px]">⊞</span> Start Project
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 5
+// ─────────────────────────────────────────────
+const newProjectAnnotations = [
+  {
+    icon: '✏️',
+    label: 'Modal Header',
+    color: '#a78bfa',
+    bg: 'rgba(139,92,246,0.1)',
+    border: 'rgba(139,92,246,0.25)',
+    description: '"New Project" modal appears as an overlay on top of the Dashboard. The header shows a pencil icon, the title "New Project", and the subtitle "Set up your project before uploading data".',
+  },
+  {
+    icon: '📝',
+    label: 'Project Name Field (required)',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.25)',
+    description: 'A text input highlighted with a violet border. Type a descriptive name for your project — e.g. "Customer Churn Prediction". The red asterisk (*) means this field is required before you can proceed.',
+  },
+  {
+    icon: '🤖',
+    label: 'Auto-detect',
+    color: '#818cf8',
+    bg: 'rgba(99,102,241,0.1)',
+    border: 'rgba(99,102,241,0.25)',
+    description: 'The first Prediction Goal option — "Let the AI figure out the best approach." Choose this if you\'re unsure what type of ML task your data needs. The AI will analyze and decide automatically.',
+  },
+  {
+    icon: '🏷️',
+    label: 'Predict a category / number / group / anomaly',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.25)',
+    description: 'Four specific goal options: Predict a category (classification), Predict a number (regression), Group similar items (clustering), and Detect anomalies (anomaly detection). Pick the one matching your use case.',
+  },
+  {
+    icon: '🎯',
+    label: 'Target Column (optional)',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+    description: 'Optionally specify which column in your CSV is the output you want to predict — e.g. "Churn", "Price", or "label". If left blank, the AI will auto-detect the target column from your uploaded dataset.',
+  },
+  {
+    icon: '🚀',
+    label: 'Cancel / Start Project buttons',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.25)',
+    description: '"Cancel" dismisses the modal and returns to the Dashboard. "⊞ Start Project" (the indigo gradient button) submits the form and creates your project — only enabled when Project Name and Prediction Goal are filled.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 5 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step5Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro */}
+      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        From the Dashboard, click either <strong className="text-white">"＋ New Project"</strong> button and a modal appears over the page. This is where you name your project and choose what kind of ML prediction you want to make — before uploading any data. Here's a full breakdown of every field.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-pink-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — New Project Modal</p>
+        </div>
+        <NewProjectMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual New Project modal</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {newProjectAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Prediction Goal reference table */}
+      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-3">
+        <h4 className="text-sm font-bold text-white/70 flex items-center gap-2">
+          <span>🎯</span> Prediction Goal Quick Reference
+        </h4>
+        <div className="space-y-2">
+          {[
+            { goal: 'Auto-detect',         when: 'Not sure what your data needs — let the AI decide', example: 'Any dataset' },
+            { goal: 'Predict a category',  when: 'Output is a label or class', example: 'Spam / Not Spam, Churn / Stay' },
+            { goal: 'Predict a number',    when: 'Output is a continuous value', example: 'House price, Sales revenue' },
+            { goal: 'Group similar items', when: 'No labels — find natural clusters', example: 'Customer segments, Topic groups' },
+            { goal: 'Detect anomalies',    when: 'Find rare or unusual data points', example: 'Fraud, Equipment failures' },
+          ].map((row) => (
+            <div key={row.goal} className="flex items-start gap-3 py-2 border-b border-white/[0.05] last:border-0">
+              <span className="text-[11px] font-bold text-white/80 w-36 flex-shrink-0">{row.goal}</span>
+              <span className="text-[11px] text-white/45 flex-1">{row.when}</span>
+              <span className="text-[10px] text-white/25 italic hidden sm:block">{row.example}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-pink-500/15 bg-pink-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-pink-300 flex items-center gap-2">
+          <span>✨</span> What To Do In The New Project Modal
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Type a clear, descriptive Project Name — e.g. "Customer Churn Prediction". The red * means this is required.' },
+            { step: '2', text: 'Choose a Prediction Goal. If unsure, pick "Auto-detect" and the AI will figure out the best ML approach from your data.' },
+            { step: '3', text: 'Optionally enter a Target Column name if you already know which column in your CSV is the prediction output. You can skip this — it can be set later.' },
+            { step: '4', text: 'Click "⊞ Start Project" — the button activates once both required fields are filled. The ⚠ warning at the bottom disappears when you\'re ready.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-pink-500/20 border border-pink-500/30 flex items-center justify-center text-[11px] font-bold text-pink-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
@@ -1124,20 +1628,8 @@ export default function TutorialPage() {
       accentColor: '#c084fc',
       borderColor: 'border-purple-500/40',
       badge: 'Command Center',
-      fullDescription: `The Dashboard is your central command center. Everything you've done and everything you'll build lives here.
-
-At the top, four stat cards track your progress in real time:
-
-• ML Verify Dataset — validated datasets count
-• Datasets Uploaded — all files you've submitted
-• Avg Confidence % — accuracy across all trained models
-• Total Rows Analyzed — total data volume processed
-
-The ML Workflow Pipeline shows your 5-step journey visually: Upload Data → Feature Engineering → Model Building → Model Comparison → Deployment. Each phase unlocks as you advance.
-
-Your projects table lists every project with name, dataset, task type, status, accuracy, and creation date. An Activity Timeline at the bottom logs everything — uploads, validations, training runs, and more.
-
-Ready to build? You can use a demo dataset to explore the platform, or upload your own dataset to start a real project.`,
+      isCustom: true,
+      fullDescription: '',
     },
     {
       number: 5,
@@ -1147,179 +1639,8 @@ Ready to build? You can use a demo dataset to explore the platform, or upload yo
       accentColor: '#f472b6',
       borderColor: 'border-pink-500/40',
       badge: 'Project Setup',
-      fullDescription: `Click "Start Validation" from the Dashboard to kick off a new project. A modal appears asking you to name your project — make it descriptive and meaningful.
-
-Good project name examples:
-• "Customer Churn Prediction Q4"
-• "House Price Forecasting Model"
-• "Fraud Detection System"
-
-After naming your project, you choose your ML type:
-
-🤖 Machine Learning — for structured/tabular data tasks like classification, regression, and clustering
-🧠 Deep Learning — for complex patterns, image data, and advanced neural network tasks
-
-Select Machine Learning to continue. Any previous projects appear below so you can resume where you left off.`,
-    },
-    {
-      number: 6,
-      title: 'Setup — Define Goal & Upload Dataset',
-      icon: '📤',
-      color: 'from-green-500/20 to-emerald-700/20',
-      accentColor: '#4ade80',
-      borderColor: 'border-green-500/40',
-      badge: 'ML Setup Page',
-      fullDescription: `The ML Setup page is your starting point for the AutoML pipeline. It has two key actions:
-
-1. Define Your ML Goal
-Type your objective in plain language — no technical terms needed. Examples:
-• "Predict which customers are likely to churn in the next 3 months"
-• "Forecast property sale prices based on location and features"
-• "Detect fraudulent transactions in real time"
-
-Be specific. Mention key variables if you know them.
-
-2. Upload Your Dataset
-Drag and drop your CSV or Excel file onto the upload zone, or click to browse your files. A preview of your data will appear so you can confirm it looks correct before proceeding.
-
-Supported: .csv, .xlsx, .xls
-Recommended size: Under 10 MB for fast results (up to 100 MB supported)
-
-Once both are complete, click "Next" to hand things over to the AI validation agent.`,
-    },
-    {
-      number: 7,
-      title: 'Validate — AI Agent Runs EDA & Validation',
-      icon: '🔍',
-      color: 'from-cyan-500/20 to-teal-700/20',
-      accentColor: '#22d3ee',
-      borderColor: 'border-cyan-500/40',
-      badge: 'Validation Agent',
-      fullDescription: `This is where the intelligence kicks in. The Validation Agent takes over and performs a deep analysis of your dataset automatically.
-
-What the agent does:
-• Exploratory Data Analysis (EDA) — scans distributions, correlations, and patterns
-• Missing Value Detection — identifies incomplete fields and their severity
-• Data Type Validation — checks if columns are correctly typed
-• Class Balance Check — flags imbalanced target variables
-• ML Readiness Assessment — scores your data from 0–100%
-
-You watch the agent work in real time. Progress indicators show each validation step completing. When it's done, you see a clean summary of your data health.
-
-Status indicators:
-🟢 Green — Data is ready, good to go
-🟡 Yellow — Some issues, proceed with caution
-🔴 Red — Significant problems, consider cleaning first
-
-You can still proceed even with warnings — the system will do its best with what you have.`,
-    },
-    {
-      number: 8,
-      title: 'Config — Validation Report & Preprocessing',
-      icon: '⚙️',
-      color: 'from-indigo-500/20 to-blue-800/20',
-      accentColor: '#818cf8',
-      borderColor: 'border-indigo-500/40',
-      badge: 'Configuration Page',
-      fullDescription: `The Config page presents your Validation Report Summary — a complete breakdown of what the agent discovered about your data.
-
-Report highlights include:
-• Total Rows & Columns
-• Data Quality Score
-• Missing values per column
-• Numerical statistics (mean, median, min, max)
-• Feature correlations and distributions
-
-After reviewing the report, you begin the Model Configuration Pipeline:
-
-Step 1 — Preprocessing
-The system suggests the right preprocessing steps for your data: handling missing values, outlier removal, normalization/standardization, and class balancing.
-
-Step 2 — Encoding & Feature Selection
-You see which encoding strategy is recommended (one-hot, label, target encoding) and which features are selected as most informative. You can review and adjust as needed.
-
-Once preprocessing and feature configuration are set, click "Start Modeling" to let the agents do the heavy lifting.`,
-    },
-    {
-      number: 9,
-      title: 'Modeling — Train, Evaluate & Compare',
-      icon: '🤖',
-      color: 'from-violet-500/20 to-purple-800/20',
-      accentColor: '#a78bfa',
-      borderColor: 'border-violet-500/40',
-      badge: 'Modeling Agent',
-      fullDescription: `The Modeling Agent now creates, trains, and evaluates multiple ML models simultaneously — you don't have to pick just one.
-
-Models trained in parallel (classification example):
-• Logistic Regression
-• Random Forest
-• XGBoost / Gradient Boosting
-• Support Vector Machine (SVM)
-• Neural Network
-
-For each model, the agent:
-• Splits data: 80% training / 10% validation / 10% testing
-• Trains with optimal hyperparameters
-• Evaluates using Accuracy, Precision, Recall, F1-Score, and AUC-ROC
-• Generates a confusion matrix and feature importance chart
-
-Progress bars show real-time training status for each model. You can leave the page and return — everything continues in the background.
-
-Once all models complete, the agent presents a side-by-side Comparison View. It highlights the top performer with a 🏆 badge and explains its recommendation. You can review all models and select whichever best fits your business priorities.`,
-    },
-    {
-      number: 10,
-      title: 'Testing — Test Your Best Model',
-      icon: '🧪',
-      color: 'from-yellow-500/20 to-orange-700/20',
-      accentColor: '#facc15',
-      borderColor: 'border-yellow-500/40',
-      badge: 'Model Testing',
-      fullDescription: `Before deployment, the Testing Page lets you validate your best model on real data with the help of the AI agent.
-
-Two testing options:
-
-Manual Input Testing
-Fill in values for each feature your model expects (e.g., Customer Age, Account Balance, Monthly Usage). Click "Predict" and instantly receive:
-• Prediction result (e.g., "Will Churn" or "Won't Churn")
-• Confidence Score (e.g., "87.3% confidence")
-• Feature contribution breakdown — which inputs drove the prediction
-
-Batch Testing
-Upload a test CSV with multiple rows. The agent processes all records at once and returns predictions for every row. Download the results file with predictions and confidence scores included.
-
-The agent also explains how the model works on your data in plain language, helping you understand not just what it predicts, but why — building your confidence before going live.`,
-    },
-    {
-      number: 11,
-      title: 'Explain & Deploy — Understand, Then Go Live',
-      icon: '🚀',
-      color: 'from-red-500/20 to-pink-800/20',
-      accentColor: '#f87171',
-      borderColor: 'border-red-500/40',
-      badge: 'Explain & Deploy',
-      fullDescription: `The final page combines explainability with deployment — because you should understand your model before you ship it.
-
-Explain Section (Powered by Generative AI)
-The system generates a clear, human-readable explanation of why your model was selected as the best:
-• Which features matter most and why
-• How the model performs across different data segments
-• SHAP value visualizations showing individual prediction reasoning
-• Business implications of the model's behavior
-
-This makes your AI decisions transparent, auditable, and trustworthy.
-
-Deploy Section
-When you're ready to go live, click "Deploy Model". In 30–90 seconds, your model becomes a live REST API:
-
-• 🌐 API Endpoint URL — the address developers call for predictions
-• 🔑 API Key — your secure authentication token (keep it private!)
-• 💻 Code Samples — ready-to-use Python, JavaScript, and cURL snippets
-• 📈 Live Dashboard — shows status (🟢 LIVE), prediction count, avg response time (~142ms), and 99.9% uptime
-
-Download Option: Don't need an API? Download your trained model as a file to use in your own environment.
-
-Your model is now live, making real predictions 24/7. Congratulations — you've built and shipped a production AI model! 🎉`,
+      isCustom: true,
+      fullDescription: '',
     },
   ];
 
@@ -1490,6 +1811,10 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
                   <Step2Content accentColor={step.accentColor} />
                 ) : step.number === 3 ? (
                   <Step3Content accentColor={step.accentColor} />
+                ) : step.number === 4 ? (
+                  <Step4Content accentColor={step.accentColor} />
+                ) : step.number === 5 ? (
+                  <Step5Content accentColor={step.accentColor} />
                 ) : (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
