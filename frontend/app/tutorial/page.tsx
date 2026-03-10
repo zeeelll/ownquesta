@@ -70,7 +70,6 @@ function QuestaAgent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Check backend health on mount
   useEffect(() => {
     fetch(`${BACKEND_URL}/questa/health`)
       .then((r) => setBackendStatus(r.ok ? 'online' : 'offline'))
@@ -83,7 +82,6 @@ function QuestaAgent() {
 
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
-  // Welcome message on first open
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([{
@@ -122,7 +120,6 @@ function QuestaAgent() {
     setInput('');
     setIsLoading(true);
 
-    // Build history excluding system messages
     const history = messages
       .filter((m) => m.id !== 'typing' && m.id !== 'welcome' && !m.isTyping)
       .map((m) => ({ role: m.role, content: m.content }));
@@ -200,7 +197,6 @@ function QuestaAgent() {
 
   return (
     <>
-      {/* Floating trigger button */}
       <div className="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
         {!isOpen && (
           <div
@@ -224,30 +220,24 @@ function QuestaAgent() {
           ) : (
             <span className="text-xl">✦</span>
           )}
-          {/* Unread badge */}
           {hasUnread && !isOpen && (
             <span className="absolute -top-1 -right-1 w-4 h-4 bg-pink-500 rounded-full border-2 border-[#060812] animate-pulse" />
           )}
-          {/* Backend status dot */}
           <span className={`absolute -bottom-1 -left-1 w-3 h-3 rounded-full border-2 border-[#060812] ${statusColor}`} title={`Backend: ${backendStatus}`} />
         </button>
       </div>
 
-      {/* Chat window */}
       {isOpen && (
         <div
           className={`fixed bottom-24 right-6 z-[199] ${chatWidth} ${chatHeight} flex flex-col rounded-3xl overflow-hidden shadow-2xl shadow-violet-900/50 border border-white/[0.08] bg-[rgba(8,6,20,0.97)] backdrop-blur-2xl transition-all duration-300`}
           style={{ animation: 'slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}
         >
-          {/* Header */}
           <div className="relative flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-fuchsia-600/5 pointer-events-none" />
-
             <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30 text-lg flex-shrink-0">
               ✦
               <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#08061e] ${statusColor}`} />
             </div>
-
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-white">Questa</h3>
@@ -260,7 +250,6 @@ function QuestaAgent() {
                 {statusLabel}
               </p>
             </div>
-
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -289,7 +278,6 @@ function QuestaAgent() {
             </div>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 custom-scrollbar">
             {messages.map((msg) => (
               <div key={msg.id}>
@@ -323,7 +311,6 @@ function QuestaAgent() {
               </div>
             ))}
 
-            {/* Suggested questions */}
             {showSuggestions && messages.length <= 1 && (
               <div className="mt-2">
                 <p className="text-[11px] text-white/30 font-medium mb-2 px-1">Suggested questions</p>
@@ -344,7 +331,6 @@ function QuestaAgent() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input area */}
           <div className="border-t border-white/[0.06] p-4 flex-shrink-0">
             {backendStatus === 'offline' && (
               <div className="mb-3 flex items-center gap-2 text-[11px] text-red-400/80 bg-red-500/10 border border-red-500/20 rounded-xl px-3 py-2">
@@ -400,28 +386,250 @@ function QuestaAgent() {
 }
 
 // ─────────────────────────────────────────────
+// HOME PAGE MOCKUP — Step 1 Visual Component
+// ─────────────────────────────────────────────
+function HomePageMockup() {
+  return (
+    <div className="relative w-full rounded-2xl overflow-hidden border border-violet-500/20 shadow-2xl shadow-violet-900/40 bg-[#0e0b1e]"
+      style={{ aspectRatio: '16/9' }}
+    >
+      {/* Starfield background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#100c2a] via-[#0e0b22] to-[#060412]">
+        {/* Stars */}
+        {Array.from({ length: 60 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: Math.random() > 0.8 ? '2px' : '1px',
+              height: Math.random() > 0.8 ? '2px' : '1px',
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.6 + 0.1,
+            }}
+          />
+        ))}
+        {/* Glow blobs */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-violet-700/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-indigo-800/20 rounded-full blur-3xl" />
+      </div>
+
+      {/* Navbar */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 z-10 border-b border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[10px] font-bold text-white">✦</div>
+          <span className="text-white text-sm font-bold tracking-tight">Ownquesta</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-[10px] text-white/60 font-medium cursor-pointer">Sign In</div>
+          <div className="text-[10px] text-white/60 font-medium cursor-pointer">About</div>
+          <div className="px-3 py-1 text-[10px] text-white bg-violet-600 hover:bg-violet-500 rounded-lg font-semibold">Tutorial</div>
+        </div>
+      </div>
+
+      {/* Hero content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 z-10 pt-6">
+        <div className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-white/50 border border-white/10 rounded-full px-3 py-1 mb-4 bg-white/5">
+          <span className="w-1 h-1 rounded-full bg-violet-400" />
+          No-Code AI Platform
+        </div>
+
+        <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3 tracking-tight">
+          From Raw Data to<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
+            Intelligent Models
+          </span>
+        </h1>
+
+        <p className="text-[10px] sm:text-xs text-white/50 max-w-sm mb-5 leading-relaxed">
+          A complete no-code AI platform to explore datasets, create features,
+          and train production-ready ML and deep learning models—instantly.
+        </p>
+
+        {/* 3 cards */}
+        <div className="flex gap-2 mb-5 w-full max-w-md">
+          {[
+            { num: '01', title: 'Upload Dataset', sub: 'Any format, any size' },
+            { num: '02', title: 'Understand Data', sub: 'AI-powered analysis' },
+            { num: '03', title: 'Build Model', sub: 'One-click deployment' },
+          ].map((card) => (
+            <div key={card.num} className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl p-2.5">
+              <div className="text-[8px] text-violet-400/60 font-bold mb-1">{card.num}</div>
+              <div className="text-[10px] font-semibold text-white">{card.title}</div>
+              <div className="text-[8px] text-white/40">{card.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA buttons */}
+        <div className="flex gap-2.5">
+          <div className="px-5 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 rounded-xl text-[11px] font-bold text-white shadow-lg shadow-violet-500/30">
+            Get Started Free →
+          </div>
+          <div className="px-5 py-2 border border-white/15 rounded-xl text-[11px] font-medium text-white/70 bg-white/5">
+            Learn More
+          </div>
+        </div>
+      </div>
+
+      {/* Browser chrome overlay - top bar shine */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATION CALLOUTS for Step 1
+// ─────────────────────────────────────────────
+const homePageAnnotations = [
+  {
+    icon: '🔷',
+    label: 'Navbar',
+    color: '#818cf8',
+    bg: 'rgba(99,102,241,0.1)',
+    border: 'rgba(99,102,241,0.25)',
+    description: 'Fixed top bar with the Ownquesta logo (✦) on the left and three nav items on the right: Sign In, About, and Tutorial — which is highlighted in violet since you\'re already on this page.',
+  },
+  {
+    icon: '✦',
+    label: 'No-Code AI Platform Badge',
+    color: '#a78bfa',
+    bg: 'rgba(139,92,246,0.1)',
+    border: 'rgba(139,92,246,0.25)',
+    description: 'A small pill badge just above the headline. It identifies Ownquesta as a "No-Code AI Platform" — meaning you don\'t write any machine learning code yourself.',
+  },
+  {
+    icon: '🎯',
+    label: 'Hero Headline',
+    color: '#c084fc',
+    bg: 'rgba(192,132,252,0.1)',
+    border: 'rgba(192,132,252,0.25)',
+    description: '"From Raw Data to Intelligent Models" — the main value proposition in two lines. "Intelligent Models" is rendered in a violet-to-fuchsia gradient to emphasize the AI-powered output.',
+  },
+  {
+    icon: '📦',
+    label: '3 Workflow Cards',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.1)',
+    border: 'rgba(96,165,250,0.25)',
+    description: 'Three numbered cards show the platform\'s pipeline: 01 Upload Dataset, 02 Understand Data, 03 Build Model. These map directly to the steps you\'ll follow in this tutorial.',
+  },
+  {
+    icon: '🚀',
+    label: 'Get Started Free',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.1)',
+    border: 'rgba(74,222,128,0.25)',
+    description: 'The primary CTA button — a violet gradient pill with an arrow. Clicking this takes you to the Sign In page, which is your next step (Step 2) in this tutorial.',
+  },
+  {
+    icon: '📖',
+    label: 'Learn More',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.1)',
+    border: 'rgba(251,146,60,0.25)',
+    description: 'A secondary ghost button next to "Get Started Free". It leads to the About / feature overview section — useful if you want to understand Ownquesta\'s capabilities before signing up.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 1 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step1Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-10">
+      {/* Intro text */}
+      <div className="space-y-4">
+        <p className="text-base md:text-lg text-white/70 leading-relaxed">
+          When you navigate to <strong className="text-white">ownquesta.com</strong>, you land on the <strong className="text-white">Home Page</strong> — a dark, starfield-themed interface built around a single goal: get you from raw data to a deployed ML model with zero code. Below is an exact replica of what you'll see, followed by a breakdown of every UI element on the page.
+        </p>
+      </div>
+
+      {/* Home Page Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-violet-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Home Page</p>
+        </div>
+        <HomePageMockup />
+        <p className="text-[11px] text-white/25 text-center">↑ Interactive replica of the actual Ownquesta home page</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {homePageAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">
+                  {ann.description}
+                </p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* What to do on the home page */}
+      <div className="rounded-2xl border border-violet-500/15 bg-violet-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-violet-300 flex items-center gap-2">
+          <span>✦</span> What To Do On The Home Page
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Read the headline — "From Raw Data to Intelligent Models" tells you the full scope: you supply the data, Ownquesta handles analysis, training, and deployment.' },
+            { step: '2', text: 'Look at the 3 workflow cards (01 Upload Dataset → 02 Understand Data → 03 Build Model). These are the three macro-phases you\'ll go through in this tutorial.' },
+            { step: '3', text: 'Click "Get Started Free" (the violet gradient button) to go to the Sign In page — that\'s Step 2 of this tutorial.' },
+            { step: '4', text: 'Any time you want to return to this tutorial, click the "Tutorial" button in the top-right navbar — it\'s always there.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-[11px] font-bold text-violet-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
   const steps = [
     {
       number: 1,
-      title: 'Open Ownquesta & Explore Features',
+      title: 'Open Ownquesta & Explore the Home Page',
       icon: '🌟',
       color: 'from-violet-600/20 to-purple-800/20',
       accentColor: '#a78bfa',
       borderColor: 'border-violet-500/40',
       badge: 'Getting Started',
-      fullDescription: `When you first open Ownquesta, you land on the Home Page — a stunning showcase of everything the platform can do for you.
-
-Here you'll discover:
-
-• Auto ML Workflows — build and deploy models without writing a single line of code
-• Agent-Powered Analysis — AI agents handle EDA, validation, preprocessing, and modeling automatically
-• 50+ Pre-built ML Models ready to train on your data
-• End-to-End Pipeline from raw data upload to live deployment
-
-Take a moment to explore the feature highlights. When you're ready, click "Sign In" to continue your journey.`,
+      isCustom: true, // uses Step1Content component
+      fullDescription: '',
     },
     {
       number: 2,
@@ -795,7 +1003,7 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
               key={step.number}
               data-step={step.number}
               ref={(el) => { sectionRefs.current[index] = el; }}
-              className="min-h-screen w-full flex items-center border-b border-white/[0.04] relative overflow-hidden"
+              className="min-h-screen w-full flex items-start border-b border-white/[0.04] relative overflow-hidden"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${step.color} pointer-events-none`} />
               <div className="absolute inset-0 pointer-events-none">
@@ -824,29 +1032,34 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
                   {step.title}
                 </h2>
 
-                <div className="space-y-0">
-                  {step.fullDescription.split('\n\n').map((para, i) => {
-                    if (para.trim().startsWith('•')) {
-                      const lines = para.trim().split('\n').filter(l => l.trim());
-                      return (
-                        <div key={i} className="my-5 space-y-2">
-                          {lines.map((line, j) => {
-                            if (line.trim().startsWith('•')) {
-                              return (
-                                <div key={j} className="flex items-start gap-3">
-                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: step.accentColor }} />
-                                  <span className="text-base md:text-lg text-white/70 leading-relaxed">{line.replace('•', '').trim()}</span>
-                                </div>
-                              );
-                            }
-                            return <p key={j} className="text-base md:text-lg text-white/80 font-semibold leading-relaxed">{line.trim()}</p>;
-                          })}
-                        </div>
-                      );
-                    }
-                    return <p key={i} className="text-base md:text-lg text-white/70 leading-relaxed my-4">{para.trim()}</p>;
-                  })}
-                </div>
+                {/* Step 1 gets the custom component, all others use the original prose renderer */}
+                {step.number === 1 ? (
+                  <Step1Content accentColor={step.accentColor} />
+                ) : (
+                  <div className="space-y-0">
+                    {step.fullDescription.split('\n\n').map((para, i) => {
+                      if (para.trim().startsWith('•')) {
+                        const lines = para.trim().split('\n').filter(l => l.trim());
+                        return (
+                          <div key={i} className="my-5 space-y-2">
+                            {lines.map((line, j) => {
+                              if (line.trim().startsWith('•')) {
+                                return (
+                                  <div key={j} className="flex items-start gap-3">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: step.accentColor }} />
+                                    <span className="text-base md:text-lg text-white/70 leading-relaxed">{line.replace('•', '').trim()}</span>
+                                  </div>
+                                );
+                              }
+                              return <p key={j} className="text-base md:text-lg text-white/80 font-semibold leading-relaxed">{line.trim()}</p>;
+                            })}
+                          </div>
+                        );
+                      }
+                      return <p key={i} className="text-base md:text-lg text-white/70 leading-relaxed my-4">{para.trim()}</p>;
+                    })}
+                  </div>
+                )}
 
                 <div className="mt-12 pt-8 border-t border-white/[0.06] flex items-center justify-between">
                   {step.number > 1 ? (
@@ -899,7 +1112,6 @@ Your model is now live, making real predictions 24/7. Congratulations — you've
           </section>
         </div>
 
-        {/* Questa AI Agent — connected to http://127.0.0.1:8000/questa/chat */}
         <QuestaAgent />
       </div>
     </div>
