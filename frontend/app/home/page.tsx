@@ -4,11 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import Logo from '../components/Logo';
 import Button from '../components/Button';
-<<<<<<< HEAD
-=======
 import Chatbot from '../components/Chatbot';
 import NeuralBackground from '../components/NeuralBackground';
->>>>>>> 6f4c97c774bd042569f9ba1a40212e544a034189
 
 type AuthUser = {
   authenticated: boolean;
