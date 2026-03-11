@@ -539,10 +539,10 @@ function Step1Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro text */}
       <div className="space-y-4">
-        <p className="text-base md:text-lg text-white/70 leading-relaxed">
+        <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
           When you navigate to <strong className="text-white">ownquesta.com</strong>, you land on the <strong className="text-white">Home Page</strong> — a dark, starfield-themed interface built around a single goal: get you from raw data to a deployed ML model with zero code. Below is an exact replica of what you'll see, followed by a breakdown of every UI element on the page.
         </p>
       </div>
@@ -553,8 +553,10 @@ function Step1Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-violet-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Home Page</p>
         </div>
-        <HomePageMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Interactive replica of the actual Ownquesta home page</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <HomePageMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Interactive replica of the actual Ownquesta home page</p>
       </div>
 
       {/* Annotation cards */}
@@ -564,7 +566,7 @@ function Step1Content({ accentColor }: { accentColor: string }) {
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {homePageAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -787,9 +789,9 @@ function Step2Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro */}
-      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed">
         After clicking <strong className="text-white">"Get Started Free"</strong> on the home page, you land on the <strong className="text-white">Sign In page</strong> — a two-panel card centered on a dark starfield background. The left panel reinforces what Ownquesta offers; the right panel is where you authenticate. Here's everything you'll see.
       </p>
 
@@ -799,8 +801,10 @@ function Step2Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-blue-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Sign In Page</p>
         </div>
-        <SignInMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Sign In page</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <SignInMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Sign In page</p>
       </div>
 
       {/* Annotation cards */}
@@ -809,7 +813,7 @@ function Step2Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {signInAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -1007,9 +1011,9 @@ function Step3Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro */}
-      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
         After signing in, you're taken directly to the <strong className="text-white">Welcome Page</strong> — a full-screen dark interface that greets you by name and gives you a one-click path to your workspace. Below is an exact replica of what you'll see, with a breakdown of every element.
       </p>
 
@@ -1019,8 +1023,10 @@ function Step3Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-orange-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Welcome Page</p>
         </div>
-        <WelcomeMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Welcome page</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <WelcomeMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Welcome page</p>
       </div>
 
       {/* Annotation cards */}
@@ -1029,7 +1035,7 @@ function Step3Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {welcomeAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -1245,9 +1251,9 @@ function Step4Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro */}
-      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed">
         After clicking <strong className="text-white">"Go to Dashboard"</strong> on the Welcome page, this is your central workspace — the <strong className="text-white">Dashboard</strong>. It shows your project stats, the ML pipeline overview, and all your projects at a glance. Below is an exact replica of what you'll see.
       </p>
 
@@ -1257,8 +1263,10 @@ function Step4Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-purple-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Dashboard</p>
         </div>
-        <DashboardMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Dashboard</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <DashboardMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Dashboard</p>
       </div>
 
       {/* Annotation cards */}
@@ -1267,7 +1275,7 @@ function Step4Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {dashboardAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -1489,9 +1497,9 @@ function Step5Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro */}
-      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
         From the Dashboard, click either <strong className="text-white">"＋ New Project"</strong> button and a modal appears over the page. This is where you name your project and choose what kind of ML prediction you want to make — before uploading any data. Here's a full breakdown of every field.
       </p>
 
@@ -1501,8 +1509,10 @@ function Step5Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-pink-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — New Project Modal</p>
         </div>
-        <NewProjectMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual New Project modal</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <NewProjectMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual New Project modal</p>
       </div>
 
       {/* Annotation cards */}
@@ -1511,7 +1521,7 @@ function Step5Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {newProjectAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -1784,9 +1794,9 @@ function Step6Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {/* Intro */}
-      <p className="text-base md:text-lg text-white/70 leading-relaxed">
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed">
         After clicking <strong className="text-white">"⊞ Start Project"</strong>, you're taken to the <strong className="text-white">Lab Playground</strong> — a Jupyter-style interactive workspace with an AI agent on the right. This is where you upload your dataset and let the ML Agent analyse it, suggest models, and build a complete pipeline automatically.
       </p>
 
@@ -1796,8 +1806,10 @@ function Step6Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full bg-cyan-400" />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Lab Playground</p>
         </div>
-        <LabPlaygroundMockup />
-        <p className="text-[11px] text-white/25 text-center">↑ Replica of the actual Ownquesta Lab Playground</p>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <LabPlaygroundMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Lab Playground</p>
       </div>
 
       {/* Annotation cards */}
@@ -1806,7 +1818,7 @@ function Step6Content({ accentColor }: { accentColor: string }) {
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
           <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {labAnnotations.map((ann, i) => (
             <button
               key={i}
@@ -2072,14 +2084,14 @@ export default function TutorialPage() {
               key={step.number}
               data-step={step.number}
               ref={(el) => { sectionRefs.current[index] = el; }}
-              className="min-h-screen w-full flex items-start border-b border-white/[0.04] relative overflow-hidden"
+              className="min-h-screen w-full flex items-start border-b border-white/[0.04] relative overflow-hidden bg-[#060810]"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${step.color} pointer-events-none`} />
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-1/2 right-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-20 -translate-y-1/2" style={{ background: step.accentColor }} />
               </div>
 
-              <div className="relative w-full max-w-3xl px-8 sm:px-12 md:px-16 lg:px-12 py-20 lg:py-24">
+              <div className="relative w-full px-8 sm:px-12 md:px-16 lg:px-20 py-20 lg:py-24">
                 <div className="mb-6">
                   <span className={`inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full border ${step.borderColor} bg-white/5`}>
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: step.accentColor }} />
@@ -2126,7 +2138,7 @@ export default function TutorialPage() {
                                 return (
                                   <div key={j} className="flex items-start gap-3">
                                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: step.accentColor }} />
-                                    <span className="text-base md:text-lg text-white/70 leading-relaxed">{line.replace('•', '').trim()}</span>
+                                    <span className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">{line.replace('•', '').trim()}</span>
                                   </div>
                                 );
                               }
