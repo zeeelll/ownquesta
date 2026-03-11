@@ -1807,50 +1807,96 @@ const labRunningAnnotations = [
 ];
 
 function Step7Content({ accentColor }: { accentColor: string }) {
+  const [activeMode, setActiveMode] = useState<'easy' | 'code'>('easy');
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  const annotations = activeMode === 'easy' ? easyModeAnnotations : labRunningAnnotations;
+
   return (
     <div className="space-y-12">
       <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
-        After uploading your dataset and clicking <strong className="text-white">"Analyse"</strong>, the ML Agent springs into action. It auto-generates Python code, runs it in the left panel, analyses your data structure, handles missing values, applies feature engineering — and streams every step live in the right sidebar.
+        After uploading your dataset and clicking <strong className="text-white">"Analyse"</strong>, the ML Agent processes your data and delivers results — differently depending on your mode. In <strong className="text-white">Easy Mode</strong>, you see charts, a progress bar, and top model picks. In <strong className="text-white">Code Mode</strong>, the agent auto-generates Python, runs it live, and streams every step in the sidebar.
       </p>
+
+      {/* Mode tab switcher */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          onClick={() => { setActiveMode('easy'); setActiveAnnotation(null); }}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border"
+          style={activeMode === 'easy'
+            ? { background: 'rgba(167,139,250,0.15)', borderColor: 'rgba(167,139,250,0.4)', color: '#a78bfa' }
+            : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }}>
+          ✨ Easy Mode
+        </button>
+        <button
+          onClick={() => { setActiveMode('code'); setActiveAnnotation(null); }}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 border"
+          style={activeMode === 'code'
+            ? { background: 'rgba(96,165,250,0.15)', borderColor: 'rgba(96,165,250,0.4)', color: '#60a5fa' }
+            : { background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }}>
+          🖥 Code Mode
+        </button>
+        <span className="text-xs text-white/25 ml-1">Toggle to see how each mode looks after analysis</span>
+      </div>
+
+      {/* Mockup preview */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Lab Playground in Action</p>
+          <span className="w-2 h-2 rounded-full" style={{ background: activeMode === 'easy' ? '#a78bfa' : '#60a5fa' }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">
+            Live Preview — After Analysis ({activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'})
+          </p>
         </div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
-          <LabRunningMockup />
+          {activeMode === 'easy' ? <EasyModeMockup /> : <LabRunningMockup />}
         </div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Lab Playground after uploading customer_data.csv and clicking Analyse</p>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">
+          ↑ {activeMode === 'easy'
+            ? 'Easy Mode — analysis complete, charts and top 3 models shown'
+            : 'Code Mode — ML Agent auto-generates and runs Python, streams results live'}
+        </p>
       </div>
+
+      {/* Annotation cards */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-5">
           <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">
+            UI Element Breakdown — {activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'} — Click to Explore
+          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {labRunningAnnotations.map((ann, i) => (
-            <button key={i} onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+          {annotations.map((ann, i) => (
+            <button
+              key={`${activeMode}-${i}`}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
               className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)', borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)' }}>
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-xl">{ann.icon}</span>
                 <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
                 <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
               </div>
-              {activeAnnotation === i && <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>}
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
             </button>
           ))}
         </div>
       </div>
+
+      {/* What the agent does */}
       <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-3">
         <h4 className="text-sm font-bold text-white/70 flex items-center gap-2"><span>🤖</span> What the ML Agent Does Automatically</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { step: '1', title: 'Dataset Profiling', desc: 'Prints shape, column names, dtypes, unique counts, and null counts for every column.', color: '#60a5fa' },
+            { step: '1', title: 'Dataset Profiling', desc: 'Reads shape, column names, dtypes, unique counts and null counts for every column.', color: '#60a5fa' },
             { step: '2', title: 'Missing Value Check', desc: 'Detects any nulls and decides whether to impute or drop — reports the result.', color: '#4ade80' },
             { step: '3', title: 'Feature Engineering', desc: 'Encodes categorical columns using LabelEncoder or OneHotEncoder automatically.', color: '#fbbf24' },
-            { step: '4', title: 'EDA & Model Selection', desc: 'Runs full Exploratory Data Analysis and selects the best ML models for your task.', color: '#f472b6' },
+            { step: '4', title: 'EDA & Model Selection', desc: 'Runs full Exploratory Data Analysis, generates charts, and picks the top 3 models.', color: '#f472b6' },
           ].map(item => (
             <div key={item.step} className="flex items-start gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
               <span className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black flex-shrink-0 mt-0.5"
@@ -1863,18 +1909,20 @@ function Step7Content({ accentColor }: { accentColor: string }) {
           ))}
         </div>
       </div>
-      <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2"><span>🔬</span> What To Watch For During Analysis</h4>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-cyan-500/15 bg-cyan-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-cyan-300 flex items-center gap-2"><span>⚡</span> What To Do After Analysis</h4>
         <div className="space-y-3">
           {[
-            { step: '1', text: 'Watch the right sidebar — the ML Agent streams its findings in real time: missing values, feature engineering steps, and EDA results appear one by one as they complete.' },
-            { step: '2', text: 'In the left panel, check the code output for your dataset\'s shape (e.g. "Rows: 20, Columns: 8") and column info — this confirms your data was loaded correctly.' },
-            { step: '3', text: 'Look for the green "Feature Engineering Applied" card in the sidebar — it shows the exact code used to encode your categorical columns and the new dataset shape.' },
-            { step: '4', text: 'When you see "Running Exploratory Data Analysis…" and "Agent is analysing your dataset…", the pipeline is still building — wait for it to complete before moving on.' },
-            { step: '5', text: 'Use the chat input at the bottom of the sidebar to ask questions mid-analysis — e.g. "Why did you encode gender?" or "What models are being considered?"' },
+            { step: '1', text: 'In Easy Mode — confirm the progress bar shows ✓ Upload and ✓ Analyse both green. Review the 3 auto-generated charts in the left panel for your data distribution and correlations.' },
+            { step: '2', text: 'In Easy Mode — read the Top 3 Recommended Models in the right sidebar. Check the pros and cons listed under each one, then click "▶ Build Pipeline" on your preferred model.' },
+            { step: '3', text: 'In Code Mode — check the left panel code output for your dataset\'s shape and column info. This confirms your data was loaded and encoded correctly.' },
+            { step: '4', text: 'In Code Mode — watch the right sidebar stream live: missing value check → feature engineering → EDA → model recommendations appear one by one as the agent works.' },
+            { step: '5', text: 'In either mode — use the chat input to ask: "Which model is best for my data?", "Why did you encode gender?", or "Show feature importance" at any time.' },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-emerald-300 flex-shrink-0 mt-0.5">{item.step}</span>
+              <span className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-[11px] font-bold text-cyan-300 flex-shrink-0 mt-0.5">{item.step}</span>
               <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
             </div>
           ))}
@@ -2037,65 +2085,6 @@ const easyModeAnnotations = [
   { icon: '▶', label: 'Build Pipeline Button', color: '#818cf8', bg: 'rgba(129,140,248,0.08)', border: 'rgba(129,140,248,0.2)', description: '"▶ Build Pipeline with Random Forest Classifier" — the indigo CTA button under the top model. Clicking this triggers Step 3 of the progress bar and starts training. You can also scroll down to pick Logistic Regression or Gradient Boosting instead.' },
 ];
 
-// Step 8 uses EasyModeMockup (the post-analysis state) — kept as original
-function Step8Content({ accentColor }: { accentColor: string }) {
-  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
-  return (
-    <div className="space-y-12">
-      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
-        After the ML Agent finishes analysing your dataset, the Easy Mode view updates with visualisations, a progress confirmation, and the top 3 recommended models. Here's exactly what you'll see — and what each element means.
-      </p>
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-2 h-2 rounded-full bg-yellow-400" />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Easy Mode After Analysis</p>
-        </div>
-        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
-          <EasyModeMockup />
-        </div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Easy Mode after dataset analysis — model selection stage</p>
-      </div>
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-5">
-          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {easyModeAnnotations.map((ann, i) => (
-            <button key={i} onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
-              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)', borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)' }}>
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-xl">{ann.icon}</span>
-                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
-                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
-              </div>
-              {activeAnnotation === i && <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-yellow-300 flex items-center gap-2"><span>🏆</span> What To Do After Analysis</h4>
-        <div className="space-y-3">
-          {[
-            { step: '1', text: 'Confirm the progress bar shows ✓ Upload and ✓ Analyse both green — if not, wait for the agent to finish processing.' },
-            { step: '2', text: 'Review the 3 auto-generated charts in the left panel: they show your data distribution, correlations, and feature variance.' },
-            { step: '3', text: 'In the right sidebar, read the Top 3 Recommended Models. Check the pros and cons listed under each one.' },
-            { step: '4', text: 'Click "▶ Build Pipeline with [Model Name]" under your preferred model. The Agent will generate the full training pipeline in Step 3.' },
-            { step: '5', text: 'Unsure which model to pick? Ask in the chat: "Which model is best for my data?" — the agent will explain its recommendation.' },
-          ].map((item) => (
-            <div key={item.step} className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[11px] font-bold text-yellow-300 flex-shrink-0 mt-0.5">{item.step}</span>
-              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
@@ -2107,8 +2096,7 @@ export default function TutorialPage() {
     { number: 4, title: 'Navigate Your Dashboard', icon: '📊', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Command Center' },
     { number: 5, title: 'Create a Project & Choose Your Path', icon: '✨', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Project Setup' },
     { number: 6, title: 'Lab Playground — Easy Mode vs Code Mode', icon: '⚡', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Your Workspace' },
-    { number: 7, title: 'Lab Playground — Upload & Analyse Your Dataset', icon: '🧪', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AI Workspace' },
-    { number: 8, title: 'ML Agent — Analysis Results & Model Selection', icon: '🔬', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'AI Pipeline' },
+    { number: 7, title: 'Analyse Results — Easy Mode & Code Mode', icon: '🔬', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AI Results' },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -2151,7 +2139,6 @@ export default function TutorialPage() {
       case 5: return <Step5Content accentColor={accentColor} />;
       case 6: return <Step6Content accentColor={accentColor} />;
       case 7: return <Step7Content accentColor={accentColor} />;
-      case 8: return <Step8Content accentColor={accentColor} />;
       default: return null;
     }
   };
