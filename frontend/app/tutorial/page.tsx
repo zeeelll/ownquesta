@@ -1200,7 +1200,7 @@ function LabPlaygroundMockup() {
           <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">backend</span></div>
           <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">agent</span></div>
           <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /><span className="text-white/30">no session</span></div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">⚡ Easy Mode</div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">✨ Easy Mode <span className="text-violet-300/60 font-normal ml-0.5">(active)</span></div>
           <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div>
         </div>
       </div>
@@ -1294,7 +1294,7 @@ function EasyModeRealMockup() {
           <div className="flex items-center gap-1 text-[7px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/30">
             <span className="w-1.5 h-1.5 rounded-full bg-white/20" /><span>no session</span>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-blue-500/50 bg-blue-500/15">🖥 Code Mode</div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-blue-500/50 bg-blue-500/15">🖥 Code Mode <span className="text-blue-300/60 font-normal ml-0.5">(active)</span></div>
           <div className="px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div>
         </div>
       </div>
@@ -1515,7 +1515,7 @@ function Step6Content({ accentColor }: { accentColor: string }) {
   const [activeMode, setActiveMode] = useState<'easy' | 'code'>('easy');
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
-  const annotations = activeMode === 'easy' ? easyModeRealAnnotations : codeModeAnnotations;
+  const annotations = activeMode === 'easy' ? codeModeAnnotations : easyModeRealAnnotations;
 
   return (
     <div className="space-y-12">
@@ -1560,7 +1560,7 @@ function Step6Content({ accentColor }: { accentColor: string }) {
           </p>
         </div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
-          {activeMode === 'easy' ? <EasyModeRealMockup /> : <LabPlaygroundMockup />}
+          {activeMode === 'easy' ? <LabPlaygroundMockup /> : <EasyModeRealMockup />}
         </div>
         <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">
           ↑ Replica of the actual Ownquesta Lab Playground — {activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'}
