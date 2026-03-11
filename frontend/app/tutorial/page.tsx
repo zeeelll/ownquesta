@@ -395,20 +395,26 @@ function HomePageMockup() {
     >
       {/* Starfield background */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#100c2a] via-[#0e0b22] to-[#060412]">
-        {/* Stars */}
-        {Array.from({ length: 60 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: Math.random() > 0.8 ? '2px' : '1px',
-              height: Math.random() > 0.8 ? '2px' : '1px',
-              top: `${Math.random() * 100}%`,
-              left: `${Math.random() * 100}%`,
-              opacity: Math.random() * 0.6 + 0.1,
-            }}
-          />
-        ))}
+        {/* Stars — deterministic to avoid SSR hydration mismatch */}
+        {Array.from({ length: 60 }).map((_, i) => {
+          const s1 = ((i + 1) * 2654435761) >>> 0;
+          const s2 = (s1 ^ (s1 >>> 16)) * 0x45d9f3b >>> 0;
+          const s3 = (s2 ^ (s2 >>> 16)) * 0x45d9f3b >>> 0;
+          const s4 = (s3 ^ (s3 >>> 16)) >>> 0;
+          const s5 = (s4 * 1664525 + 1013904223) >>> 0;
+          const top = (s1 % 9901) / 100;
+          const left = (s2 % 9901) / 100;
+          const opacity = 0.1 + (s3 % 60) / 100;
+          const w = (s4 % 5) > 3 ? '2px' : '1px';
+          const h = (s5 % 5) > 3 ? '2px' : '1px';
+          return (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{ width: w, height: h, top: `${top}%`, left: `${left}%`, opacity }}
+            />
+          );
+        })}
         {/* Glow blobs */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-violet-700/20 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-indigo-800/20 rounded-full blur-3xl" />
@@ -1881,6 +1887,824 @@ function Step6Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
+// LAB RUNNING MOCKUP — Step 7 Visual Component
+// ─────────────────────────────────────────────
+function LabRunningMockup() {
+  const codeLines = [
+    { n: 1,  color: '#60a5fa', text: 'import pandas as pd' },
+    { n: 2,  color: '#60a5fa', text: 'import numpy as np' },
+    { n: 3,  color: '',        text: '' },
+    { n: 4,  color: '#4ade80', text: 'df = pd.read_csv("…/customer_data.csv")' },
+    { n: 5,  color: '',        text: '' },
+    { n: 6,  color: '#fbbf24', text: 'print("=== SHAPE ===")' },
+    { n: 7,  color: '#fbbf24', text: 'print(f"Rows: {df.shape[0]}, Columns: {df.shape[1]}")' },
+    { n: 8,  color: '',        text: '' },
+    { n: 9,  color: '#fbbf24', text: 'print("\\n=== COLUMN INFO ===")' },
+    { n: 10, color: '#c084fc', text: 'for col in df.columns:' },
+    { n: 11, color: '#e2e8f0', text: '    print(f" {col} [{df[col].dtype}] unique=…")' },
+  ];
+
+  const outputLines = [
+    '=== SHAPE ===',
+    'Rows: 20, Columns: 8',
+    '',
+    '=== COLUMN INFO ===',
+    '  customer_id  [int64]   unique=20  null=0',
+    '  age          [int64]   unique=20  null=0',
+    '  gender       [object]  unique=2   null=0',
+    '  income       [int64]   unique=20  null=0',
+    '  credit_score [int64]   unique=20  null=0',
+    '  loyalty_status [object] unique=4  null=0',
+  ];
+
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-emerald-500/20 shadow-2xl shadow-emerald-900/20"
+      style={{ aspectRatio: '16/9', background: '#080a0f' }}
+    >
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
+
+      {/* TOP NAVBAR */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50">
+            <span>←</span><span>Dashboard</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div>
+            <span className="text-white text-[10px] font-black">Lab Playground</span>
+            <span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div>
+          <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div>
+          <div className="flex items-center gap-1 text-[7px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /><span>session 1a117b9…</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">⚡ Easy Mode</div>
+          <div className="px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div>
+        </div>
+      </div>
+
+      {/* TWO-COLUMN LAYOUT */}
+      <div className="absolute inset-0 top-8 flex z-10">
+
+        {/* LEFT — Code + Output */}
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-white/[0.05]">
+          {/* Cell header */}
+          <div className="flex items-center gap-2 px-2 py-1 border-b border-white/[0.05] bg-white/[0.02]">
+            <span className="text-[6px] text-white/30">[2]</span>
+            <div className="w-3.5 h-3.5 rounded-full border border-green-400/60 flex items-center justify-center">
+              <span className="text-green-400 text-[7px]">▶</span>
+            </div>
+            <span className="text-[6px] text-green-400/60 font-medium">Done</span>
+            <div className="ml-auto flex gap-1">
+              {['↑','↓','+','🗑'].map(ic => (
+                <div key={ic} className="w-3.5 h-3.5 rounded text-[7px] text-white/25 border border-white/[0.05] flex items-center justify-center">{ic}</div>
+              ))}
+            </div>
+          </div>
+
+          {/* Code lines */}
+          <div className="px-2 py-1.5 font-mono overflow-hidden" style={{ fontSize: '6.5px', lineHeight: '1.6' }}>
+            {codeLines.map(line => (
+              <div key={line.n} className="flex gap-2">
+                <span className="text-white/20 w-3 flex-shrink-0 text-right">{line.n}</span>
+                <span style={{ color: line.color || '#64748b' }}>{line.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Output */}
+          <div className="mx-2 mb-1 rounded border border-white/[0.06] bg-black/30 px-2 py-1.5 flex-1 overflow-hidden">
+            <div className="text-[6px] text-white/25 mb-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-white/20" /> output — ok
+            </div>
+            <div className="font-mono" style={{ fontSize: '6px', lineHeight: '1.7', color: '#94a3b8' }}>
+              {outputLines.map((l, i) => <div key={i}>{l || '\u00a0'}</div>)}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — ML Agent sidebar */}
+        <div className="w-52 flex flex-col" style={{ background: '#0a0c14' }}>
+          {/* Header */}
+          <div className="px-3 py-2 border-b border-white/[0.05] flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px]">🤖</span>
+              <span className="text-white text-[9px] font-black">ML Agent</span>
+            </div>
+            <div className="px-1.5 py-0.5 rounded-full text-[6px] font-bold border border-violet-400/30 bg-violet-500/10 text-violet-300">✦ GPT-4O-MINI</div>
+          </div>
+
+          {/* Uploaded file pill */}
+          <div className="px-3 py-1.5 border-b border-white/[0.05]">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-[7px] text-emerald-300">
+              <span>📄</span><span className="font-medium">customer_data.csv</span>
+              <span className="ml-auto text-white/30">×</span>
+            </div>
+            <div className="flex items-center gap-1 mt-1.5 rounded-lg overflow-hidden border border-white/[0.08]">
+              <div className="flex-1 px-2 py-1 text-[7px] text-violet-300 bg-white/[0.03] font-medium">loyalty_status</div>
+              <div className="px-2 py-1 text-[7px] font-bold text-white border-l border-white/[0.08]" style={{ background: '#7c3aed' }}>Analysing…</div>
+            </div>
+          </div>
+
+          {/* Agent analysis messages */}
+          <div className="flex-1 px-3 py-2 space-y-2 overflow-hidden">
+            {/* Missing Values */}
+            <div>
+              <div className="text-[7px] font-black text-white mb-0.5">Missing Values</div>
+              <p className="text-[6.5px] text-white/45 leading-relaxed">There are no missing values in the dataset, so no imputation or dropping is necessary.</p>
+            </div>
+            {/* Feature Engineering */}
+            <div>
+              <div className="text-[7px] font-black text-emerald-300 mb-0.5">Feature Engineering</div>
+              <p className="text-[6.5px] text-white/45 leading-relaxed">The gender column needs to be encoded as categorical. The target variable loyalty_status also needs to be encoded for classification.</p>
+            </div>
+            {/* Applying */}
+            <div className="flex items-center gap-1.5 text-[6.5px] text-white/30">
+              <span className="w-2 h-2 rounded-full border border-white/20 flex items-center justify-center text-[5px]">⚙</span>
+              Applying feature engineering…
+            </div>
+            {/* Feature Engineering Applied */}
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-2 py-1.5">
+              <div className="text-[7px] font-black text-emerald-300 mb-1 flex items-center gap-1">
+                <span>⚙</span> Feature Engineering Applied
+              </div>
+              <div className="font-mono text-[5.5px] text-white/40 space-y-0.5">
+                <div>import numpy as np</div>
+                <div>import pandas as pd</div>
+                <div>from sklearn.preprocessing import</div>
+                <div className="pl-2">OneHotEncoder, LabelEncoder</div>
+                <div className="mt-1 text-emerald-300/60">df_processed = df.copy()</div>
+                <div className="mt-0.5 text-white/25"># 1. Strip comma/currency…</div>
+              </div>
+              <div className="mt-1 text-[6px] text-emerald-400/70">Feature engineering done. Shape: (20, 9)</div>
+            </div>
+            {/* Running EDA */}
+            <div className="flex items-center gap-1.5 text-[6.5px] text-white/30">
+              <span className="animate-pulse">🔍</span> Running Exploratory Data Analysis…
+            </div>
+            <div className="flex items-center gap-1.5 text-[6.5px] text-white/30">
+              <span className="animate-spin inline-block">◌</span> Agent is analysing your dataset…
+            </div>
+          </div>
+
+          {/* Chat input */}
+          <div className="px-3 py-2 border-t border-white/[0.05]">
+            <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-[7px] text-white/20">
+              Ask anything about your data or pipeline…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 7
+// ─────────────────────────────────────────────
+const labRunningAnnotations = [
+  {
+    icon: '🟢',
+    label: 'Session Active (blue dot)',
+    color: '#60a5fa',
+    bg: 'rgba(96,165,250,0.08)',
+    border: 'rgba(96,165,250,0.2)',
+    description: 'Once your dataset is uploaded and analysis begins, the top navbar shows a blue "session 1a117b9…" dot — meaning the kernel is live and code is executing. Both backend and agent dots stay green.',
+  },
+  {
+    icon: '▶',
+    label: 'Cell [2] — Running / Done',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.08)',
+    border: 'rgba(74,222,128,0.2)',
+    description: 'The ML Agent auto-generates Python code in cell [2] and runs it. The green ▶ button and "Done" label confirm execution completed. Code includes imports, pd.read_csv(), shape/column info, and categorical distributions.',
+  },
+  {
+    icon: '📋',
+    label: 'Code Output Panel',
+    color: '#a78bfa',
+    bg: 'rgba(167,139,250,0.08)',
+    border: 'rgba(167,139,250,0.2)',
+    description: 'Below the code, the dark output panel shows "output — ok" and the printed results: dataset shape (Rows: 20, Columns: 8), column names with dtypes, unique counts, and null counts for each column.',
+  },
+  {
+    icon: '📄',
+    label: 'Uploaded File Pill',
+    color: '#34d399',
+    bg: 'rgba(52,211,153,0.08)',
+    border: 'rgba(52,211,153,0.2)',
+    description: 'The right panel shows "customer_data.csv" in a green pill — confirming your file was uploaded successfully. The target column "loyalty_status" is shown in the field beside the "Analysing…" button.',
+  },
+  {
+    icon: '🔧',
+    label: 'Missing Values + Feature Engineering',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.08)',
+    border: 'rgba(251,191,36,0.2)',
+    description: 'The ML Agent reports: no missing values found. Then it automatically detects categorical columns (gender, loyalty_status) and applies LabelEncoder / OneHotEncoder. Shape changes from (20,8) to (20,9) after encoding.',
+  },
+  {
+    icon: '🔍',
+    label: 'Running EDA + Agent Analysing',
+    color: '#f472b6',
+    bg: 'rgba(244,114,182,0.08)',
+    border: 'rgba(244,114,182,0.2)',
+    description: 'After feature engineering, the agent continues with "Running Exploratory Data Analysis…" and "Agent is analysing your dataset…" — these live status messages mean the AI is building your full ML pipeline in the background.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 7 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step7Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+
+  return (
+    <div className="space-y-12">
+      {/* Intro */}
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
+        After uploading your dataset and clicking <strong className="text-white">"Analyse"</strong>, the ML Agent springs into action. It auto-generates Python code, runs it in the left panel, analyses your data structure, handles missing values, applies feature engineering — and streams every step live in the right sidebar.
+      </p>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Lab Playground in Action</p>
+        </div>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <LabRunningMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Lab Playground after uploading customer_data.csv and clicking Analyse</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {labRunningAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* What the agent does automatically */}
+      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-3">
+        <h4 className="text-sm font-bold text-white/70 flex items-center gap-2"><span>🤖</span> What the ML Agent Does Automatically</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            { step: '1', title: 'Dataset Profiling', desc: 'Prints shape, column names, dtypes, unique counts, and null counts for every column.', color: '#60a5fa' },
+            { step: '2', title: 'Missing Value Check', desc: 'Detects any nulls and decides whether to impute or drop — reports the result.', color: '#4ade80' },
+            { step: '3', title: 'Feature Engineering', desc: 'Encodes categorical columns using LabelEncoder or OneHotEncoder automatically.', color: '#fbbf24' },
+            { step: '4', title: 'EDA & Model Selection', desc: 'Runs full Exploratory Data Analysis and selects the best ML models for your task.', color: '#f472b6' },
+          ].map(item => (
+            <div key={item.step} className="flex items-start gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.02]">
+              <span className="w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black flex-shrink-0 mt-0.5"
+                style={{ background: `${item.color}22`, color: item.color, border: `1px solid ${item.color}44` }}>
+                {item.step}
+              </span>
+              <div>
+                <div className="text-[12px] font-bold text-white/80 mb-0.5">{item.title}</div>
+                <div className="text-[11px] text-white/45 leading-relaxed">{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+          <span>🔬</span> What To Watch For During Analysis
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Watch the right sidebar — the ML Agent streams its findings in real time: missing values, feature engineering steps, and EDA results appear one by one as they complete.' },
+            { step: '2', text: 'In the left panel, check the code output for your dataset\'s shape (e.g. "Rows: 20, Columns: 8") and column info — this confirms your data was loaded correctly.' },
+            { step: '3', text: 'Look for the green "Feature Engineering Applied" card in the sidebar — it shows the exact code used to encode your categorical columns and the new dataset shape.' },
+            { step: '4', text: 'When you see "Running Exploratory Data Analysis…" and "Agent is analysing your dataset…", the pipeline is still building — wait for it to complete before moving on.' },
+            { step: '5', text: 'Use the chat input at the bottom of the sidebar to ask questions mid-analysis — e.g. "Why did you encode gender?" or "What models are being considered?"' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[11px] font-bold text-emerald-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// EASY MODE MOCKUP — Step 8 Visual Component
+// ─────────────────────────────────────────────
+function EasyModeMockup() {
+  return (
+    <div
+      className="relative w-full rounded-2xl overflow-hidden border border-yellow-500/20 shadow-2xl shadow-yellow-900/20"
+      style={{ aspectRatio: '16/9', background: '#080a0f' }}
+    >
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
+
+      {/* TOP NAVBAR */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div>
+            <span className="text-white text-[10px] font-black">Lab Playground</span>
+            <span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div>
+          <div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div>
+          <div className="flex items-center gap-1 text-[7px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /><span>session 1a117b9…</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-blue-500/40 bg-blue-500/10">🖥 Code Mode</div>
+          <div className="px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div>
+        </div>
+      </div>
+
+      {/* TWO-COLUMN LAYOUT */}
+      <div className="absolute inset-0 top-8 flex z-10">
+
+        {/* LEFT — Easy Mode content */}
+        <div className="flex-1 flex flex-col overflow-hidden border-r border-white/[0.05] px-3 py-2 space-y-2">
+
+          {/* Easy Mode banner */}
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 flex items-start gap-2">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[10px] flex-shrink-0">✨</div>
+            <div>
+              <div className="text-white text-[9px] font-black mb-0.5">Easy Mode</div>
+              <div className="text-white/40 text-[7px]">No code needed — the AI handles everything. Use the panel on the right to upload & analyse.</div>
+            </div>
+          </div>
+
+          {/* Progress stepper */}
+          <div className="flex items-center gap-0 px-1">
+            {[
+              { n: '✓', label: 'Upload', done: true },
+              { n: '✓', label: 'Analyse', done: true },
+              { n: '3', label: 'Train Model', done: false },
+              { n: '4', label: 'Done', done: false },
+            ].map((s, i) => (
+              <div key={s.label} className="flex items-center flex-1">
+                <div className="flex flex-col items-center">
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${s.done ? 'bg-green-500 text-white' : 'border border-white/20 text-white/30 bg-white/5'}`}>{s.n}</div>
+                  <span className={`text-[6px] mt-0.5 ${s.done ? 'text-green-400/80' : 'text-white/25'}`}>{s.label}</span>
+                </div>
+                {i < 3 && <div className={`flex-1 h-px mx-1 mb-3 ${s.done ? 'bg-green-500/60' : 'bg-white/10'}`} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Analysis Complete banner */}
+          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 px-3 py-2 flex items-center gap-2">
+            <span className="text-sm">🏆</span>
+            <div>
+              <div className="text-yellow-300 text-[8px] font-black">Analysis Complete</div>
+              <div className="text-white/40 text-[7px]">AI has analysed your data and suggested models. Select one in the AI panel to build the pipeline.</div>
+            </div>
+          </div>
+
+          {/* Visualisations */}
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-2 h-2 rounded bg-white/20" />
+              <span className="text-[7px] font-bold text-white/50 uppercase tracking-widest">Visualisations</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {/* Bar chart */}
+              <div className="rounded-lg border border-white/[0.07] bg-white/[0.03] p-1.5">
+                <div className="text-[5.5px] text-white/30 text-center mb-1">Distribution of Loyalty Status</div>
+                <div className="flex items-end justify-center gap-1 h-10">
+                  {[8,9,5,4].map((h,i) => (
+                    <div key={i} className="w-3 rounded-t" style={{ height: `${h*4}px`, background: '#2dd4bf55', border: '1px solid #2dd4bf88' }} />
+                  ))}
+                </div>
+                <div className="flex justify-center gap-1.5 mt-0.5">
+                  {['Gold','Platinum','Silver','Bronze'].map(l => (
+                    <span key={l} className="text-[4.5px] text-white/20">{l}</span>
+                  ))}
+                </div>
+              </div>
+              {/* Heatmap */}
+              <div className="rounded-lg border border-white/[0.07] bg-white/[0.03] p-1.5">
+                <div className="text-[5.5px] text-white/30 text-center mb-1">Correlation Heatmap</div>
+                <div className="grid gap-px" style={{ gridTemplateColumns: 'repeat(6,1fr)' }}>
+                  {[1,.23,.19,.21,.19,.17,.23,1,.96,.98,.89,.94,.19,.96,1,.97,.95,.95,.21,.98,.97,1,.94,.96,.19,.89,.95,.94,1,.96,.17,.94,.95,.96,.96,1].map((v,i) => (
+                    <div key={i} className="rounded-sm" style={{ height: '7px', background: v > 0.9 ? '#ef444488' : v > 0.5 ? '#f9731644' : '#1e293b' }} />
+                  ))}
+                </div>
+              </div>
+              {/* Box plot */}
+              <div className="rounded-lg border border-white/[0.07] bg-white/[0.03] p-1.5">
+                <div className="text-[5.5px] text-white/30 text-center mb-1">Income Distribution</div>
+                <div className="flex items-center justify-center gap-1.5 h-10">
+                  {[
+                    { h: 14, y: 12 },
+                    { h: 18, y: 8 },
+                    { h: 10, y: 16 },
+                    { h: 8,  y: 20 },
+                  ].map((b,i) => (
+                    <div key={i} className="flex flex-col items-center gap-0.5">
+                      <div className="w-4 rounded" style={{ height: `${b.h}px`, background: '#2dd4bf33', border: '1px solid #2dd4bf66' }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Adjust Settings + Ask AI */}
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 flex items-center gap-2">
+            <span className="text-[8px]">⚙</span>
+            <span className="text-[8px] text-blue-400 font-bold">Adjust Settings</span>
+            <span className="ml-auto text-white/30 text-[8px]">▶</span>
+          </div>
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2">
+            <div className="flex items-center gap-1 mb-1"><span className="text-[8px]">💬</span><span className="text-[8px] text-white/60 font-bold">Ask the AI Agent</span></div>
+            <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-[6.5px] text-white/20">
+              Ask anything: 'Show feature importance', 'Try a different model'… (Enter to send)
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT — ML Agent sidebar */}
+        <div className="w-52 flex flex-col" style={{ background: '#0a0c14' }}>
+          <div className="px-3 py-2 border-b border-white/[0.05] flex items-center justify-between">
+            <div className="flex items-center gap-1.5"><span className="text-[9px]">🤖</span><span className="text-white text-[9px] font-black">ML Agent</span></div>
+            <div className="px-1.5 py-0.5 rounded-full text-[6px] font-bold border border-violet-400/30 bg-violet-500/10 text-violet-300">✦ GPT-4O-MINI</div>
+          </div>
+          {/* File + target */}
+          <div className="px-3 py-1.5 border-b border-white/[0.05] space-y-1">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-[7px] text-emerald-300">
+              <span>📄</span><span>customer_data.csv</span><span className="ml-auto text-white/30">×</span>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg overflow-hidden border border-white/[0.08]">
+              <div className="flex-1 px-2 py-1 text-[7px] text-violet-300 bg-white/[0.03] font-medium">loyalty_status</div>
+              <div className="px-2 py-1 text-[7px] text-white/40 border-l border-white/[0.08] bg-white/[0.02]">Select a model ↓</div>
+            </div>
+          </div>
+          {/* EDA summary text */}
+          <div className="px-3 py-2 border-b border-white/[0.05]">
+            <p className="text-[6.5px] text-white/40 leading-relaxed">…highlighting the prevalence of Gold and Platinum customers. The correlation heatmap indicates strong relationships between spending_score and purchase_frequency, while boxplots show income variations across loyalty statuses.</p>
+          </div>
+          {/* Feature Importance / Preprocessing */}
+          <div className="px-3 py-1.5 border-b border-white/[0.05] space-y-1">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-yellow-500/20 bg-yellow-500/5 text-[7px] text-yellow-300 font-bold justify-between">
+              <span>⭐ Feature Importance Notes</span><span>▶</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-white/[0.06] bg-white/[0.02] text-[7px] text-white/50 font-bold justify-between">
+              <span>⚡ Preprocessing Recommendations</span><span>▶</span>
+            </div>
+          </div>
+          {/* Top 3 models */}
+          <div className="px-3 py-2 flex-1 overflow-hidden space-y-2">
+            <div className="text-[7px] font-black text-yellow-300 flex items-center gap-1"><span>🏆</span> Top 3 Recommended Models</div>
+            {/* Random Forest */}
+            <div className="rounded-lg border border-white/[0.08] bg-white/[0.03] p-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[7px] font-black text-white flex items-center gap-1"><span>🌲</span> Random Forest Classifier</span>
+                <span className="text-[5.5px] text-white/25">RandomForestClassifier</span>
+              </div>
+              <p className="text-[6px] text-white/40 leading-relaxed mb-1">Robust to overfitting, handles numerical and categorical features well, making it suitable for this dataset.</p>
+              <div className="space-y-0.5 mb-1.5">
+                <div className="text-[6px] text-green-400/80 flex items-center gap-1"><span>✓</span> Handles non-linear relationships</div>
+                <div className="text-[6px] text-green-400/80 flex items-center gap-1"><span>✓</span> Robust to noise and outliers</div>
+                <div className="text-[6px] text-red-400/70 flex items-center gap-1"><span>✗</span> Can be slower to predict</div>
+              </div>
+              <div className="w-full py-1 rounded-lg text-[6.5px] font-bold text-white text-center" style={{ background: 'linear-gradient(90deg,#4f46e5,#7c3aed)' }}>
+                ▶ Build Pipeline with Random Forest
+              </div>
+            </div>
+            {/* Other models */}
+            {['🔵 Logistic Regression', '📈 Gradient Boosting Classifier'].map(m => (
+              <div key={m} className="flex items-center justify-between px-2 py-1.5 rounded-lg border border-white/[0.06] bg-white/[0.02]">
+                <span className="text-[7px] text-white/60 font-semibold">{m}</span>
+                <span className="text-[5.5px] text-white/20">{m.includes('Logistic') ? 'LogisticRegression' : 'GradientBoostingClassifier'}</span>
+              </div>
+            ))}
+          </div>
+          <div className="px-3 py-2 border-t border-white/[0.05]">
+            <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-[7px] text-white/20">Ask anything about your data or pipeline…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// ANNOTATIONS for Step 8
+// ─────────────────────────────────────────────
+const easyModeAnnotations = [
+  {
+    icon: '✨',
+    label: 'Easy Mode Banner',
+    color: '#a78bfa',
+    bg: 'rgba(167,139,250,0.08)',
+    border: 'rgba(167,139,250,0.2)',
+    description: 'The purple "Easy Mode" banner at the top confirms you\'re in no-code mode. The AI handles all code generation — you just upload, analyse, and click to train. Switch to "Code Mode" (top-right) to see and edit the raw Python.',
+  },
+  {
+    icon: '✅',
+    label: '4-Step Progress Bar',
+    color: '#4ade80',
+    bg: 'rgba(74,222,128,0.08)',
+    border: 'rgba(74,222,128,0.2)',
+    description: 'The stepper shows your current position: ✓ Upload → ✓ Analyse → 3 Train Model → 4 Done. Steps 1 and 2 are green (complete). Step 3 (Train Model) is next — you activate it by selecting a model from the right panel.',
+  },
+  {
+    icon: '🏆',
+    label: 'Analysis Complete Banner',
+    color: '#fbbf24',
+    bg: 'rgba(251,191,36,0.08)',
+    border: 'rgba(251,191,36,0.2)',
+    description: '"Analysis Complete — AI has analysed your data and suggested models. Select one in the AI panel to build the pipeline." This gold banner confirms EDA is done and you\'re ready to choose a model.',
+  },
+  {
+    icon: '📊',
+    label: '3 Visualisation Charts',
+    color: '#2dd4bf',
+    bg: 'rgba(45,212,191,0.08)',
+    border: 'rgba(45,212,191,0.2)',
+    description: 'Three auto-generated charts: (1) Distribution of Loyalty Status bar chart, (2) Correlation Heatmap of numeric features showing strong spending_score/purchase_frequency correlation, (3) Income Distribution by Loyalty Status boxplot.',
+  },
+  {
+    icon: '🏅',
+    label: 'Top 3 Recommended Models',
+    color: '#fb923c',
+    bg: 'rgba(251,146,60,0.08)',
+    border: 'rgba(251,146,60,0.2)',
+    description: 'The right sidebar shows the 3 best models for your data: 🌲 Random Forest Classifier (recommended, with pros/cons), 🔵 Logistic Regression, and 📈 Gradient Boosting Classifier. Each has a class name shown beside it.',
+  },
+  {
+    icon: '▶',
+    label: 'Build Pipeline Button',
+    color: '#818cf8',
+    bg: 'rgba(129,140,248,0.08)',
+    border: 'rgba(129,140,248,0.2)',
+    description: '"▶ Build Pipeline with Random Forest Classifier" — the indigo CTA button under the top model. Clicking this triggers Step 3 of the progress bar and starts training. You can also scroll down to pick Logistic Regression or Gradient Boosting instead.',
+  },
+];
+
+// ─────────────────────────────────────────────
+// STEP 8 ENHANCED COMPONENT
+// ─────────────────────────────────────────────
+function Step8Content({ accentColor }: { accentColor: string }) {
+  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
+  const [activeMode, setActiveMode] = useState<'easy' | 'code'>('easy');
+
+  return (
+    <div className="space-y-12">
+      {/* Intro */}
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
+        Once analysis is complete, the Lab Playground switches into results view. You can work in <strong className="text-white">Easy Mode</strong> (no code — AI does everything) or <strong className="text-white">Code Mode</strong> (full Python notebook). Both show the same AI-recommended models — you just choose how hands-on you want to be.
+      </p>
+
+      {/* Mode toggle explainer */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button
+          onClick={() => setActiveMode('easy')}
+          className="text-left p-5 rounded-2xl border transition-all duration-200"
+          style={{
+            background: activeMode === 'easy' ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)',
+            borderColor: activeMode === 'easy' ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.07)',
+          }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">✨</span>
+            <div>
+              <div className="text-sm font-black text-white">Easy Mode</div>
+              <div className="text-[11px] text-white/40">No code required</div>
+            </div>
+            {activeMode === 'easy' && <span className="ml-auto text-[10px] font-bold text-violet-300 border border-violet-500/30 rounded-full px-2 py-0.5 bg-violet-500/10">Active</span>}
+          </div>
+          <p className="text-[12px] text-white/55 leading-relaxed">The AI generates all code behind the scenes. You see a clean UI with progress steps, charts, model cards, and one-click pipeline building. Best for non-coders or fast exploration.</p>
+        </button>
+        <button
+          onClick={() => setActiveMode('code')}
+          className="text-left p-5 rounded-2xl border transition-all duration-200"
+          style={{
+            background: activeMode === 'code' ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.03)',
+            borderColor: activeMode === 'code' ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.07)',
+          }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-2xl">🖥️</span>
+            <div>
+              <div className="text-sm font-black text-white">Code Mode</div>
+              <div className="text-[11px] text-white/40">Full Python notebook</div>
+            </div>
+            {activeMode === 'code' && <span className="ml-auto text-[10px] font-bold text-blue-300 border border-blue-500/30 rounded-full px-2 py-0.5 bg-blue-500/10">Active</span>}
+          </div>
+          <p className="text-[12px] text-white/55 leading-relaxed">The full Jupyter-style notebook view where all AI-generated Python code is visible and editable. You can modify, re-run cells, and extend the pipeline manually. Best for developers and data scientists.</p>
+        </button>
+      </div>
+
+      {/* Mockup */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-2 h-2 rounded-full bg-yellow-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Analysis Complete (Easy Mode)</p>
+        </div>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
+          <EasyModeMockup />
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Easy Mode after analysis — visualisations + Top 3 model recommendations</p>
+      </div>
+
+      {/* Annotation cards */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {easyModeAnnotations.map((ann, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
+              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
+                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-xl">{ann.icon}</span>
+                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
+              </div>
+              {activeAnnotation === i && (
+                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Adjust Settings panel */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-blue-400" />
+          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Expand Panel — Adjust Settings</p>
+        </div>
+        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden border border-blue-500/20 shadow-xl shadow-blue-900/20" style={{ background: '#10121e' }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+            <span className="text-[11px]">⚙</span>
+            <span className="text-sm font-black text-blue-400">Adjust Settings</span>
+            <span className="text-white/30 text-xs">▾</span>
+          </div>
+          {/* Sliders */}
+          <div className="px-5 py-5 space-y-5">
+            <div className="grid grid-cols-2 gap-8">
+              {/* Test Split */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[13px] text-white/70 font-medium">Test Split</span>
+                  <span className="text-[14px] font-black text-violet-400">20%</span>
+                </div>
+                <div className="relative h-2 rounded-full bg-white/10">
+                  <div className="absolute left-0 top-0 h-2 rounded-full w-[45%]" style={{ background: 'linear-gradient(90deg,#7c3aed,#a855f7)' }} />
+                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-violet-400 bg-[#1a1040] shadow-lg shadow-violet-500/30" style={{ left: 'calc(45% - 8px)' }} />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-white/25">10%</span>
+                  <span className="text-[10px] text-white/25">40%</span>
+                </div>
+              </div>
+              {/* CV Folds */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[13px] text-white/70 font-medium">CV Folds</span>
+                  <span className="text-[14px] font-black text-violet-400">5</span>
+                </div>
+                <div className="relative h-2 rounded-full bg-white/10">
+                  <div className="absolute left-0 top-0 h-2 rounded-full w-[55%]" style={{ background: 'linear-gradient(90deg,#7c3aed,#a855f7)' }} />
+                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-violet-400 bg-[#1a1040] shadow-lg shadow-violet-500/30" style={{ left: 'calc(55% - 8px)' }} />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-white/25">3</span>
+                  <span className="text-[10px] text-white/25">10</span>
+                </div>
+              </div>
+            </div>
+            {/* Additional notes */}
+            <div className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-[12px] text-white/25">
+              Additional notes: e.g. 'handle class imbalance', 'tune hyperparameters', 'use grid search'…
+            </div>
+            {/* Apply button */}
+            <div className="w-full py-3 rounded-xl text-[13px] font-black text-white text-center"
+              style={{ background: 'linear-gradient(90deg,#5b21b6,#7c3aed,#9333ea)' }}>
+              ✦ Apply Settings & Retrain
+            </div>
+          </div>
+        </div>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ The "Adjust Settings" panel — click the row in Easy Mode to expand it</p>
+      </div>
+
+      {/* Adjust Settings annotations */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          { icon: '📊', label: 'Test Split (default 20%)', color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.2)', desc: 'Controls how much of your data is held back for testing. 20% means 80% trains the model, 20% tests it. Drag the slider between 10%–40%. Lower = more training data; higher = more rigorous test.' },
+          { icon: '🔁', label: 'CV Folds (default 5)', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.2)', desc: 'Cross-validation folds — how many times the model trains/tests on different slices of data. 5 is the standard. Higher = more reliable accuracy estimate but slower training. Range: 3–10.' },
+          { icon: '💬', label: 'Additional Notes field', color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)', desc: 'A free-text instruction box for the AI agent. Type things like "handle class imbalance", "tune hyperparameters", or "use grid search" — the agent reads this and adjusts the pipeline accordingly.' },
+        ].map((ann) => (
+          <div key={ann.label} className="p-4 rounded-2xl border" style={{ background: ann.bg, borderColor: ann.border }}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">{ann.icon}</span>
+              <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
+            </div>
+            <p className="text-[12px] text-white/55 leading-relaxed">{ann.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Model comparison table */}
+      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-3">
+        <h4 className="text-sm font-bold text-white/70 flex items-center gap-2"><span>🏆</span> Top 3 Recommended Models — Quick Reference</h4>
+        <div className="space-y-2">
+          {[
+            { rank: '1st', icon: '🌲', name: 'Random Forest Classifier', pros: 'Handles non-linear data, robust to noise', cons: 'Slower prediction', best: 'Most datasets with mixed feature types' },
+            { rank: '2nd', icon: '🔵', name: 'Logistic Regression',       pros: 'Fast, interpretable, low compute',     cons: 'Assumes linear boundary',  best: 'Simple classification problems' },
+            { rank: '3rd', icon: '📈', name: 'Gradient Boosting',          pros: 'High accuracy, handles imbalance',    cons: 'Slower to train',           best: 'Competitions & high-accuracy needs' },
+          ].map(row => (
+            <div key={row.rank} className="grid grid-cols-4 gap-3 py-2.5 border-b border-white/[0.05] last:border-0 items-start">
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{row.icon}</span>
+                <div>
+                  <div className="text-[10px] font-black text-white">{row.name}</div>
+                  <div className="text-[9px] text-white/30">{row.rank} choice</div>
+                </div>
+              </div>
+              <div className="text-[10px] text-green-400/80">✓ {row.pros}</div>
+              <div className="text-[10px] text-red-400/70">✗ {row.cons}</div>
+              <div className="text-[10px] text-white/35 italic">{row.best}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Action guide */}
+      <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-6 space-y-4">
+        <h4 className="text-sm font-bold text-yellow-300 flex items-center gap-2">
+          <span>⚡</span> What To Do After Analysis Is Complete
+        </h4>
+        <div className="space-y-3">
+          {[
+            { step: '1', text: 'Check which mode you\'re in — the top-right button shows "Code Mode" if you\'re in Easy Mode, or "Easy Mode" if you\'re in Code Mode. Click it to switch anytime.' },
+            { step: '2', text: 'Review the 3 visualisation charts: the bar chart shows class balance, the heatmap shows feature correlations, and the boxplot shows income variance by loyalty tier.' },
+            { step: '3', text: 'Click "⚙ Adjust Settings" to expand the settings panel — set your Test Split (default 20%) and CV Folds (default 5), and optionally add notes like "handle class imbalance" for the AI.' },
+            { step: '4', text: 'Read the Top 3 Recommended Models in the right sidebar. Each shows pros, cons, and a description — the first model is the AI\'s top pick for your dataset.' },
+            { step: '5', text: 'Expand "⭐ Feature Importance Notes" and "⚡ Preprocessing Recommendations" in the sidebar for deeper AI insights before training.' },
+            { step: '6', text: 'Click "▶ Build Pipeline with Random Forest Classifier" (or choose Logistic Regression / Gradient Boosting) to advance to Step 3: Train Model.' },
+          ].map((item) => (
+            <div key={item.step} className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[11px] font-bold text-yellow-300 flex-shrink-0 mt-0.5">
+                {item.step}
+              </span>
+              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
@@ -1948,6 +2772,28 @@ export default function TutorialPage() {
       accentColor: '#67e8f9',
       borderColor: 'border-cyan-500/40',
       badge: 'AI Workspace',
+      isCustom: true,
+      fullDescription: '',
+    },
+    {
+      number: 7,
+      title: 'ML Agent — Auto Analysis & Feature Engineering',
+      icon: '🔬',
+      color: 'from-emerald-600/20 to-green-800/20',
+      accentColor: '#4ade80',
+      borderColor: 'border-emerald-500/40',
+      badge: 'AI Pipeline',
+      isCustom: true,
+      fullDescription: '',
+    },
+    {
+      number: 8,
+      title: 'Choose Easy Mode or Code Mode',
+      icon: '⚡',
+      color: 'from-yellow-600/20 to-amber-800/20',
+      accentColor: '#fbbf24',
+      borderColor: 'border-yellow-500/40',
+      badge: 'Analysis Results',
       isCustom: true,
       fullDescription: '',
     },
@@ -2126,6 +2972,10 @@ export default function TutorialPage() {
                   <Step5Content accentColor={step.accentColor} />
                 ) : step.number === 6 ? (
                   <Step6Content accentColor={step.accentColor} />
+                ) : step.number === 7 ? (
+                  <Step7Content accentColor={step.accentColor} />
+                ) : step.number === 8 ? (
+                  <Step8Content accentColor={step.accentColor} />
                 ) : (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
