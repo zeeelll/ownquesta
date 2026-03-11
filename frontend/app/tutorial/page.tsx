@@ -2478,231 +2478,6 @@ const easyModeAnnotations = [
   },
 ];
 
-// ─────────────────────────────────────────────
-// STEP 8 ENHANCED COMPONENT
-// ─────────────────────────────────────────────
-function Step8Content({ accentColor }: { accentColor: string }) {
-  const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
-  const [activeMode, setActiveMode] = useState<'easy' | 'code'>('easy');
-
-  return (
-    <div className="space-y-12">
-      {/* Intro */}
-      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">
-        Once analysis is complete, the Lab Playground switches into results view. You can work in <strong className="text-white">Easy Mode</strong> (no code — AI does everything) or <strong className="text-white">Code Mode</strong> (full Python notebook). Both show the same AI-recommended models — you just choose how hands-on you want to be.
-      </p>
-
-      {/* Mode toggle explainer */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button
-          onClick={() => setActiveMode('easy')}
-          className="text-left p-5 rounded-2xl border transition-all duration-200"
-          style={{
-            background: activeMode === 'easy' ? 'rgba(167,139,250,0.1)' : 'rgba(255,255,255,0.03)',
-            borderColor: activeMode === 'easy' ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.07)',
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">✨</span>
-            <div>
-              <div className="text-sm font-black text-white">Easy Mode</div>
-              <div className="text-[11px] text-white/40">No code required</div>
-            </div>
-            {activeMode === 'easy' && <span className="ml-auto text-[10px] font-bold text-violet-300 border border-violet-500/30 rounded-full px-2 py-0.5 bg-violet-500/10">Active</span>}
-          </div>
-          <p className="text-[12px] text-white/55 leading-relaxed">The AI generates all code behind the scenes. You see a clean UI with progress steps, charts, model cards, and one-click pipeline building. Best for non-coders or fast exploration.</p>
-        </button>
-        <button
-          onClick={() => setActiveMode('code')}
-          className="text-left p-5 rounded-2xl border transition-all duration-200"
-          style={{
-            background: activeMode === 'code' ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.03)',
-            borderColor: activeMode === 'code' ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.07)',
-          }}
-        >
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">🖥️</span>
-            <div>
-              <div className="text-sm font-black text-white">Code Mode</div>
-              <div className="text-[11px] text-white/40">Full Python notebook</div>
-            </div>
-            {activeMode === 'code' && <span className="ml-auto text-[10px] font-bold text-blue-300 border border-blue-500/30 rounded-full px-2 py-0.5 bg-blue-500/10">Active</span>}
-          </div>
-          <p className="text-[12px] text-white/55 leading-relaxed">The full Jupyter-style notebook view where all AI-generated Python code is visible and editable. You can modify, re-run cells, and extend the pipeline manually. Best for developers and data scientists.</p>
-        </button>
-      </div>
-
-      {/* Mockup */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="w-2 h-2 rounded-full bg-yellow-400" />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Analysis Complete (Easy Mode)</p>
-        </div>
-        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
-          <EasyModeMockup />
-        </div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Easy Mode after analysis — visualisations + Top 3 model recommendations</p>
-      </div>
-
-      {/* Annotation cards */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-5">
-          <span className="w-2 h-2 rounded-full" style={{ background: accentColor }} />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {easyModeAnnotations.map((ann, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveAnnotation(activeAnnotation === i ? null : i)}
-              className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5"
-              style={{
-                background: activeAnnotation === i ? ann.bg : 'rgba(255,255,255,0.03)',
-                borderColor: activeAnnotation === i ? ann.border : 'rgba(255,255,255,0.07)',
-              }}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-xl">{ann.icon}</span>
-                <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
-                <span className="ml-auto text-white/20 text-xs">{activeAnnotation === i ? '▲' : '▼'}</span>
-              </div>
-              {activeAnnotation === i && (
-                <p className="text-[13px] text-white/65 leading-relaxed mt-1">{ann.description}</p>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Adjust Settings panel */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-blue-400" />
-          <p className="text-xs font-bold uppercase tracking-widest text-white/30">Expand Panel — Adjust Settings</p>
-        </div>
-        <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden border border-blue-500/20 shadow-xl shadow-blue-900/20" style={{ background: '#10121e' }}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
-            <span className="text-[11px]">⚙</span>
-            <span className="text-sm font-black text-blue-400">Adjust Settings</span>
-            <span className="text-white/30 text-xs">▾</span>
-          </div>
-          {/* Sliders */}
-          <div className="px-5 py-5 space-y-5">
-            <div className="grid grid-cols-2 gap-8">
-              {/* Test Split */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[13px] text-white/70 font-medium">Test Split</span>
-                  <span className="text-[14px] font-black text-violet-400">20%</span>
-                </div>
-                <div className="relative h-2 rounded-full bg-white/10">
-                  <div className="absolute left-0 top-0 h-2 rounded-full w-[45%]" style={{ background: 'linear-gradient(90deg,#7c3aed,#a855f7)' }} />
-                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-violet-400 bg-[#1a1040] shadow-lg shadow-violet-500/30" style={{ left: 'calc(45% - 8px)' }} />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-white/25">10%</span>
-                  <span className="text-[10px] text-white/25">40%</span>
-                </div>
-              </div>
-              {/* CV Folds */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[13px] text-white/70 font-medium">CV Folds</span>
-                  <span className="text-[14px] font-black text-violet-400">5</span>
-                </div>
-                <div className="relative h-2 rounded-full bg-white/10">
-                  <div className="absolute left-0 top-0 h-2 rounded-full w-[55%]" style={{ background: 'linear-gradient(90deg,#7c3aed,#a855f7)' }} />
-                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-violet-400 bg-[#1a1040] shadow-lg shadow-violet-500/30" style={{ left: 'calc(55% - 8px)' }} />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-white/25">3</span>
-                  <span className="text-[10px] text-white/25">10</span>
-                </div>
-              </div>
-            </div>
-            {/* Additional notes */}
-            <div className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-[12px] text-white/25">
-              Additional notes: e.g. 'handle class imbalance', 'tune hyperparameters', 'use grid search'…
-            </div>
-            {/* Apply button */}
-            <div className="w-full py-3 rounded-xl text-[13px] font-black text-white text-center"
-              style={{ background: 'linear-gradient(90deg,#5b21b6,#7c3aed,#9333ea)' }}>
-              ✦ Apply Settings & Retrain
-            </div>
-          </div>
-        </div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ The "Adjust Settings" panel — click the row in Easy Mode to expand it</p>
-      </div>
-
-      {/* Adjust Settings annotations */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { icon: '📊', label: 'Test Split (default 20%)', color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.2)', desc: 'Controls how much of your data is held back for testing. 20% means 80% trains the model, 20% tests it. Drag the slider between 10%–40%. Lower = more training data; higher = more rigorous test.' },
-          { icon: '🔁', label: 'CV Folds (default 5)', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)', border: 'rgba(96,165,250,0.2)', desc: 'Cross-validation folds — how many times the model trains/tests on different slices of data. 5 is the standard. Higher = more reliable accuracy estimate but slower training. Range: 3–10.' },
-          { icon: '💬', label: 'Additional Notes field', color: '#4ade80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.2)', desc: 'A free-text instruction box for the AI agent. Type things like "handle class imbalance", "tune hyperparameters", or "use grid search" — the agent reads this and adjusts the pipeline accordingly.' },
-        ].map((ann) => (
-          <div key={ann.label} className="p-4 rounded-2xl border" style={{ background: ann.bg, borderColor: ann.border }}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{ann.icon}</span>
-              <span className="text-sm font-bold" style={{ color: ann.color }}>{ann.label}</span>
-            </div>
-            <p className="text-[12px] text-white/55 leading-relaxed">{ann.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Model comparison table */}
-      <div className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5 space-y-3">
-        <h4 className="text-sm font-bold text-white/70 flex items-center gap-2"><span>🏆</span> Top 3 Recommended Models — Quick Reference</h4>
-        <div className="space-y-2">
-          {[
-            { rank: '1st', icon: '🌲', name: 'Random Forest Classifier', pros: 'Handles non-linear data, robust to noise', cons: 'Slower prediction', best: 'Most datasets with mixed feature types' },
-            { rank: '2nd', icon: '🔵', name: 'Logistic Regression',       pros: 'Fast, interpretable, low compute',     cons: 'Assumes linear boundary',  best: 'Simple classification problems' },
-            { rank: '3rd', icon: '📈', name: 'Gradient Boosting',          pros: 'High accuracy, handles imbalance',    cons: 'Slower to train',           best: 'Competitions & high-accuracy needs' },
-          ].map(row => (
-            <div key={row.rank} className="grid grid-cols-4 gap-3 py-2.5 border-b border-white/[0.05] last:border-0 items-start">
-              <div className="flex items-center gap-1.5">
-                <span className="text-base">{row.icon}</span>
-                <div>
-                  <div className="text-[10px] font-black text-white">{row.name}</div>
-                  <div className="text-[9px] text-white/30">{row.rank} choice</div>
-                </div>
-              </div>
-              <div className="text-[10px] text-green-400/80">✓ {row.pros}</div>
-              <div className="text-[10px] text-red-400/70">✗ {row.cons}</div>
-              <div className="text-[10px] text-white/35 italic">{row.best}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Action guide */}
-      <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-yellow-300 flex items-center gap-2">
-          <span>⚡</span> What To Do After Analysis Is Complete
-        </h4>
-        <div className="space-y-3">
-          {[
-            { step: '1', text: 'Check which mode you\'re in — the top-right button shows "Code Mode" if you\'re in Easy Mode, or "Easy Mode" if you\'re in Code Mode. Click it to switch anytime.' },
-            { step: '2', text: 'Review the 3 visualisation charts: the bar chart shows class balance, the heatmap shows feature correlations, and the boxplot shows income variance by loyalty tier.' },
-            { step: '3', text: 'Click "⚙ Adjust Settings" to expand the settings panel — set your Test Split (default 20%) and CV Folds (default 5), and optionally add notes like "handle class imbalance" for the AI.' },
-            { step: '4', text: 'Read the Top 3 Recommended Models in the right sidebar. Each shows pros, cons, and a description — the first model is the AI\'s top pick for your dataset.' },
-            { step: '5', text: 'Expand "⭐ Feature Importance Notes" and "⚡ Preprocessing Recommendations" in the sidebar for deeper AI insights before training.' },
-            { step: '6', text: 'Click "▶ Build Pipeline with Random Forest Classifier" (or choose Logistic Regression / Gradient Boosting) to advance to Step 3: Train Model.' },
-          ].map((item) => (
-            <div key={item.step} className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[11px] font-bold text-yellow-300 flex-shrink-0 mt-0.5">
-                {item.step}
-              </span>
-              <p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────
 // TUTORIAL PAGE
@@ -2766,6 +2541,17 @@ export default function TutorialPage() {
     },
     {
       number: 6,
+      title: 'Choose Easy Mode or Code Mode',
+      icon: '⚡',
+      color: 'from-yellow-600/20 to-amber-800/20',
+      accentColor: '#fbbf24',
+      borderColor: 'border-yellow-500/40',
+      badge: 'Analysis Results',
+      isCustom: true,
+      fullDescription: '',
+    },
+    {
+      number: 7,
       title: 'Lab Playground — Upload & Analyse Your Dataset',
       icon: '🧪',
       color: 'from-cyan-600/20 to-teal-800/20',
@@ -2776,7 +2562,7 @@ export default function TutorialPage() {
       fullDescription: '',
     },
     {
-      number: 7,
+      number: 8,
       title: 'ML Agent — Auto Analysis & Feature Engineering',
       icon: '🔬',
       color: 'from-emerald-600/20 to-green-800/20',
@@ -2785,18 +2571,7 @@ export default function TutorialPage() {
       badge: 'AI Pipeline',
       isCustom: true,
       fullDescription: '',
-    },
-    {
-      number: 8,
-      title: 'Choose Easy Mode or Code Mode',
-      icon: '⚡',
-      color: 'from-yellow-600/20 to-amber-800/20',
-      accentColor: '#fbbf24',
-      borderColor: 'border-yellow-500/40',
-      badge: 'Analysis Results',
-      isCustom: true,
-      fullDescription: '',
-    },
+    }
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -2974,9 +2749,8 @@ export default function TutorialPage() {
                   <Step6Content accentColor={step.accentColor} />
                 ) : step.number === 7 ? (
                   <Step7Content accentColor={step.accentColor} />
-                ) : step.number === 8 ? (
-                  <Step8Content accentColor={step.accentColor} />
-                ) : (
+                ) : 
+                (
                   <div className="space-y-0">
                     {step.fullDescription.split('\n\n').map((para, i) => {
                       if (para.trim().startsWith('•')) {
