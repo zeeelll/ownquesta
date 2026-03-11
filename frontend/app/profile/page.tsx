@@ -456,10 +456,12 @@ export default function ProfilePage() {
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-6 pb-8 border-b border-slate-700/50">
                   <div className="relative group">
                     <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-300"></div>
-                    <img 
-                      src={profile.avatar || DEFAULT_AVATAR} 
-                      alt="avatar" 
-                      className="relative w-32 h-32 rounded-full object-cover ring-4 ring-slate-800 shadow-xl transition-transform duration-300 group-hover:scale-105" 
+                    <img
+                      src={profile.avatar || DEFAULT_AVATAR}
+                      alt={profile.name || "User"}
+                      referrerPolicy="no-referrer"
+                      className="relative w-32 h-32 rounded-full object-cover ring-4 ring-slate-800 shadow-xl transition-transform duration-300 group-hover:scale-105"
+                      onError={(e) => { e.currentTarget.src = DEFAULT_AVATAR; }}
                     />
                     <div className="absolute bottom-0 right-0 w-8 h-8 bg-green-500 rounded-full border-4 border-slate-800 shadow-lg"></div>
                   </div>

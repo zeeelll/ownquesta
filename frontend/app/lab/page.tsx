@@ -270,21 +270,52 @@ export default function LabPage() {
       if (proj.filePath)    { setUploadedFilePath(proj.filePath); }
       if (proj.targetColumn){ setTargetCol(proj.targetColumn); }
 
-      // Always keep analysisStage as 'idle' — the Python kernel resets every
-      // session, so the Analyse button must always be available regardless of
-      // the previous stage.  The user simply clicks Analyse to re-run.
       const stage = proj.stage ?? 'initialized';
-      setAnalysisStage('idle');
 
-      // Stage-specific resume hint shown in the chat panel
+      // Restore UI state from the last saved lab_active_state for this session.
+      // The Python kernel is stateless (variables are gone), but we can restore
+      // the analysis stage, selected model, and feature columns so the user
+      // sees exactly where they left off and can continue from that point.
+      let restoredStage: 'idle' | 'analyzed' | 'pipeline_built' = 'idle';
+      try {
+        const savedActiveRaw = localStorage.getItem('lab_active_state');
+        if (savedActiveRaw) {
+          const savedActive = JSON.parse(savedActiveRaw);
+          if (savedActive.sid === proj.sessionId) {
+            // Restore analysis stage
+            if (savedActive.analysisStage && savedActive.analysisStage !== 'idle') {
+              restoredStage = savedActive.analysisStage;
+            }
+            // Restore model selection
+            if (savedActive.selectedModel) setSelectedModel(savedActive.selectedModel);
+            // Restore feature columns for the predict panel
+            if (savedActive.featureColumns?.length) {
+              setFeatureColumns(savedActive.featureColumns);
+              setPredictInputs(
+                savedActive.predictInputs ||
+                Object.fromEntries(savedActive.featureColumns.map((c: string) => [c, '']))
+              );
+            }
+          }
+        }
+      } catch { /* ignore corrupt state */ }
+
+      // Fall back: infer stage from backend project stage if no saved UI state
+      if (restoredStage === 'idle') {
+        if (['eda_completed', 'model_selected'].includes(stage)) restoredStage = 'analyzed';
+        else if (['training', 'trained', 'evaluated', 'completed'].includes(stage)) restoredStage = 'pipeline_built';
+      }
+      setAnalysisStage(restoredStage);
+
+      // Stage-specific resume hint
       const hint: Record<string, string> = {
-        dataset_uploaded: 'Your dataset is ready on the server. Click **Analyse** to run the AI analysis.',
-        eda_completed:    'EDA was previously completed. Click **Analyse** to re-run, then select a model to build the pipeline.',
-        model_selected:   'A model was selected last time. Click **Analyse** to re-run, then rebuild the pipeline.',
-        training:         'The pipeline was building. Click **Analyse** to re-run from scratch.',
-        trained:          'The model was trained. Click **Analyse** → select model → build pipeline to retrain.',
-        evaluated:        'The model was evaluated. Click **Analyse** to run the full workflow again.',
-        completed:        'Project was completed. Click **Analyse** to re-run the full workflow.',
+        dataset_uploaded: 'Dataset is ready. Click **Analyse** to run the AI analysis.',
+        eda_completed:    'EDA was completed. Your model options and notebook are restored — or click **Analyse** to re-run.',
+        model_selected:   'A model was selected. Click **Build Pipeline** to continue, or **Analyse** to re-run from EDA.',
+        training:         'Pipeline was building. Click **Build Pipeline** to rebuild, or **Analyse** to start fresh.',
+        trained:          'Model was trained. You can run predictions or click **Build Pipeline** to retrain.',
+        evaluated:        'Model was evaluated. All previous work has been restored.',
+        completed:        'Project was completed. All previous work has been restored.',
       };
 
       addMsg({
@@ -293,9 +324,9 @@ export default function LabPage() {
           `🔄 **Resuming "${proj.name || 'your project'}"**`,
           `Last stage: *${stage.replace(/_/g, ' ')}*`,
           '',
-          '> The Python kernel is stateless — variables reset each session.',
-          '> Chat history and notebook cells have been restored. Re-run cells to regenerate charts.',
-          hint[stage] ?? 'Click **Analyse** to re-run the pipeline.',
+          '> Chat history and notebook cells have been restored.',
+          '> The Python kernel resets between sessions — re-run any cells to regenerate variable state and charts.',
+          hint[stage] ?? 'Click **Analyse** to continue.',
         ].join('\n'),
       });
     } catch { /* ignore */ }
@@ -305,7 +336,11 @@ export default function LabPage() {
   useEffect(() => {
     const raw = localStorage.getItem('mlNewProject');
     if (!raw) return;
+    // Always wipe stale session state before starting a fresh project.
+    // This also guards against React Strict Mode running effects twice — the
+    // second run finds mlNewProject gone but lab_active_state is already cleared.
     localStorage.removeItem('mlNewProject');
+    localStorage.removeItem('lab_active_state');
     try {
       const proj = JSON.parse(raw) as { name?: string; goal?: string; targetCol?: string };
       if (proj.name)      newProjectNameRef.current = proj.name;

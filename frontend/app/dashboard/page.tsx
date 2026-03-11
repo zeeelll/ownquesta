@@ -146,6 +146,7 @@ function StatCard({
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser]           = useState<{ name?: string; email?: string; avatar?: string; role?: string } | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const [projects, setProjects]   = useState<Project[]>([]);
   const [stats, setStats]         = useState<Stats>({ total: 0, active: 0, completed: 0 });
   const [loading, setLoading]     = useState(true);
@@ -265,6 +266,8 @@ export default function DashboardPage() {
   // Collects new-project fields then navigates to /lab
   const handleNewProject = useCallback((name: string, goal: string, targetCol: string) => {
     setShowNewProj(false);
+    // Clear any stale session so the lab always opens completely fresh
+    localStorage.removeItem('lab_active_state');
     localStorage.setItem("mlNewProject", JSON.stringify({ name, goal, targetCol }));
     router.push("/lab");
   }, [router]);
@@ -406,11 +409,19 @@ export default function DashboardPage() {
               onClick={() => setDropOpen(o => !o)}
               className="flex items-center gap-2 p-1 rounded-lg hover:bg-white/5 transition-all"
             >
-              <img
-                src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=4f46e5&color=fff`}
-                alt="avatar"
-                className="w-8 h-8 rounded-full border border-indigo-500/40"
-              />
+              {user.avatar && !avatarError ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || "User"}
+                  referrerPolicy="no-referrer"
+                  className="w-8 h-8 rounded-full border border-indigo-500/40 object-cover"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full border border-indigo-500/40 bg-indigo-600 flex items-center justify-center text-xs font-bold text-white select-none">
+                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
               <span className="text-sm text-slate-300 hidden sm:block">{user.name}</span>
               <svg className="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
