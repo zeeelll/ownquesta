@@ -1810,7 +1810,7 @@ function Step7Content({ accentColor }: { accentColor: string }) {
   const [activeMode, setActiveMode] = useState<'easy' | 'code'>('easy');
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
 
-  const annotations = activeMode === 'easy' ? easyModeAnnotations : labRunningAnnotations;
+  const annotations = activeMode === 'easy' ? labRunningAnnotations : easyModeAnnotations;
 
   return (
     <div className="space-y-12">
@@ -1848,12 +1848,12 @@ function Step7Content({ accentColor }: { accentColor: string }) {
           </p>
         </div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">
-          {activeMode === 'easy' ? <EasyModeMockup /> : <LabRunningMockup />}
+          {activeMode === 'easy' ? <LabRunningMockup /> : <EasyModeMockup />}
         </div>
         <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">
           ↑ {activeMode === 'easy'
-            ? 'Easy Mode — analysis complete, charts and top 3 models shown'
-            : 'Code Mode — ML Agent auto-generates and runs Python, streams results live'}
+            ? 'Code Mode — ML Agent auto-generates and runs Python, streams results live'
+            : 'Easy Mode — analysis complete, charts and top 3 models shown'}
         </p>
       </div>
 
