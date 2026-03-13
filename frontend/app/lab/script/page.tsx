@@ -41,6 +41,207 @@ function triggerDownload(content: string, filename: string, mime = 'text/plain')
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
+type DownloadType = 'py' | 'ipynb';
+
+// ── Payment config — adjust price / label as needed ──────────────────────────
+const DOWNLOAD_PRICE = 2.99;
+
+// ── Payment Modal ─────────────────────────────────────────────────────────────
+function PaymentModal({
+  downloadType,
+  onClose,
+  onSuccess,
+}: {
+  downloadType: DownloadType;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [step, setStep]     = useState<'details' | 'processing' | 'success'>('details');
+  const [cardNum, setCardNum] = useState('');
+  const [expiry,  setExpiry]  = useState('');
+  const [cvv,     setCvv]     = useState('');
+  const [name,    setName]    = useState('');
+  const [errors,  setErrors]  = useState<Record<string, string>>({});
+
+  const formatCard   = (v: string) => v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  const formatExpiry = (v: string) => {
+    const d = v.replace(/\D/g, '').slice(0, 4);
+    return d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+  };
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!name.trim()) e.name = 'Required';
+    if (cardNum.replace(/\s/g, '').length < 16) e.card = 'Enter 16-digit card number';
+    if (expiry.length < 5) e.expiry = 'Enter MM/YY';
+    if (cvv.length < 3) e.cvv = 'Enter 3-digit CVV';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handlePay = () => {
+    if (!validate()) return;
+    setStep('processing');
+    setTimeout(() => {
+      setStep('success');
+      setTimeout(onSuccess, 1800);
+    }, 2200);
+  };
+
+  const fileLabel = downloadType === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+      {/* Backdrop */}
+      <div
+        onClick={step === 'details' ? onClose : undefined}
+        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+      />
+
+      {/* Card */}
+      <div style={{
+        position: 'relative', width: '100%', maxWidth: 420, borderRadius: 20,
+        background: 'linear-gradient(160deg, #0e0f1f 0%, #0a0b18 100%)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.8)',
+        overflow: 'hidden',
+      }}>
+        {/* Accent top bar */}
+        <div style={{ height: 3, background: 'linear-gradient(90deg, #6e54c8, #a87edf, #60a5fa)' }} />
+
+        <div style={{ padding: 28 }}>
+
+          {/* ── Details ── */}
+          {step === 'details' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#6e54c8', marginBottom: 4 }}>
+                    Secure Checkout
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9' }}>Download File</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>One-time purchase · Instant download</div>
+                </div>
+                <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
+              </div>
+
+              {/* Summary */}
+              <div style={{ background: 'rgba(110,84,200,0.08)', border: '1px solid rgba(110,84,200,0.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 13, color: '#c4b5fd', fontWeight: 600 }}>
+                    {downloadType === 'py' ? '🐍' : '📓'} {fileLabel}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>pipeline · Python</div>
+                </div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#a87edf' }}>${DOWNLOAD_PRICE}</div>
+              </div>
+
+              {/* Form */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <Field label="Cardholder Name" error={errors.name}>
+                  <input value={name} onChange={e => setName(e.target.value)}
+                    placeholder="John Doe" style={inputStyle(!!errors.name)} />
+                </Field>
+                <Field label="Card Number" error={errors.card}>
+                  <div style={{ position: 'relative' }}>
+                    <input value={cardNum} onChange={e => setCardNum(formatCard(e.target.value))}
+                      placeholder="0000 0000 0000 0000"
+                      style={{ ...inputStyle(!!errors.card), paddingRight: 80 }} />
+                    <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 4 }}>
+                      <CardBadge label="VISA" color="#60a5fa" />
+                      <CardBadge label="MC"   color="#f97316" />
+                    </div>
+                  </div>
+                </Field>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <Field label="Expiry" error={errors.expiry} style={{ flex: 1 }}>
+                    <input value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
+                      placeholder="MM/YY" style={inputStyle(!!errors.expiry)} />
+                  </Field>
+                  <Field label="CVV" error={errors.cvv} style={{ flex: 1 }}>
+                    <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                      placeholder="•••" type="password" style={inputStyle(!!errors.cvv)} />
+                  </Field>
+                </div>
+              </div>
+
+              <button onClick={handlePay} style={{
+                marginTop: 20, width: '100%', padding: 14, borderRadius: 12,
+                background: 'linear-gradient(135deg,#6e54c8,#a87edf)',
+                border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
+                cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 4px 24px rgba(110,84,200,0.45)',
+                transition: 'transform 0.15s, box-shadow 0.15s',
+              }}
+                onMouseEnter={e => { (e.currentTarget).style.transform = 'translateY(-1px)'; (e.currentTarget).style.boxShadow = '0 8px 32px rgba(110,84,200,0.55)'; }}
+                onMouseLeave={e => { (e.currentTarget).style.transform = ''; (e.currentTarget).style.boxShadow = '0 4px 24px rgba(110,84,200,0.45)'; }}
+              >
+                Pay ${DOWNLOAD_PRICE} & Download
+              </button>
+
+              <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', gap: 16, fontSize: 11, color: '#475569' }}>
+                <span>🔒 SSL Encrypted</span>
+                <span>✓ Secure Payment</span>
+                <span>⚡ Instant Delivery</span>
+              </div>
+            </>
+          )}
+
+          {/* ── Processing ── */}
+          {step === 'processing' && (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <div style={{ fontSize: 48, marginBottom: 16, display: 'inline-block', animation: 'pmSpin 1s linear infinite' }}>⚙️</div>
+              <style>{`@keyframes pmSpin { to { transform: rotate(360deg); } }`}</style>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>Processing Payment…</div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>Please wait, do not close this window</div>
+              <div style={{ marginTop: 20, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: 'linear-gradient(90deg,#6e54c8,#a87edf)', borderRadius: 4, animation: 'pmProg 2.2s ease-out forwards' }} />
+                <style>{`@keyframes pmProg { from { width:0% } to { width:100% } }`}</style>
+              </div>
+            </div>
+          )}
+
+          {/* ── Success ── */}
+          {step === 'success' && (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '2px solid #4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>✓</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#4ade80', marginBottom: 8 }}>Payment Successful!</div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>Starting your download…</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Small helpers ─────────────────────────────────────────────────────────────
+function Field({ label, error, children, style }: { label: string; error?: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={style}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: '0.05em', marginBottom: 5 }}>{label}</div>
+      {children}
+      {error && <div style={{ fontSize: 11, color: '#f87171', marginTop: 3 }}>{error}</div>}
+    </div>
+  );
+}
+
+function CardBadge({ label, color }: { label: string; color: string }) {
+  return (
+    <span style={{ fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 4, border: `1px solid ${color}40`, color, background: `${color}10` }}>{label}</span>
+  );
+}
+
+function inputStyle(hasError: boolean): React.CSSProperties {
+  return {
+    width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+    background: 'rgba(255,255,255,0.04)',
+    border: `1px solid ${hasError ? '#f87171' : 'rgba(255,255,255,0.1)'}`,
+    borderRadius: 10, color: '#f1f5f9', fontSize: 13,
+    fontFamily: 'inherit', outline: 'none',
+  };
+}
+
 // ── Markdown-lite renderer ────────────────────────────────────────────────────
 function renderMd(text: string): string {
   return text
@@ -54,9 +255,9 @@ function renderMd(text: string): string {
 export default function ScriptPage() {
   const router = useRouter();
 
-  // Session info from localStorage
-  const [sessionId, setSessionId]     = useState('');
-  const [script,    setScript]        = useState('# Loading script…');
+  // Session
+  const [sessionId, setSessionId] = useState('');
+  const [script,    setScript]    = useState('# Loading script…');
 
   // Execution
   const [output,    setOutput]    = useState<{ type: 'out' | 'err' | 'status'; text: string }[]>([]);
@@ -64,28 +265,29 @@ export default function ScriptPage() {
   const outputEndRef = useRef<HTMLDivElement>(null);
 
   // Chat
-  const [chatMsgs,   setChatMsgs]   = useState<ChatMsg[]>([{ role: 'assistant', content: 'I can help you modify, debug or improve this Python script. Ask me anything!' }]);
-  const [chatInput,  setChatInput]  = useState('');
-  const [chatBusy,   setChatBusy]   = useState(false);
+  const [chatMsgs,  setChatMsgs]  = useState<ChatMsg[]>([{ role: 'assistant', content: 'I can help you modify, debug or improve this Python script. Ask me anything!' }]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatBusy,  setChatBusy]  = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Models
-  const [models,         setModels]         = useState<AIModel[]>([]);
-  const [selectedModel,  setSelectedModel]  = useState('gpt-4o-mini');
-  const [modelDropOpen,  setModelDropOpen]  = useState(false);
+  const [models,        setModels]        = useState<AIModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const [modelDropOpen, setModelDropOpen] = useState(false);
   const modelDropRef = useRef<HTMLDivElement>(null);
 
-  // Download state
+  // Payment modal state
+  const [payModal,   setPayModal]   = useState<DownloadType | null>(null);
+  const [paidTypes,  setPaidTypes]  = useState<Set<DownloadType>>(new Set());
   const [dlNotebook, setDlNotebook] = useState(false);
 
-  // ── Boot: load session from localStorage ───────────────────────────────────
+  // ── Boot ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const raw = localStorage.getItem('lab_script_session');
     if (!raw) { setScript('# No session data found. Go back to the Lab and click "Python Script".'); return; }
     try {
       const { sessionId: sid, cells } = JSON.parse(raw) as { sessionId: string; cells: string[] };
       setSessionId(sid);
-      // Generate script from cells
       fetch(`${AGENT_URL}/v2/generate-script`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,7 +296,6 @@ export default function ScriptPage() {
         .then(r => r.json())
         .then(d => setScript(d.script || '# (empty script)'))
         .catch(() => {
-          // Fallback: combine cells client-side
           const header = '# Auto-generated by Ownquesta\n\n';
           setScript(header + cells.map((c, i) => `# ── Cell ${i + 1} ──\n${c.trim()}`).join('\n\n'));
         });
@@ -103,7 +304,6 @@ export default function ScriptPage() {
     }
   }, []);
 
-  // Fetch AI models
   useEffect(() => {
     fetchAvailableModels(AGENT_URL).then(m => {
       if (m.length > 0) {
@@ -113,11 +313,9 @@ export default function ScriptPage() {
     });
   }, []);
 
-  // Auto-scroll output + chat
   useEffect(() => { outputEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [output]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMsgs]);
 
-  // Close model dropdown on outside click
   useEffect(() => {
     const h = (e: MouseEvent) => {
       if (!modelDropRef.current?.contains(e.target as Node)) setModelDropOpen(false);
@@ -126,7 +324,7 @@ export default function ScriptPage() {
     return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  // ── Run script ─────────────────────────────────────────────────────────────
+  // ── Run ───────────────────────────────────────────────────────────────────
   const runScript = useCallback(async () => {
     if (isRunning || !sessionId) return;
     setIsRunning(true);
@@ -144,16 +342,13 @@ export default function ScriptPage() {
       }
     } catch (e: any) {
       setOutput(p => [...p, { type: 'err', text: e.message }]);
-    } finally {
-      setIsRunning(false);
-    }
+    } finally { setIsRunning(false); }
   }, [isRunning, sessionId, script]);
 
-  // ── Download .py ───────────────────────────────────────────────────────────
-  const downloadPy = () => triggerDownload(script, 'pipeline.py', 'text/x-python');
+  // ── Actual download helpers (called AFTER payment) ────────────────────────
+  const doDownloadPy = () => triggerDownload(script, 'pipeline.py', 'text/x-python');
 
-  // ── Download .ipynb ────────────────────────────────────────────────────────
-  const downloadNotebook = async () => {
+  const doDownloadNotebook = async () => {
     if (dlNotebook || !sessionId) return;
     setDlNotebook(true);
     try {
@@ -165,14 +360,37 @@ export default function ScriptPage() {
         body: JSON.stringify({ session_id: sessionId, cells }),
       });
       if (res.ok) {
-        const blob = await res.blob();
+        const blob  = await res.blob();
         const fname = res.headers.get('content-disposition')?.match(/filename="?([^"]+)"?/)?.[1] ?? 'pipeline.ipynb';
         triggerDownload(await blob.text(), fname, 'application/json');
       }
     } catch { /* silent */ } finally { setDlNotebook(false); }
   };
 
-  // ── AI Chat ────────────────────────────────────────────────────────────────
+  // ── Download click handlers — check payment first ─────────────────────────
+  const handleDownloadPy = () => {
+    if (paidTypes.has('py')) { doDownloadPy(); return; }
+    setPayModal('py');
+  };
+
+  const handleDownloadNotebook = () => {
+    if (dlNotebook) return;
+    if (paidTypes.has('ipynb')) { doDownloadNotebook(); return; }
+    setPayModal('ipynb');
+  };
+
+  // ── Payment success ───────────────────────────────────────────────────────
+  const handlePaySuccess = () => {
+    const type = payModal!;
+    setPaidTypes(prev => new Set([...prev, type]));
+    setPayModal(null);
+    setTimeout(() => {
+      if (type === 'py')    doDownloadPy();
+      if (type === 'ipynb') doDownloadNotebook();
+    }, 300);
+  };
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
   const sendChat = useCallback(async () => {
     const msg = chatInput.trim();
     if (!msg || chatBusy) return;
@@ -198,7 +416,7 @@ export default function ScriptPage() {
 
   const selectedModelObj = models.find(m => m.id === selectedModel);
 
-  // ── Styles ─────────────────────────────────────────────────────────────────
+  // ── Styles ────────────────────────────────────────────────────────────────
   const S = {
     root:       { height: '100vh', display: 'flex', flexDirection: 'column' as const, background: '#080912', color: '#e6eef8', fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' },
     header:     { height: 52, flexShrink: 0, background: 'rgba(10,11,20,0.95)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
@@ -206,15 +424,16 @@ export default function ScriptPage() {
     leftPanel:  { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' as const, borderRight: '1px solid rgba(255,255,255,0.06)' },
     rightPanel: { width: 360, flexShrink: 0, display: 'flex', flexDirection: 'column' as const },
     btn: (color = '#a87edf', bg = 'rgba(110,84,200,0.15)', border = 'rgba(110,84,200,0.35)'): React.CSSProperties => ({
-      display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: `1px solid ${border}`,
-      background: bg, color, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
+      display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 8,
+      border: `1px solid ${border}`, background: bg, color, fontSize: 12, fontWeight: 600,
+      cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.15s',
     }),
   };
 
   return (
     <div style={S.root}>
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ── */}
       <header style={S.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => router.back()} style={S.btn('#94a3b8', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0.1)')}>
@@ -223,32 +442,52 @@ export default function ScriptPage() {
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
           <span style={{ fontSize: 16 }}>🐍</span>
           <span style={{ fontWeight: 700, fontSize: 14 }}>Script Editor</span>
-          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', background: 'rgba(110,84,200,0.18)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>BETA</span>
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.18)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>BETA</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {/* Run */}
           <button onClick={runScript} disabled={isRunning}
-            style={S.btn(isRunning ? '#475569' : '#4ade80', isRunning ? 'rgba(74,222,128,0.04)' : 'rgba(74,222,128,0.12)', isRunning ? 'rgba(74,222,128,0.15)' : 'rgba(74,222,128,0.4)')}>
+            style={S.btn(
+              isRunning ? '#475569' : '#4ade80',
+              isRunning ? 'rgba(74,222,128,0.04)' : 'rgba(74,222,128,0.12)',
+              isRunning ? 'rgba(74,222,128,0.15)' : 'rgba(74,222,128,0.4)',
+            )}>
             {isRunning ? <><SpinIcon />Running…</> : <><PlayIcon />Run Script</>}
           </button>
 
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
 
-          {/* Download .py */}
-          <button onClick={downloadPy} style={S.btn('#60a5fa', 'rgba(96,165,250,0.1)', 'rgba(96,165,250,0.3)')}>
-            <DownloadIcon />Download .py
+          {/* Download .py — shows lock if not paid */}
+          <button onClick={handleDownloadPy}
+            style={S.btn(
+              paidTypes.has('py') ? '#60a5fa' : '#94a3b8',
+              paidTypes.has('py') ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.04)',
+              paidTypes.has('py') ? 'rgba(96,165,250,0.3)' : 'rgba(255,255,255,0.12)',
+            )}>
+            {paidTypes.has('py') ? <DownloadIcon /> : <LockIcon />}
+            Download .py
+            {!paidTypes.has('py') && <PriceTag price={DOWNLOAD_PRICE} />}
           </button>
 
-          {/* Download .ipynb */}
-          <button onClick={downloadNotebook} disabled={dlNotebook}
-            style={S.btn('#fbbf24', 'rgba(251,191,36,0.1)', 'rgba(251,191,36,0.3)')}>
-            {dlNotebook ? <><SpinIcon />…</> : <><DownloadIcon />Download .ipynb</>}
+          {/* Download .ipynb — shows lock if not paid */}
+          <button onClick={handleDownloadNotebook} disabled={dlNotebook}
+            style={S.btn(
+              paidTypes.has('ipynb') ? '#fbbf24' : '#94a3b8',
+              paidTypes.has('ipynb') ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
+              paidTypes.has('ipynb') ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.12)',
+            )}>
+            {dlNotebook
+              ? <><SpinIcon />…</>
+              : paidTypes.has('ipynb')
+                ? <><DownloadIcon />Download .ipynb</>
+                : <><LockIcon />Download .ipynb<PriceTag price={DOWNLOAD_PRICE} /></>
+            }
           </button>
         </div>
       </header>
 
-      {/* ── Body ───────────────────────────────────────────────────────────── */}
+      {/* ── Body ── */}
       <div style={S.body}>
 
         {/* Left: editor + terminal */}
@@ -318,7 +557,7 @@ export default function ScriptPage() {
                     if (!group.length) return null;
                     return (
                       <div key={provider}>
-                        <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: provider === 'anthropic' ? '#f97316' : '#60a5fa' }}>
+                        <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#f97316' : '#60a5fa' }}>
                           {provider === 'anthropic' ? 'Anthropic' : 'OpenAI'}
                         </div>
                         {group.map(m => (
@@ -341,7 +580,8 @@ export default function ScriptPage() {
             {chatMsgs.map((msg, i) => (
               <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
-                  maxWidth: '90%', padding: '9px 13px', borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '4px 16px 16px 16px',
+                  maxWidth: '90%', padding: '9px 13px',
+                  borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '4px 16px 16px 16px',
                   background: msg.role === 'user' ? 'linear-gradient(135deg,#4a3aad,#6e54c8)' : 'rgba(255,255,255,0.05)',
                   border: msg.role === 'user' ? 'none' : '1px solid rgba(255,255,255,0.08)',
                   fontSize: 13, lineHeight: 1.55, color: '#e2e8f0',
@@ -377,23 +617,46 @@ export default function ScriptPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Payment Modal ── */}
+      {payModal && (
+        <PaymentModal
+          downloadType={payModal}
+          onClose={() => setPayModal(null)}
+          onSuccess={handlePaySuccess}
+        />
+      )}
     </div>
+  );
+}
+
+// ── Inline price tag ──────────────────────────────────────────────────────────
+function PriceTag({ price }: { price: number }) {
+  return (
+    <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(168,126,223,0.15)', border: '1px solid rgba(168,126,223,0.3)', color: '#a87edf', marginLeft: 2 }}>
+      ${price}
+    </span>
   );
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 function PlayIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-      <polygon points="2,1 11,6 2,11"/>
-    </svg>
-  );
+  return <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><polygon points="2,1 11,6 2,11"/></svg>;
 }
 
 function DownloadIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
       <path d="M12 3v12m0 0l-4-4m4 4l4-4M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
     </svg>
   );
 }
