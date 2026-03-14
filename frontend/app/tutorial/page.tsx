@@ -15,14 +15,14 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  'How does Ownquesta work?',
-  'What is the validation page for?',
-  'How do I upload my dataset?',
-  'Which ML models does Ownquesta support?',
-  'How do I deploy my model?',
-  'What is EDA?',
-  'Do I need coding knowledge?',
-  'How long does training take?',
+  "How does Ownquesta work?",
+    "What is the Lab Playground?",
+    "How do I upload my dataset?",
+    "What is Easy Mode vs Code Mode?",
+    "How do I test my model?",
+    "What is EDA?",
+    "Do I need coding knowledge?",
+    "How long does training take?",
 ];
 
 const formatMessage = (text: string) => {
