@@ -1172,6 +1172,98 @@ function Row({ label, val, mono }: { label: string; val: string; mono?: boolean 
   return (<div style={{ display: 'flex', gap: 6, marginBottom: 2 }}><span style={{ color: '#475569', minWidth: 80 }}>{label}</span><span style={{ color: '#e2e8f0', fontFamily: mono ? 'monospace' : 'inherit' }}>{val}</span></div>);
 }
 
+// ── Hyperparameter definitions ────────────────────────────────────────────────
+interface HPDef { name: string; label: string; values: (string | number)[]; recommended: string | number; reasoning: string; }
+
+const HYPERPARAM_DEFS: Record<string, HPDef[]> = {
+  RandomForestClassifier: [
+    { name: 'n_estimators',     label: 'Number of Trees',     values: [50, 100, 200, 300, 500],                recommended: 100,    reasoning: '100 trees balance accuracy and speed. More trees reduce variance but cost compute.' },
+    { name: 'max_depth',        label: 'Max Tree Depth',      values: ['None', 3, 5, 10, 15, 20],             recommended: 10,     reasoning: 'Depth 10 captures complex patterns while preventing overfitting on most datasets.' },
+    { name: 'min_samples_split',label: 'Min Samples Split',   values: [2, 5, 10, 20],                         recommended: 2,      reasoning: 'Default 2 works best; increase to 5–10 only for noisy data.' },
+    { name: 'min_samples_leaf', label: 'Min Samples Leaf',    values: [1, 2, 4, 8],                           recommended: 1,      reasoning: '1 is optimal for clean datasets — increase to smooth noisy predictions.' },
+    { name: 'max_features',     label: 'Max Features / Split', values: ['sqrt', 'log2', 'None', 0.5],         recommended: 'sqrt', reasoning: 'sqrt(features) is the textbook recommendation for classification tasks.' },
+  ],
+  RandomForestRegressor: [
+    { name: 'n_estimators',     label: 'Number of Trees',     values: [50, 100, 200, 300, 500],               recommended: 100,    reasoning: '100 trees give stable predictions without excessive compute.' },
+    { name: 'max_depth',        label: 'Max Tree Depth',      values: ['None', 3, 5, 10, 15, 20],             recommended: 'None', reasoning: 'Unrestricted depth often outperforms pruned trees for regression on structured data.' },
+    { name: 'min_samples_split',label: 'Min Samples Split',   values: [2, 5, 10, 20],                         recommended: 2,      reasoning: 'Default 2 is optimal; increase for high-noise datasets.' },
+    { name: 'max_features',     label: 'Max Features / Split', values: ['sqrt', 'log2', 'None', 0.5, 0.33],   recommended: 0.33,  reasoning: '1/3 of features is the standard heuristic for regression, improving generalisation.' },
+  ],
+  GradientBoostingClassifier: [
+    { name: 'n_estimators',     label: 'Boosting Rounds',     values: [50, 100, 150, 200, 300],               recommended: 100,   reasoning: 'Start at 100; lower learning rate → more rounds. Use CV to tune.' },
+    { name: 'learning_rate',    label: 'Learning Rate',       values: [0.01, 0.05, 0.1, 0.2, 0.3],           recommended: 0.1,   reasoning: '0.1 is the standard starting point — lower values generalise better but need more trees.' },
+    { name: 'max_depth',        label: 'Max Depth',           values: [2, 3, 4, 5, 6],                        recommended: 3,     reasoning: 'Shallow trees (3–5) are standard for boosting — deeper trees overfit quickly.' },
+    { name: 'subsample',        label: 'Row Subsample',       values: [0.6, 0.7, 0.8, 0.9, 1.0],             recommended: 0.8,   reasoning: '0.8 subsample introduces randomness that reduces overfitting significantly.' },
+    { name: 'min_samples_leaf', label: 'Min Samples Leaf',    values: [1, 2, 4, 8, 20],                       recommended: 1,     reasoning: 'Default 1 is fine; increase for large noisy datasets.' },
+  ],
+  GradientBoostingRegressor: [
+    { name: 'n_estimators',     label: 'Boosting Rounds',     values: [50, 100, 150, 200, 300],               recommended: 100,   reasoning: '100 stages with lr=0.1 is the classic starting combination.' },
+    { name: 'learning_rate',    label: 'Learning Rate',       values: [0.01, 0.05, 0.1, 0.2, 0.3],           recommended: 0.1,   reasoning: 'Lower rates generalise better. Pair with more estimators for best results.' },
+    { name: 'max_depth',        label: 'Max Depth',           values: [2, 3, 4, 5, 6],                        recommended: 3,     reasoning: 'Depth 3 prevents overfitting while capturing complex feature interactions.' },
+    { name: 'subsample',        label: 'Row Subsample',       values: [0.6, 0.7, 0.8, 0.9, 1.0],             recommended: 0.8,   reasoning: 'Stochastic gradient boosting (0.8 fraction) consistently outperforms full-batch.' },
+    { name: 'loss',             label: 'Loss Function',       values: ['squared_error', 'absolute_error', 'huber'], recommended: 'squared_error', reasoning: 'Squared error is optimal for normally-distributed residuals.' },
+  ],
+  LogisticRegression: [
+    { name: 'C',         label: 'Regularisation (C)',    values: [0.001, 0.01, 0.1, 1.0, 10, 100],      recommended: 1.0,       reasoning: 'C=1 is the default. Smaller values increase regularisation to fight overfitting.' },
+    { name: 'max_iter',  label: 'Max Iterations',        values: [100, 200, 500, 1000, 2000],             recommended: 200,       reasoning: '200 iterations is sufficient for most well-scaled datasets.' },
+    { name: 'penalty',   label: 'Penalty Type',          values: ['l2', 'l1', 'elasticnet', 'none'],     recommended: 'l2',      reasoning: 'L2 ridge penalty is robust and works out-of-the-box for most classification tasks.' },
+    { name: 'solver',    label: 'Solver Algorithm',      values: ['lbfgs', 'liblinear', 'saga', 'newton-cg'], recommended: 'lbfgs', reasoning: 'lbfgs is efficient for multiclass problems and handles L2 well.' },
+  ],
+  SVC: [
+    { name: 'C',      label: 'Regularisation (C)', values: [0.1, 1.0, 10, 100],                       recommended: 1.0,     reasoning: 'C=1 balances margin width and misclassification tolerance.' },
+    { name: 'kernel', label: 'Kernel Function',    values: ['rbf', 'linear', 'poly', 'sigmoid'],       recommended: 'rbf',   reasoning: 'RBF kernel handles most non-linear problems. Use linear for high-dimensional sparse data.' },
+    { name: 'gamma',  label: 'Kernel Coefficient', values: ['scale', 'auto', 0.001, 0.01, 0.1],        recommended: 'scale', reasoning: '"scale" automatically adjusts gamma based on feature variance — more robust than manual.' },
+  ],
+  DecisionTreeClassifier: [
+    { name: 'max_depth',         label: 'Max Depth',          values: ['None', 3, 5, 8, 10, 15],         recommended: 5,       reasoning: 'Depth 5 prevents memorising training data while staying interpretable.' },
+    { name: 'min_samples_split', label: 'Min Samples Split',  values: [2, 5, 10, 20, 50],                recommended: 5,       reasoning: 'Requiring 5 samples to split reduces noise-driven splits.' },
+    { name: 'criterion',         label: 'Split Criterion',    values: ['gini', 'entropy', 'log_loss'],    recommended: 'gini',  reasoning: 'Gini impurity is computationally cheaper and performs similarly to entropy in practice.' },
+    { name: 'min_samples_leaf',  label: 'Min Samples Leaf',   values: [1, 2, 4, 8, 16],                  recommended: 2,       reasoning: 'At least 2 samples per leaf prevents overly specific rules on noisy data.' },
+  ],
+  DecisionTreeRegressor: [
+    { name: 'max_depth',         label: 'Max Depth',          values: ['None', 3, 5, 8, 10, 15],         recommended: 5,       reasoning: 'Shallow trees generalise better — use cross-validation to confirm.' },
+    { name: 'min_samples_split', label: 'Min Samples Split',  values: [2, 5, 10, 20, 50],                recommended: 5,       reasoning: '5 samples minimum for splitting reduces noise fitting.' },
+    { name: 'criterion',         label: 'Split Criterion',    values: ['squared_error', 'friedman_mse', 'absolute_error'], recommended: 'squared_error', reasoning: 'Squared error is the standard criterion for regression trees.' },
+    { name: 'min_samples_leaf',  label: 'Min Samples Leaf',   values: [1, 2, 4, 8, 16],                  recommended: 2,       reasoning: 'Prevents single-sample leaf nodes that memorise training examples.' },
+  ],
+  KNeighborsClassifier: [
+    { name: 'n_neighbors', label: 'Neighbours (K)',      values: [3, 5, 7, 10, 15, 20],                  recommended: 5,         reasoning: 'K=5 is the classic default. Odd K avoids ties in binary classification.' },
+    { name: 'weights',     label: 'Weight Function',     values: ['uniform', 'distance'],                 recommended: 'uniform', reasoning: 'Uniform weights treat all K neighbours equally. Distance weighting helps with noisy data.' },
+    { name: 'algorithm',   label: 'Search Algorithm',    values: ['auto', 'ball_tree', 'kd_tree', 'brute'], recommended: 'auto',  reasoning: '"auto" picks the best algorithm based on dataset size and dimensionality.' },
+    { name: 'p',           label: 'Distance Metric',     values: [1, 2],                                  recommended: 2,         reasoning: 'p=2 is Euclidean distance — standard for most numeric datasets.' },
+  ],
+  KNeighborsRegressor: [
+    { name: 'n_neighbors', label: 'Neighbours (K)',      values: [3, 5, 7, 10, 15, 20],                  recommended: 5,           reasoning: 'K=5 balances bias and variance for most regression datasets.' },
+    { name: 'weights',     label: 'Weight Function',     values: ['uniform', 'distance'],                 recommended: 'distance',  reasoning: 'Distance weighting gives more influence to closer points — better for regression.' },
+    { name: 'algorithm',   label: 'Search Algorithm',    values: ['auto', 'ball_tree', 'kd_tree', 'brute'], recommended: 'auto',    reasoning: '"auto" selects the optimal algorithm based on your dataset.' },
+  ],
+  Ridge: [
+    { name: 'alpha',         label: 'Regularisation (α)', values: [0.001, 0.01, 0.1, 1.0, 10, 100],       recommended: 1.0,   reasoning: 'α=1 is a solid default. Use RidgeCV to find the optimal value.' },
+    { name: 'fit_intercept', label: 'Fit Intercept',      values: ['True', 'False'],                        recommended: 'True', reasoning: 'Always include the intercept unless features are already zero-mean.' },
+    { name: 'solver',        label: 'Solver',             values: ['auto', 'svd', 'cholesky', 'lsqr'],     recommended: 'auto', reasoning: '"auto" selects the optimal solver based on matrix structure.' },
+  ],
+  Lasso: [
+    { name: 'alpha',     label: 'Regularisation (α)', values: [0.0001, 0.001, 0.01, 0.1, 1.0, 10],       recommended: 0.01,      reasoning: 'Small α provides light sparsity enforcement. Stronger values zero out more features.' },
+    { name: 'max_iter',  label: 'Max Iterations',      values: [500, 1000, 2000, 5000],                    recommended: 1000,      reasoning: '1000 iterations is sufficient for convergence in most cases.' },
+    { name: 'selection', label: 'Feature Selection',   values: ['cyclic', 'random'],                       recommended: 'cyclic',  reasoning: 'Cyclic coordinate descent is the standard and most reliable strategy.' },
+  ],
+  LinearRegression: [
+    { name: 'fit_intercept', label: 'Fit Intercept',   values: ['True', 'False'],   recommended: 'True',  reasoning: 'Nearly always include the intercept term unless data is pre-centred.' },
+    { name: 'positive',      label: 'Force Positive',  values: ['False', 'True'],   recommended: 'False', reasoning: 'Only force positive coefficients if domain knowledge explicitly requires it.' },
+  ],
+};
+// Normalise model names the agent might return
+const HP_ALIASES: Record<string, string> = {
+  RandomForest: 'RandomForestClassifier', RandomForestClass: 'RandomForestClassifier',
+  RandomForestReg: 'RandomForestRegressor', GradientBoosting: 'GradientBoostingClassifier',
+  GradientBoostingClass: 'GradientBoostingClassifier', GradientBoostingReg: 'GradientBoostingRegressor',
+  LogReg: 'LogisticRegression', SVM: 'SVC', SupportVectorClassifier: 'SVC',
+  DecisionTree: 'DecisionTreeClassifier', DecisionTreeClass: 'DecisionTreeClassifier',
+  DecisionTreeReg: 'DecisionTreeRegressor', KNN: 'KNeighborsClassifier',
+  KNeighbors: 'KNeighborsClassifier', KNeighborsReg: 'KNeighborsRegressor',
+  LinearReg: 'LinearRegression',
+};
+
 // ── Easy Mode Panel ───────────────────────────────────────────────────────────
 interface EasyModePanelProps {
   analysisStage: 'idle' | 'analyzed' | 'pipeline_built';
@@ -1202,6 +1294,32 @@ function EasyModePanel({
   const [cvFolds, setCvFolds]         = useState(5);
   const [settingsNote, setSettingsNote] = useState('');
   const [showParams, setShowParams]   = useState(false);
+  const [showHyperTuning, setShowHyperTuning] = useState(false);
+  const [selectedHParams, setSelectedHParams] = useState<Record<string, string | number>>({});
+
+  // Resolve model name → hyperparam list
+  const hpModelKey = selectedModel
+    ? (HYPERPARAM_DEFS[selectedModel] ? selectedModel : (HP_ALIASES[selectedModel] ?? null))
+    : null;
+  const hparams = hpModelKey ? (HYPERPARAM_DEFS[hpModelKey] ?? []) : [];
+
+  // Seed recommended values whenever model changes
+  useEffect(() => {
+    if (!hpModelKey) return;
+    const init: Record<string, string | number> = {};
+    (HYPERPARAM_DEFS[hpModelKey] ?? []).forEach(p => { init[p.name] = p.recommended; });
+    setSelectedHParams(init);
+  }, [hpModelKey]);
+
+  const getHP = (name: string): string | number => {
+    if (selectedHParams[name] !== undefined) return selectedHParams[name];
+    return hparams.find(p => p.name === name)?.recommended ?? '';
+  };
+  const handleApplyHyperparams = () => {
+    if (!selectedModel || !hparams.length) return;
+    const paramStr = hparams.map(p => `${p.name}=${getHP(p.name)}`).join(', ');
+    onSendPrompt(`Retrain ${selectedModel} with these hyperparameters: ${paramStr}.`);
+  };
 
   // Collect all charts from notebook cells
   const allCharts: string[] = [];
@@ -1382,6 +1500,138 @@ function EasyModePanel({
                 style={{ width: '100%', padding: '9px', borderRadius: 9, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(110,84,200,0.07)' : 'linear-gradient(135deg,rgba(110,84,200,0.5),rgba(124,92,191,0.5))', border: '1px solid rgba(110,84,200,0.4)', color: busy ? '#475569' : '#e2e8f0', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                 {busy ? <><SpinIcon size={12}/><span>Working…</span></> : <><span>✨</span><span>Apply Settings & Retrain</span></>}
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Hyperparameter Tuning ── */}
+      {hparams.length > 0 && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(250,204,21,0.25)', overflow: 'hidden' }}>
+
+          {/* Header */}
+          <button
+            onClick={() => setShowHyperTuning(p => !p)}
+            style={{ width: '100%', padding: '10px 14px', background: 'rgba(250,204,21,0.07)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, color: '#facc15', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}
+          >
+            <span>🎛️</span>
+            <span style={{ flex: 1 }}>Hyperparameter Tuning</span>
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(250,204,21,0.18)', color: '#fde68a', fontWeight: 600, border: '1px solid rgba(250,204,21,0.3)' }}>
+              AI Guided
+            </span>
+            <span style={{ transform: showHyperTuning ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', fontSize: 12, marginLeft: 2 }}>▾</span>
+          </button>
+
+          {showHyperTuning && (
+            <div style={{ padding: '16px 14px' }}>
+
+              {/* Info banner */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '9px 12px', borderRadius: 9, background: 'rgba(250,204,21,0.06)', border: '1px solid rgba(250,204,21,0.18)', marginBottom: 18 }}>
+                <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>🤖</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#fde68a', marginBottom: 2 }}>
+                    AI-Recommended values for <code style={{ fontFamily: 'monospace', background: 'rgba(250,204,21,0.12)', padding: '1px 6px', borderRadius: 5 }}>{selectedModel}</code>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#64748b', lineHeight: 1.5 }}>
+                    ⭐-marked chips are AI suggestions. Click any chip to select a different value, then hit <strong style={{ color: '#facc15' }}>Apply & Retrain</strong>.
+                  </div>
+                </div>
+              </div>
+
+              {/* One row per hyperparameter */}
+              {hparams.map(param => {
+                const current = String(getHP(param.name));
+                const isCustom = current !== String(param.recommended);
+                return (
+                  <div key={param.name} style={{ marginBottom: 20 }}>
+
+                    {/* Param name + label */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                        <code style={{ fontSize: 12, fontWeight: 700, color: '#c4b5fd', background: 'rgba(110,84,200,0.15)', padding: '2px 8px', borderRadius: 6 }}>{param.name}</code>
+                        <span style={{ fontSize: 11, color: '#475569' }}>{param.label}</span>
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: isCustom ? '#c4b5fd' : '#fbbf24', background: isCustom ? 'rgba(110,84,200,0.15)' : 'rgba(250,204,21,0.12)', padding: '2px 8px', borderRadius: 20, border: `1px solid ${isCustom ? 'rgba(110,84,200,0.3)' : 'rgba(250,204,21,0.3)'}` }}>
+                        {isCustom ? `custom: ${current}` : `⭐ ${current}`}
+                      </span>
+                    </div>
+
+                    {/* Scrollable chip row */}
+                    <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 6, scrollbarWidth: 'none' }}>
+                      {param.values.map(v => {
+                        const vs = String(v);
+                        const isSel = current === vs;
+                        const isRec = String(param.recommended) === vs;
+                        return (
+                          <button
+                            key={vs}
+                            onClick={() => setSelectedHParams(p => ({ ...p, [param.name]: v }))}
+                            style={{
+                              flexShrink: 0, padding: '5px 13px', borderRadius: 20, cursor: 'pointer',
+                              fontFamily: 'monospace', fontSize: 12, fontWeight: isSel ? 700 : 400,
+                              transition: 'all 0.15s',
+                              background: isSel
+                                ? (isRec ? 'linear-gradient(135deg,rgba(250,204,21,0.45),rgba(245,158,11,0.38))' : 'rgba(110,84,200,0.45)')
+                                : (isRec ? 'rgba(250,204,21,0.1)' : 'rgba(255,255,255,0.04)'),
+                              color: isSel
+                                ? (isRec ? '#fef08a' : '#e2e8f0')
+                                : (isRec ? '#fbbf24' : '#64748b'),
+                              border: isSel
+                                ? (isRec ? '1.5px solid rgba(250,204,21,0.75)' : '1.5px solid rgba(110,84,200,0.65)')
+                                : (isRec ? '1.5px dashed rgba(250,204,21,0.45)' : '1px solid rgba(255,255,255,0.08)'),
+                            }}
+                          >
+                            {isRec && <span style={{ marginRight: 3 }}>⭐</span>}{vs}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Reasoning */}
+                    <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.55 }}>
+                      {!isCustom ? (
+                        <div style={{ padding: '6px 10px', borderRadius: 7, background: 'rgba(250,204,21,0.05)', border: '1px solid rgba(250,204,21,0.15)', color: '#94a3b8' }}>
+                          <span style={{ color: '#fbbf24', fontWeight: 600 }}>⭐ Why recommended: </span>{param.reasoning}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '5px 10px', borderRadius: 7, background: 'rgba(110,84,200,0.07)', border: '1px solid rgba(110,84,200,0.2)', color: '#94a3b8' }}>
+                          <span style={{ color: '#a78bfa', fontWeight: 600 }}>Custom: </span>
+                          <code style={{ color: '#c4b5fd', fontFamily: 'monospace' }}>{current}</code>
+                          <span style={{ color: '#475569' }}> · AI suggests </span>
+                          <code style={{ color: '#fbbf24', fontFamily: 'monospace' }}>{String(param.recommended)}</code>
+                          <span style={{ color: '#475569' }}> — {param.reasoning}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Divider */}
+              <div style={{ height: 1, background: 'rgba(250,204,21,0.12)', margin: '4px 0 14px' }} />
+
+              {/* Summary row */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                {hparams.map(p => {
+                  const v = String(getHP(p.name));
+                  const isRec = v === String(p.recommended);
+                  return (
+                    <span key={p.name} style={{ fontSize: 11, padding: '3px 9px', borderRadius: 20, fontFamily: 'monospace', background: isRec ? 'rgba(250,204,21,0.1)' : 'rgba(110,84,200,0.12)', color: isRec ? '#fbbf24' : '#a78bfa', border: `1px solid ${isRec ? 'rgba(250,204,21,0.28)' : 'rgba(110,84,200,0.28)'}` }}>
+                      {p.name}={v}
+                    </span>
+                  );
+                })}
+              </div>
+
+              {/* Apply button */}
+              <button
+                onClick={handleApplyHyperparams}
+                disabled={busy}
+                style={{ width: '100%', padding: '10px', borderRadius: 9, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(250,204,21,0.04)' : 'linear-gradient(135deg,rgba(250,204,21,0.32),rgba(245,158,11,0.25))', border: '1px solid rgba(250,204,21,0.42)', color: busy ? '#475569' : '#fef08a', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+              >
+                {busy ? <><SpinIcon size={12}/><span>Working…</span></> : <><span>🎛️</span><span>Apply Hyperparameters &amp; Retrain</span></>}
+              </button>
+
             </div>
           )}
         </div>
