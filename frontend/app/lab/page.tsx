@@ -4,9 +4,29 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
-import { keymap } from '@codemirror/view';
+import { keymap, EditorView } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
+
+const glossyEditorTheme = EditorView.theme({
+  '&': {
+    background: 'transparent',
+  },
+  '.cm-scroller': {
+    background: 'linear-gradient(160deg, rgba(15,18,40,0.97) 0%, rgba(8,10,26,0.99) 100%)',
+  },
+  '.cm-gutters': {
+    background: 'linear-gradient(180deg, rgba(10,12,28,0.95) 0%, rgba(6,8,20,0.98) 100%)',
+    borderRight: '1px solid rgba(129,140,248,0.12)',
+    color: '#2e4060',
+  },
+  '.cm-activeLineGutter': { background: 'rgba(99,102,241,0.08)' },
+  '.cm-activeLine': { background: 'rgba(99,102,241,0.06)' },
+  '.cm-cursor': { borderLeftColor: '#818cf8', borderLeftWidth: '2px' },
+  '.cm-selectionBackground': { background: 'rgba(99,102,241,0.22) !important' },
+  '.cm-focused .cm-selectionBackground': { background: 'rgba(99,102,241,0.28) !important' },
+  '.cm-line': { padding: '0 4px 0 4px' },
+});
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
 
@@ -716,13 +736,14 @@ export default function LabPage() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0b14', color: '#e6eef8', fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' }}>
+      <style>{`@keyframes cellPing{0%{transform:scale(1);opacity:0.9}100%{transform:scale(2.4);opacity:0}} @keyframes lab-spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Header */}
       <header style={{ height: 52, flexShrink: 0, background: 'rgba(10,11,20,0.92)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => router.push('/dashboard')} title="Back to Dashboard"
             style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-            ← Dashboard
+            Dashboard
           </button>
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
           <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 0 12px rgba(110,84,200,0.4)' }}>🧪</div>
@@ -1355,57 +1376,171 @@ interface CBProps { cell: Cell; index: number; total: number; onRun(): void; onC
 function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMoveDown, onDelete, onToggleOut }: CBProps) {
   const isRunning = cell.status === 'running';
   const hasOut    = cell.out !== null;
-  const borderColor = isRunning ? 'rgba(99,102,241,0.55)' : cell.status === 'error' ? 'rgba(239,68,68,0.35)' : cell.status === 'done' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)';
-  const statusDot = { idle: { color: '#475569', icon: '○' }, running: { color: '#818cf8', icon: '●' }, done: { color: '#4ade80', icon: '✓' }, error: { color: '#f87171', icon: '✕' } }[cell.status];
-  const charts = cell.out?.charts ?? [];
+  const charts    = cell.out?.charts ?? [];
+
+  const STATE = {
+    idle:    { accent: '#334155', border: 'rgba(255,255,255,0.07)', glow: 'transparent',              bg: 'rgba(255,255,255,0.015)', numColor: '#64748b', runBg: 'rgba(74,222,128,0.09)',  runBorder: 'rgba(74,222,128,0.35)',  runColor: '#4ade80',  runGlow: 'rgba(74,222,128,0.18)'  },
+    running: { accent: '#818cf8', border: 'rgba(99,102,241,0.55)',  glow: 'rgba(99,102,241,0.08)',    bg: 'rgba(99,102,241,0.025)', numColor: '#818cf8', runBg: 'rgba(99,102,241,0.14)',  runBorder: 'rgba(99,102,241,0.6)',  runColor: '#818cf8', runGlow: 'rgba(99,102,241,0.3)'  },
+    done:    { accent: '#4ade80', border: 'rgba(74,222,128,0.28)',  glow: 'rgba(74,222,128,0.06)',    bg: 'rgba(74,222,128,0.018)', numColor: '#4ade80', runBg: 'rgba(74,222,128,0.09)',  runBorder: 'rgba(74,222,128,0.35)',  runColor: '#4ade80',  runGlow: 'rgba(74,222,128,0.18)'  },
+    error:   { accent: '#f87171', border: 'rgba(239,68,68,0.4)',    glow: 'rgba(239,68,68,0.07)',     bg: 'rgba(239,68,68,0.022)', numColor: '#f87171', runBg: 'rgba(239,68,68,0.1)',    runBorder: 'rgba(239,68,68,0.45)',   runColor: '#f87171',  runGlow: 'rgba(239,68,68,0.2)'   },
+  }[cell.status];
+
   return (
-    <div style={{ marginBottom: 10, borderRadius: 12, border: `1px solid ${borderColor}`, background: 'rgba(255,255,255,0.018)', overflow: 'hidden', transition: 'border-color 0.25s' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(0,0,0,0.22)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ width: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, lineHeight: 1, color: isRunning ? '#818cf8' : cell.status === 'done' ? '#4ade80' : cell.status === 'error' ? '#f87171' : '#64748b', fontWeight: 600 }}>{isRunning ? '[*]' : `[${index+1}]`}</span>
-          <span style={{ fontSize: 9.5, color: statusDot.color, display: 'flex', alignItems: 'center', gap: 2, lineHeight: 1 }}>
-            {isRunning ? <SpinIcon/> : <span>{statusDot.icon}</span>}
-            {cell.ms !== null && <span style={{ color: '#475569' }}>{cell.ms < 1000 ? `${cell.ms}ms` : `${(cell.ms/1000).toFixed(1)}s`}</span>}
+    <div style={{
+      marginBottom: 14, borderRadius: 14,
+      border: `1px solid ${STATE.border}`,
+      background: `linear-gradient(135deg, ${STATE.bg}, rgba(8,10,22,0.97))`,
+      overflow: 'hidden',
+      transition: 'border-color 0.3s, box-shadow 0.3s',
+      boxShadow: `0 2px 24px ${STATE.glow}, 0 1px 0 rgba(255,255,255,0.04) inset`,
+      position: 'relative',
+    }}>
+      {/* Left accent bar */}
+      <div style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+        background: isRunning
+          ? 'linear-gradient(180deg,#818cf8,#6366f1,#a78bfa)'
+          : cell.status === 'done'  ? 'linear-gradient(180deg,#4ade80,#22d3ee)'
+          : cell.status === 'error' ? 'linear-gradient(180deg,#f87171,#fb923c)'
+          : 'linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))',
+        borderRadius: '14px 0 0 14px',
+        boxShadow: isRunning ? '0 0 12px rgba(129,140,248,0.6)' : cell.status === 'done' ? '0 0 10px rgba(74,222,128,0.4)' : cell.status === 'error' ? '0 0 10px rgba(248,113,113,0.4)' : 'none',
+        transition: 'all 0.3s',
+      }} />
+
+      {/* ── Header toolbar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 18px', background: 'rgba(0,0,0,0.28)', borderBottom: `1px solid ${STATE.border}` }}>
+
+        {/* Cell index badge */}
+        <div style={{
+          minWidth: 42, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+        }}>
+          <span style={{
+            fontFamily: "'Fira Code','Consolas',monospace", fontSize: 11, fontWeight: 700,
+            color: STATE.numColor, letterSpacing: '0.04em', lineHeight: 1,
+            textShadow: isRunning ? '0 0 10px rgba(129,140,248,0.8)' : cell.status === 'done' ? '0 0 8px rgba(74,222,128,0.6)' : 'none',
+          }}>
+            {isRunning ? '[*]' : `[${index + 1}]`}
           </span>
+          {cell.ms !== null && (
+            <span style={{ fontSize: 9, color: '#475569', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+              {cell.ms < 1000 ? `${cell.ms}ms` : `${(cell.ms / 1000).toFixed(1)}s`}
+            </span>
+          )}
         </div>
-        <button onClick={onRun} disabled={isRunning} title="Run (Ctrl+Enter)"
-          style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, background: isRunning ? 'rgba(255,255,255,0.04)' : 'rgba(74,222,128,0.08)', border: isRunning ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(74,222,128,0.4)', cursor: isRunning ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isRunning ? '#475569' : '#4ade80', fontSize: 10, fontWeight: 700, boxShadow: isRunning ? 'none' : '0 0 10px rgba(74,222,128,0.15)' }}>
-          {isRunning ? <SpinIcon size={11}/> : '▶'}
+
+        {/* Run button */}
+        <button onClick={onRun} disabled={isRunning} title="Run (Ctrl+Enter)" style={{
+          width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
+          background: isRunning ? 'rgba(255,255,255,0.04)' : `linear-gradient(135deg, ${STATE.runBg}, rgba(255,255,255,0.03))`,
+          border: `1.5px solid ${isRunning ? 'rgba(255,255,255,0.08)' : STATE.runBorder}`,
+          cursor: isRunning ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: isRunning ? '#475569' : STATE.runColor,
+          fontSize: 9, fontWeight: 700,
+          boxShadow: isRunning ? 'none' : `0 0 12px ${STATE.runGlow}, 0 2px 6px rgba(0,0,0,0.3)`,
+          transition: 'all 0.2s',
+        }}>
+          {isRunning ? <SpinIcon size={10}/> : '▶'}
         </button>
+
+        {/* Status pill — only show when running or error */}
+        {(isRunning || cell.status === 'error') && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '3px 9px', borderRadius: 20,
+            background: isRunning ? 'rgba(99,102,241,0.12)' : 'rgba(239,68,68,0.1)',
+            border: `1px solid ${isRunning ? 'rgba(99,102,241,0.3)' : 'rgba(239,68,68,0.25)'}`,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+              background: STATE.numColor,
+              boxShadow: `0 0 6px ${STATE.numColor}`,
+              animation: isRunning ? 'cellPing 1.4s ease infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: STATE.numColor, letterSpacing: '0.06em', textTransform: 'uppercase' as const, fontFamily: "'Fira Code',monospace" }}>
+              {isRunning ? 'running' : 'error'}
+            </span>
+          </div>
+        )}
+
         <div style={{ flex: 1 }} />
-        <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index===0}>↑</IBtn></Tip>
-          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index===total-1}>↓</IBtn></Tip>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index === 0}>↑</IBtn></Tip>
+          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index === total - 1}>↓</IBtn></Tip>
           <Tip label="Insert below"><IBtn onClick={onInsert}>+</IBtn></Tip>
-          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />
-          <Tip label="Delete"><DelBtn onClick={onDelete}/></Tip>
+          <div style={{ width: 1, height: 18, background: 'rgba(255,255,255,0.08)', margin: '0 3px' }} />
+          <Tip label="Delete"><DelBtn onClick={onDelete} /></Tip>
         </div>
       </div>
-      <div style={{ marginLeft: 56 }}>
+
+      {/* ── Code editor ── */}
+      <div style={{ marginLeft: 4, background: 'rgba(0,0,0,0.18)' }}>
         <CodeMirror value={cell.code} height="auto"
-          extensions={[python(), Prec.highest(keymap.of([{ key: 'Mod-Enter', run: () => { onRun(); return true; } }, { key: 'Shift-Enter', run: () => { onRun(); onInsert(); return true; } }]))]}
-          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index+1} — Ctrl+Enter to run`}
+          extensions={[python(), glossyEditorTheme, Prec.highest(keymap.of([{ key: 'Mod-Enter', run: () => { onRun(); return true; } }, { key: 'Shift-Enter', run: () => { onRun(); onInsert(); return true; } }]))]}
+          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index + 1} — Ctrl+Enter to run`}
           style={{ fontSize: 13.5, fontFamily: "'Fira Code','Cascadia Code','Consolas',monospace" }}
           basicSetup={{ lineNumbers: true, highlightActiveLineGutter: false, highlightSpecialChars: false, foldGutter: false, drawSelection: true, dropCursor: false, allowMultipleSelections: false, indentOnInput: true, syntaxHighlighting: true, bracketMatching: true, closeBrackets: true, autocompletion: false, rectangularSelection: false, crosshairCursor: false, highlightActiveLine: false, highlightSelectionMatches: false, closeBracketsKeymap: true, defaultKeymap: true, historyKeymap: true, history: true }}
         />
       </div>
+
+      {/* ── Output section ── */}
       {hasOut && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          <button onClick={onToggleOut} style={{ width: '100%', background: 'rgba(0,0,0,0.18)', border: 'none', padding: '5px 16px 5px 72px', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#64748b', fontSize: 11, textAlign: 'left', borderBottom: cell.outOpen ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-            <span style={{ display: 'inline-block', transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', lineHeight: 1 }}>▾</span>
-            <span>output</span>
-            {cell.out?.error && <span style={{ color: '#f87171', marginLeft: 2 }}>— error</span>}
-            {!cell.out?.error && cell.out?.stdout && <span style={{ color: '#4ade80', marginLeft: 2 }}>— ok</span>}
-            {charts.length > 0 && <span style={{ color: '#22d3ee', marginLeft: 2 }}>— {charts.length} chart{charts.length>1?'s':''}</span>}
+        <div style={{ borderTop: `1px solid ${STATE.border}` }}>
+          {/* Output toggle bar */}
+          <button onClick={onToggleOut} style={{
+            width: '100%', background: 'rgba(0,0,0,0.32)', border: 'none',
+            padding: '6px 16px', display: 'flex', alignItems: 'center', gap: 6,
+            cursor: 'pointer', borderBottom: cell.outOpen ? `1px solid ${STATE.border}` : 'none',
+          }}>
+            <span style={{ display: 'inline-block', transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s', color: '#475569', fontSize: 11, lineHeight: 1 }}>▾</span>
+            <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#475569', fontFamily: "'Fira Code',monospace" }}>output</span>
+            {cell.out?.error && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#f87171', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 20, padding: '1px 8px', fontWeight: 600 }}>✕ error</span>
+            )}
+            {!cell.out?.error && cell.out?.stdout && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#4ade80', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.28)', borderRadius: 20, padding: '1px 8px', fontWeight: 600 }}>✓ ok</span>
+            )}
+            {charts.length > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#22d3ee', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.28)', borderRadius: 20, padding: '1px 8px', fontWeight: 600 }}>◈ {charts.length} chart{charts.length > 1 ? 's' : ''}</span>
+            )}
           </button>
+
           {cell.outOpen && (
             <div>
-              {cell.out?.stdout && <pre style={{ margin: 0, padding: '10px 16px 10px 72px', background: 'rgba(0,0,0,0.25)', color: '#bbf7d0', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: "'Fira Code','Consolas',monospace" }}>{cell.out.stdout}</pre>}
-              {cell.out?.error  && <pre style={{ margin: 0, padding: '10px 16px 10px 72px', background: 'rgba(239,68,68,0.05)', color: '#fca5a5', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: "'Fira Code','Consolas',monospace" }}>{cell.out.error}</pre>}
-              {!cell.out?.stdout && !cell.out?.error && <div style={{ padding: '8px 16px 8px 72px', color: '#334155', fontSize: 12, fontFamily: 'monospace', background: 'rgba(0,0,0,0.15)' }}>(no output)</div>}
+              {cell.out?.stdout && (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(180deg,#4ade80,#22d3ee)', opacity: 0.7 }} />
+                  <pre style={{
+                    margin: 0, padding: '12px 18px 12px 22px',
+                    background: 'linear-gradient(135deg, rgba(74,222,128,0.04), rgba(0,0,0,0.3))',
+                    color: '#bbf7d0', fontSize: 12.5, lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    fontFamily: "'Fira Code','Consolas',monospace",
+                    borderBottom: cell.out?.error ? `1px solid rgba(255,255,255,0.05)` : 'none',
+                  }}>{cell.out.stdout}</pre>
+                </div>
+              )}
+              {cell.out?.error && (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(180deg,#f87171,#fb923c)', opacity: 0.8 }} />
+                  <pre style={{
+                    margin: 0, padding: '12px 18px 12px 22px',
+                    background: 'linear-gradient(135deg, rgba(239,68,68,0.07), rgba(0,0,0,0.3))',
+                    color: '#fca5a5', fontSize: 12.5, lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    fontFamily: "'Fira Code','Consolas',monospace",
+                  }}>{cell.out.error}</pre>
+                </div>
+              )}
+              {!cell.out?.stdout && !cell.out?.error && (
+                <div style={{ padding: '10px 18px', color: '#334155', fontSize: 12, fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', fontStyle: 'italic' }}>(no output)</div>
+              )}
               {charts.map((b64, i) => (
-                <div key={i} style={{ padding: '8px 16px 8px 72px', background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                  <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i+1}`} style={{ maxWidth: '100%', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }} />
+                <div key={i} style={{ padding: '12px 18px', background: 'rgba(0,0,0,0.25)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ maxWidth: '100%', borderRadius: 10, border: '1px solid rgba(34,211,238,0.15)', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }} />
                 </div>
               ))}
             </div>
@@ -1420,8 +1555,24 @@ function AddCellBtn({ onClick }: { onClick(): void }) {
   const [h, setH] = useState(false);
   return (
     <button onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ marginTop: 6, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: h ? 'rgba(110,84,200,0.12)' : 'rgba(110,84,200,0.05)', border: '1px dashed rgba(110,84,200,0.3)', borderRadius: 10, padding: '9px 0', color: h ? '#c4b5fd' : '#7c5cbf', fontSize: 13, cursor: 'pointer', transition: 'all 0.18s', fontFamily: 'inherit' }}>
-      <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Cell
+      style={{
+        marginTop: 8, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        background: h ? 'linear-gradient(135deg,rgba(110,84,200,0.18),rgba(167,139,250,0.1))' : 'rgba(110,84,200,0.06)',
+        border: h ? '1px dashed rgba(167,139,250,0.55)' : '1px dashed rgba(110,84,200,0.28)',
+        borderRadius: 12, padding: '10px 0',
+        color: h ? '#c4b5fd' : '#7c5cbf',
+        fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontFamily: 'inherit',
+        boxShadow: h ? '0 0 20px rgba(110,84,200,0.15)' : 'none',
+      }}>
+      <span style={{
+        width: 22, height: 22, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: h ? 'rgba(167,139,250,0.25)' : 'rgba(110,84,200,0.15)',
+        fontSize: 15, lineHeight: 1, color: h ? '#c4b5fd' : '#9f7aea',
+        transition: 'all 0.2s',
+      }}>+</span>
+      Add Cell
     </button>
   );
 }
@@ -1430,7 +1581,16 @@ function IBtn({ children, onClick, disabled }: { children: React.ReactNode; onCl
   const [h, setH] = useState(false);
   return (
     <button onClick={onClick} disabled={disabled} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ width: 26, height: 26, borderRadius: 6, background: h&&!disabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: disabled ? '#2d3748' : h ? '#e2e8f0' : '#64748b', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
+      style={{
+        width: 28, height: 28, borderRadius: 7,
+        background: h && !disabled ? 'rgba(129,140,248,0.14)' : 'rgba(255,255,255,0.04)',
+        border: h && !disabled ? '1px solid rgba(129,140,248,0.4)' : '1px solid rgba(255,255,255,0.08)',
+        color: disabled ? '#1e293b' : h ? '#a5b4fc' : '#64748b',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13, transition: 'all 0.15s',
+        boxShadow: h && !disabled ? '0 0 10px rgba(129,140,248,0.15)' : 'none',
+      }}>
       {children}
     </button>
   );

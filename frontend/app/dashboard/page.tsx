@@ -82,7 +82,7 @@ function stageTheme(s: Stage) {
 
 // ── Stylesheet ────────────────────────────────────────────────────────────────
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -98,7 +98,7 @@ const STYLES = `
     --rim3:   rgba(255,255,255,0.14);
     --ink:    #dde6f5;
     --ink2:   #6b82a3;
-    --ink3:   #2e3f58;
+    --ink3:   #8599b8;
     --indigo: #6366f1;
     --indigo-l:#818cf8;
     --violet: #a78bfa;
@@ -190,7 +190,7 @@ const STYLES = `
   .bp {
     display:inline-flex; align-items:center; justify-content:center; gap:7px;
     background:linear-gradient(135deg, #4f52e8 0%, #6366f1 50%, #7c3aed 100%);
-    color:#fff; border:none; cursor:pointer; font-family:'Outfit',sans-serif; font-weight:700;
+    color:#fff; border:none; cursor:pointer; font-family:'Chillax',sans-serif; font-weight:700;
     border-radius:var(--r-lg); position:relative; overflow:hidden;
     box-shadow: 0 4px 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
     transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
@@ -206,7 +206,7 @@ const STYLES = `
     display:inline-flex; align-items:center; justify-content:center; gap:7px;
     background:rgba(255,255,255,0.04); color:var(--ink2);
     border:1px solid var(--rim2); border-radius:var(--r); cursor:pointer;
-    font-family:'Outfit',sans-serif; font-weight:600;
+    font-family:'Chillax',sans-serif; font-weight:600;
     transition:all 0.18s;
   }
   .bg:hover { background:rgba(255,255,255,0.07); color:var(--ink); border-color:var(--rim3); transform:translateY(-1px); }
@@ -227,7 +227,7 @@ const STYLES = `
     width:100%;
     background:rgba(255,255,255,0.03); border:1px solid var(--rim2);
     border-radius:var(--r); color:var(--ink);
-    font-family:'Outfit',sans-serif; outline:none;
+    font-family:'Chillax',sans-serif; outline:none;
     transition:border-color 0.2s, box-shadow 0.2s, background 0.2s;
   }
   .inp::placeholder { color:var(--ink3); }
@@ -236,7 +236,7 @@ const STYLES = `
   /* ── Badge ── */
   .badge {
     display:inline-flex; align-items:center; justify-content:center;
-    font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
+    font-family:'Chillax',sans-serif; font-size:9px; font-weight:500;
     letter-spacing:0.06em; text-transform:uppercase;
     padding:3px 10px; border-radius:100px; border:1px solid; white-space:nowrap;
   }
@@ -244,7 +244,7 @@ const STYLES = `
   /* ── Chip ── */
   .chip {
     display:inline-flex; align-items:center;
-    font-family:'DM Mono',monospace; font-size:9px; font-weight:400;
+    font-family:'Chillax',sans-serif; font-size:9px; font-weight:400;
     padding:2px 8px; border-radius:5px; border:1px solid;
     white-space:nowrap; max-width:140px; overflow:hidden; text-overflow:ellipsis;
   }
@@ -260,7 +260,7 @@ const STYLES = `
     display:flex; align-items:center; justify-content:center;
     font-size:8px; font-weight:700; flex-shrink:0;
     border:1.5px solid; position:relative;
-    font-family:'DM Mono',monospace; transition:all 0.3s;
+    font-family:'Chillax',sans-serif; transition:all 0.3s;
   }
 
   /* ── Nav pill ── */
@@ -269,7 +269,7 @@ const STYLES = `
     padding:6px 14px; border-radius:100px;
     background:rgba(255,255,255,0.04); border:1px solid var(--rim2);
     font-size:11px; font-weight:600; color:var(--ink2);
-    cursor:pointer; font-family:'Outfit',sans-serif; transition:all 0.18s;
+    cursor:pointer; font-family:'Chillax',sans-serif; transition:all 0.18s;
   }
   .n-pill:hover { background:rgba(255,255,255,0.08); color:var(--ink); border-color:var(--rim3); }
 
@@ -283,7 +283,7 @@ const STYLES = `
     background:rgba(255,255,255,0.02); border:1px solid var(--rim);
     border-radius:var(--r); padding:11px 14px;
     display:flex; align-items:center; gap:11px;
-    color:var(--ink2); font-family:'Outfit',sans-serif;
+    color:var(--ink2); font-family:'Chillax',sans-serif;
     transition:all 0.18s;
   }
   .g-opt:hover { border-color:rgba(99,102,241,0.3); background:rgba(99,102,241,0.06); color:var(--ink); }
@@ -350,7 +350,7 @@ function StageTracker({ stage }: { stage: Stage }) {
               >{done ? "✓" : i+1}</div>
               <span style={{
                 fontSize:8, marginTop:4, whiteSpace:"nowrap",
-                fontFamily:"'DM Mono',monospace", fontWeight:500, letterSpacing:"0.05em",
+                fontFamily:"'Chillax',sans-serif", fontWeight:500, letterSpacing:"0.05em",
                 color: done ? t.col : "var(--ink3)",
               }}>{step.short}</span>
             </div>
@@ -393,7 +393,7 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
 
       <div className="s-content" style={{ padding:"24px 26px" }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-          <p style={{ fontFamily:"'DM Mono',monospace", fontSize:9, fontWeight:500, letterSpacing:"0.13em", textTransform:"uppercase", color:"var(--ink3)" }}>{label}</p>
+          <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:9, fontWeight:500, letterSpacing:"0.13em", textTransform:"uppercase", color:"var(--ink3)" }}>{label}</p>
           <div style={{
             width:36, height:36, borderRadius:11,
             background:`linear-gradient(135deg, ${accent}18, ${accent}07)`,
@@ -402,12 +402,12 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
           }}>{icon}</div>
         </div>
         <p style={{
-          fontFamily:"'Syne',sans-serif", fontSize:52, fontWeight:800,
+          fontFamily:"'Chillax',sans-serif", fontSize:52, fontWeight:700,
           color:"var(--ink)", lineHeight:1, letterSpacing:"-0.04em",
           animation:"num-up 0.55s cubic-bezier(0.34,1.56,0.64,1) both",
           animationDelay:`${delay+100}ms`,
         }}>{value}</p>
-        {sub && <p style={{ fontFamily:"'DM Mono',monospace", fontSize:10, color:"var(--ink3)", marginTop:10, letterSpacing:"0.04em" }}>{sub}</p>}
+        {sub && <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:10, color:"var(--ink3)", marginTop:10, letterSpacing:"0.04em" }}>{sub}</p>}
         {/* Bottom accent */}
         <div style={{ marginTop:20, height:2, borderRadius:100, background:`linear-gradient(90deg, ${accent}80, ${accent}25, transparent)`, width:"55%" }}/>
       </div>
@@ -450,13 +450,13 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
               </div>
               <div style={{ minWidth:0, paddingTop:2 }}>
                 <h3 style={{
-                  fontFamily:"'Syne',sans-serif", fontSize:14, fontWeight:700,
+                  fontFamily:"'Chillax',sans-serif", fontSize:14, fontWeight:700,
                   color:"var(--ink)", overflow:"hidden", textOverflow:"ellipsis",
                   whiteSpace:"nowrap", lineHeight:1.3,
                 }}>{project.name}</h3>
                 {project.dataset?.filename && (
                   <p style={{
-                    fontFamily:"'DM Mono',monospace", fontSize:10,
+                    fontFamily:"'Chillax',sans-serif", fontSize:10,
                     color:"var(--ink3)", marginTop:3,
                     overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                   }}>{project.dataset.filename}</p>
@@ -486,7 +486,7 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
                 {project.selectedModel}
               </span>
             )}
-            <span style={{ marginLeft:"auto", fontFamily:"'DM Mono',monospace", fontSize:9, color:"var(--ink3)", letterSpacing:"0.04em", alignSelf:"center" }}>
+            <span style={{ marginLeft:"auto", fontFamily:"'Chillax',sans-serif", fontSize:9, color:"var(--ink3)", letterSpacing:"0.04em", alignSelf:"center" }}>
               {new Date(project.updatedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
             </span>
           </div>
@@ -494,8 +494,8 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
           {/* Progress */}
           <div style={{ marginBottom:4 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:"var(--ink3)", letterSpacing:"0.1em", textTransform:"uppercase" }}>Pipeline</span>
-              <span style={{ fontFamily:"'DM Mono',monospace", fontSize:10, fontWeight:500, color: finished ? "#00ffa3" : "#818cf8" }}>{pct}%</span>
+              <span style={{ fontFamily:"'Chillax',sans-serif", fontSize:9, color:"var(--ink3)", letterSpacing:"0.1em", textTransform:"uppercase" }}>Pipeline</span>
+              <span style={{ fontFamily:"'Chillax',sans-serif", fontSize:10, fontWeight:500, color: finished ? "#00ffa3" : "#818cf8" }}>{pct}%</span>
             </div>
             <div className="p-rail">
               <div className="p-fill" style={{
@@ -561,25 +561,25 @@ function DeleteConfirmModal({ project, onConfirm, onCancel }: {
           <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:22 }}>
             <div style={{ width:46, height:46, borderRadius:14, background:"rgba(251,113,133,0.1)", border:"1px solid rgba(251,113,133,0.22)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>🗑️</div>
             <div>
-              <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:17, fontWeight:800, color:"var(--ink)" }}>Delete Project</h3>
-              <p style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:"var(--ink3)", marginTop:3, letterSpacing:"0.08em" }}>IRREVERSIBLE — CANNOT BE UNDONE</p>
+              <h3 style={{ fontFamily:"'Chillax',sans-serif", fontSize:17, fontWeight:700, color:"var(--ink)" }}>Delete Project</h3>
+              <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:9, color:"var(--ink3)", marginTop:3, letterSpacing:"0.08em" }}>IRREVERSIBLE — CANNOT BE UNDONE</p>
             </div>
           </div>
-          <p style={{ fontFamily:"'Outfit',sans-serif", fontSize:13, color:"var(--ink2)", lineHeight:1.65, marginBottom:22 }}>
+          <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:13, color:"var(--ink2)", lineHeight:1.65, marginBottom:22 }}>
             Permanently delete <span style={{ fontWeight:700, color:"var(--ink)" }}>"{project.name}"</span> and all its data, models, and results.
           </p>
-          <p style={{ fontFamily:"'Outfit',sans-serif", fontSize:11, color:"var(--ink2)", marginBottom:9, fontWeight:600 }}>
-            Type <code style={{ fontFamily:"'DM Mono',monospace", color:"#fb7185", background:"rgba(251,113,133,0.1)", border:"1px solid rgba(251,113,133,0.2)", padding:"2px 8px", borderRadius:5 }}>delete</code> to confirm
+          <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:11, color:"var(--ink2)", marginBottom:9, fontWeight:600 }}>
+            Type <code style={{ fontFamily:"'Chillax',sans-serif", color:"#fb7185", background:"rgba(251,113,133,0.1)", border:"1px solid rgba(251,113,133,0.2)", padding:"2px 8px", borderRadius:5 }}>delete</code> to confirm
           </p>
           <input className="inp" type="text" value={input} onChange={e=>setInput(e.target.value)}
             placeholder="delete" autoFocus
             onKeyDown={e=>{if(e.key==="Enter"&&ok)onConfirm();if(e.key==="Escape")onCancel();}}
-            style={{ padding:"11px 14px", fontSize:13, fontFamily:"'DM Mono',monospace", marginBottom:22, ...(ok?{borderColor:"rgba(251,113,133,0.4)", boxShadow:"0 0 0 3px rgba(251,113,133,0.07)"}:{}) }}
+            style={{ padding:"11px 14px", fontSize:13, fontFamily:"'Chillax',sans-serif", marginBottom:22, ...(ok?{borderColor:"rgba(251,113,133,0.4)", boxShadow:"0 0 0 3px rgba(251,113,133,0.07)"}:{}) }}
           />
           <div style={{ display:"flex", gap:9 }}>
             <button className="bg" onClick={onCancel} style={{ flex:1, padding:"11px", fontSize:13 }}>Cancel</button>
             <button onClick={onConfirm} disabled={!ok} style={{
-              flex:1, padding:"11px", fontSize:13, fontFamily:"'Outfit',sans-serif", fontWeight:700, borderRadius:12, cursor:ok?"pointer":"not-allowed", border:"none", transition:"all 0.2s",
+              flex:1, padding:"11px", fontSize:13, fontFamily:"'Chillax',sans-serif", fontWeight:700, borderRadius:12, cursor:ok?"pointer":"not-allowed", border:"none", transition:"all 0.2s",
               background:ok?"linear-gradient(135deg,#dc2626,#ef4444)":"rgba(255,255,255,0.04)",
               color:ok?"#fff":"var(--ink3)", boxShadow:ok?"0 4px 20px rgba(239,68,68,0.35)":"none",
             }}>Delete Forever</button>
@@ -617,8 +617,8 @@ function NewProjectModal({ onStart, onCancel }: {
               <div style={{ display:"flex", alignItems:"center", gap:14 }}>
                 <div style={{ width:46, height:46, borderRadius:14, background:"rgba(99,102,241,0.12)", border:"1px solid rgba(99,102,241,0.25)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0, boxShadow:"0 0 20px rgba(99,102,241,0.15)" }}>⬡</div>
                 <div>
-                  <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:19, fontWeight:800, color:"var(--ink)" }}>New Project</h3>
-                  <p style={{ fontFamily:"'DM Mono',monospace", fontSize:9, color:"var(--ink3)", marginTop:3, letterSpacing:"0.1em" }}>CONFIGURE BEFORE UPLOADING DATA</p>
+                  <h3 style={{ fontFamily:"'Chillax',sans-serif", fontSize:19, fontWeight:700, color:"var(--ink)" }}>New Project</h3>
+                  <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:9, color:"var(--ink3)", marginTop:3, letterSpacing:"0.1em" }}>CONFIGURE BEFORE UPLOADING DATA</p>
                 </div>
               </div>
               <button className="bg" onClick={onCancel} style={{ width:32, height:32, padding:0, borderRadius:9, fontSize:18, flexShrink:0 }}>×</button>
@@ -626,28 +626,28 @@ function NewProjectModal({ onStart, onCancel }: {
 
             {/* Name */}
             <div style={{ marginBottom:22 }}>
-              <label style={{ display:"block", fontFamily:"'DM Mono',monospace", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
+              <label style={{ display:"block", fontFamily:"'Chillax',sans-serif", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
                 Project Name <span style={{ color:"#fb7185" }}>*</span>
               </label>
               <input className="inp" type="text" value={name} onChange={e=>setName(e.target.value)}
                 placeholder="e.g. Customer Churn Prediction" autoFocus
                 onKeyDown={e=>{if(e.key==="Escape")onCancel();}}
-                style={{ padding:"12px 15px", fontSize:14, fontFamily:"'Outfit',sans-serif" }}
+                style={{ padding:"12px 15px", fontSize:14, fontFamily:"'Chillax',sans-serif" }}
               />
             </div>
 
             {/* Goal */}
             <div style={{ marginBottom:22 }}>
-              <label style={{ display:"block", fontFamily:"'DM Mono',monospace", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
+              <label style={{ display:"block", fontFamily:"'Chillax',sans-serif", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
                 Prediction Goal <span style={{ color:"#fb7185" }}>*</span>
               </label>
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 {GOAL_OPTIONS.map(opt=>(
                   <button key={opt.value} onClick={()=>setGoal(opt.value)} className={`g-opt${goal===opt.value?" sel":""}`}>
-                    <span style={{ fontFamily:"'DM Mono',monospace", fontSize:15, flexShrink:0, color:goal===opt.value?"#818cf8":"var(--ink3)" }}>{opt.icon}</span>
+                    <span style={{ fontFamily:"'Chillax',sans-serif", fontSize:15, flexShrink:0, color:goal===opt.value?"#818cf8":"var(--ink3)" }}>{opt.icon}</span>
                     <span style={{ flex:1 }}>
-                      <span style={{ display:"block", fontFamily:"'Outfit',sans-serif", fontSize:13, fontWeight:700 }}>{opt.label}</span>
-                      <span style={{ display:"block", fontFamily:"'Outfit',sans-serif", fontSize:11, color:"var(--ink3)", marginTop:1 }}>{opt.desc}</span>
+                      <span style={{ display:"block", fontFamily:"'Chillax',sans-serif", fontSize:13, fontWeight:700 }}>{opt.label}</span>
+                      <span style={{ display:"block", fontFamily:"'Chillax',sans-serif", fontSize:11, color:"var(--ink3)", marginTop:1 }}>{opt.desc}</span>
                     </span>
                     {goal===opt.value && (
                       <span style={{ width:18, height:18, borderRadius:"50%", background:"var(--indigo)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:8, color:"#fff", fontWeight:900, flexShrink:0 }}>✓</span>
@@ -659,12 +659,12 @@ function NewProjectModal({ onStart, onCancel }: {
 
             {/* Target */}
             <div style={{ marginBottom:22 }}>
-              <label style={{ display:"block", fontFamily:"'DM Mono',monospace", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
+              <label style={{ display:"block", fontFamily:"'Chillax',sans-serif", fontSize:9, fontWeight:500, color:"var(--ink3)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:9 }}>
                 Target Column <span style={{ fontSize:9, color:"var(--ink3)", textTransform:"none", letterSpacing:"normal", fontWeight:400 }}>(optional)</span>
               </label>
               <input className="inp" type="text" value={target} onChange={e=>setTarget(e.target.value)}
                 placeholder="e.g. Churn, Price — leave blank to auto-detect"
-                style={{ padding:"12px 15px", fontSize:13, fontFamily:"'DM Mono',monospace" }}
+                style={{ padding:"12px 15px", fontSize:13, fontFamily:"'Chillax',sans-serif" }}
               />
             </div>
 
@@ -672,7 +672,7 @@ function NewProjectModal({ onStart, onCancel }: {
             {!canStart && (name.trim()||goal) && (
               <div style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 13px", borderRadius:10, background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.18)", marginBottom:18 }}>
                 <span style={{ fontSize:12 }}>◈</span>
-                <p style={{ fontFamily:"'Outfit',sans-serif", fontSize:11, color:"#fbbf24", fontWeight:600 }}>
+                <p style={{ fontFamily:"'Chillax',sans-serif", fontSize:11, color:"#fbbf24", fontWeight:600 }}>
                   {!name.trim() ? "Project name is required." : "Select a prediction goal to continue."}
                 </p>
               </div>
@@ -841,7 +841,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:"var(--void)", color:"var(--ink)", fontFamily:"'Outfit',sans-serif" }}>
+    <div style={{ minHeight:"100vh", background:"var(--void)", color:"var(--ink)", fontFamily:"'Chillax',sans-serif" }}>
       <style>{STYLES}</style>
 
       {/* ── Deep-space background ── */}
@@ -873,7 +873,7 @@ export default function DashboardPage() {
           border:`1px solid ${notice.ok?"rgba(0,255,163,0.22)":"rgba(251,113,133,0.22)"}`,
           background:notice.ok?"rgba(0,18,10,0.97)":"rgba(28,4,8,0.97)",
           color:notice.ok?"#00ffa3":"#fb7185",
-          fontSize:13,fontWeight:600,fontFamily:"'Outfit',sans-serif",
+          fontSize:13,fontWeight:600,fontFamily:"'Chillax',sans-serif",
           boxShadow:`0 16px 56px rgba(0,0,0,0.65),0 0 24px ${notice.ok?"rgba(0,255,163,0.07)":"rgba(251,113,133,0.07)"}`,
           backdropFilter:"blur(24px)",
           animation:"toast-in 0.28s cubic-bezier(0.34,1.56,0.64,1)",
@@ -936,15 +936,15 @@ export default function DashboardPage() {
                 boxShadow:"0 24px 64px rgba(0,0,0,0.65),0 0 0 1px rgba(99,102,241,0.1)",
               }}>
                 <div style={{ padding:"14px 16px",borderBottom:"1px solid var(--rim)" }}>
-                  <p style={{ fontSize:13,fontWeight:700,color:"var(--ink)",fontFamily:"'Syne',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</p>
-                  <p style={{ fontSize:10,color:"var(--ink3)",marginTop:2,fontFamily:"'DM Mono',monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.email}</p>
+                  <p style={{ fontSize:13,fontWeight:700,color:"var(--ink)",fontFamily:"'Chillax',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</p>
+                  <p style={{ fontSize:10,color:"var(--ink3)",marginTop:2,fontFamily:"'Chillax',sans-serif",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.email}</p>
                 </div>
                 {[
                   {label:"Profile",path:"/profile",d:"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",show:true},
                   {label:"Admin",path:"/admin",d:"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",show:user.role==="admin"},
                 ].filter(i=>i.show).map(item=>(
                   <button key={item.path} onClick={()=>router.push(item.path)}
-                    style={{ width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:"transparent",border:"none",color:"var(--ink2)",fontSize:13,cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontWeight:500,transition:"all 0.15s" }}
+                    style={{ width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:"transparent",border:"none",color:"var(--ink2)",fontSize:13,cursor:"pointer",fontFamily:"'Chillax',sans-serif",fontWeight:500,transition:"all 0.15s" }}
                     onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(99,102,241,0.07)";(e.currentTarget as HTMLButtonElement).style.color="var(--ink)";}}
                     onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";(e.currentTarget as HTMLButtonElement).style.color="var(--ink2)";}}
                   >
@@ -954,7 +954,7 @@ export default function DashboardPage() {
                 ))}
                 <div style={{ borderTop:"1px solid var(--rim)",paddingTop:3 }}>
                   <button onClick={handleLogout}
-                    style={{ width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:"transparent",border:"none",color:"#fb7185",fontSize:13,cursor:"pointer",fontFamily:"'Outfit',sans-serif",fontWeight:500,transition:"all 0.15s" }}
+                    style={{ width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 16px",background:"transparent",border:"none",color:"#fb7185",fontSize:13,cursor:"pointer",fontFamily:"'Chillax',sans-serif",fontWeight:500,transition:"all 0.15s" }}
                     onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(251,113,133,0.07)";}}
                     onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}
                   >
@@ -976,15 +976,15 @@ export default function DashboardPage() {
           <div>
             <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
               <span style={{ width:6,height:6,borderRadius:"50%",background:"#00ffa3",boxShadow:"0 0 10px rgba(0,255,163,0.7)",display:"inline-block",animation:"glow-beat 2.2s ease infinite" }}/>
-              <span style={{ fontFamily:"'DM Mono',monospace",fontSize:9,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase",color:"var(--ink3)" }}>ML Dashboard · Live</span>
+              <span style={{ fontFamily:"'Chillax',sans-serif",fontSize:9,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase",color:"var(--ink3)" }}>ML Dashboard · Live</span>
             </div>
-            <h1 style={{ fontFamily:"'Syne',sans-serif",fontSize:32,fontWeight:800,letterSpacing:"-0.04em",lineHeight:1.1,color:"var(--ink)" }}>
+            <h1 style={{ fontFamily:"'Chillax',sans-serif",fontSize:32,fontWeight:700,letterSpacing:"-0.04em",lineHeight:1.1,color:"var(--ink)" }}>
               Welcome back,{" "}
               <span style={{ background:"linear-gradient(115deg,#818cf8 0%,#a78bfa 45%,#22d3ee 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>
                 {user.name?.split(" ")[0]}
               </span>
             </h1>
-            <p style={{ fontFamily:"'Outfit',sans-serif",fontSize:13,color:"var(--ink3)",marginTop:9,fontWeight:400,lineHeight:1.65,maxWidth:440 }}>
+            <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:13,color:"var(--ink3)",marginTop:9,fontWeight:400,lineHeight:1.65,maxWidth:440 }}>
               Your ML workspace — track every project from raw dataset to trained and evaluated model.
             </p>
           </div>
@@ -1006,7 +1006,7 @@ export default function DashboardPage() {
           <div style={{ position:"absolute",top:0,left:50,right:50,height:1,background:"linear-gradient(90deg,transparent,rgba(99,102,241,0.25),rgba(167,139,250,0.18),transparent)" }}/>
           <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:20 }}>
             <div style={{ width:3,height:18,borderRadius:2,background:"linear-gradient(180deg,var(--indigo),var(--violet))",flexShrink:0 }}/>
-            <p style={{ fontFamily:"'DM Mono',monospace",fontSize:9,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase",color:"var(--ink3)" }}>ML Pipeline Stages</p>
+            <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:9,fontWeight:500,letterSpacing:"0.15em",textTransform:"uppercase",color:"var(--ink3)" }}>ML Pipeline Stages</p>
           </div>
           <div className="leg-grid" style={{ display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12 }}>
             {([
@@ -1018,10 +1018,10 @@ export default function DashboardPage() {
               <div key={s.label} className={`l-step rise d${i+2}`} style={{ background:s.bg,borderColor:s.border }}>
                 <div style={{ width:38,height:38,borderRadius:11,flexShrink:0,fontSize:16,background:s.ic,border:`1px solid ${s.ib}`,display:"flex",alignItems:"center",justifyContent:"center" }}>{s.icon}</div>
                 <div style={{ flex:1,minWidth:0 }}>
-                  <p style={{ fontFamily:"'Outfit',sans-serif",fontSize:12,fontWeight:700,color:"var(--ink)",marginBottom:3 }}>{s.label}</p>
-                  <p style={{ fontFamily:"'Outfit',sans-serif",fontSize:11,color:"var(--ink3)",lineHeight:1.4 }}>{s.desc}</p>
+                  <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:12,fontWeight:700,color:"var(--ink)",marginBottom:3 }}>{s.label}</p>
+                  <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:11,color:"var(--ink3)",lineHeight:1.4 }}>{s.desc}</p>
                 </div>
-                <span style={{ position:"absolute",top:11,right:13,fontFamily:"'DM Mono',monospace",fontSize:11,fontWeight:500,color:s.tc,opacity:0.4 }}>{s.n}</span>
+                <span style={{ position:"absolute",top:11,right:13,fontFamily:"'Chillax',sans-serif",fontSize:11,fontWeight:500,color:s.tc,opacity:0.4 }}>{s.n}</span>
               </div>
             ))}
           </div>
@@ -1031,15 +1031,15 @@ export default function DashboardPage() {
         <section>
           <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:22 }}>
             <div style={{ display:"flex",alignItems:"center",gap:12 }}>
-              <h2 style={{ fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,letterSpacing:"-0.025em",color:"var(--ink)" }}>Projects</h2>
+              <h2 style={{ fontFamily:"'Chillax',sans-serif",fontSize:22,fontWeight:700,letterSpacing:"-0.025em",color:"var(--ink)" }}>Projects</h2>
               {recentProjects.length>0 && (
-                <span style={{ fontFamily:"'DM Mono',monospace",fontSize:10,fontWeight:500,padding:"2px 11px",borderRadius:100,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.22)",color:"#818cf8",letterSpacing:"0.05em" }}>
+                <span style={{ fontFamily:"'Chillax',sans-serif",fontSize:10,fontWeight:500,padding:"2px 11px",borderRadius:100,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.22)",color:"#818cf8",letterSpacing:"0.05em" }}>
                   {recentProjects.length}
                 </span>
               )}
             </div>
             {!backendOk && (
-              <span style={{ fontFamily:"'DM Mono',monospace",fontSize:9,letterSpacing:"0.07em",padding:"4px 12px",borderRadius:100,background:"rgba(251,191,36,0.07)",border:"1px solid rgba(251,191,36,0.2)",color:"#fbbf24" }}>
+              <span style={{ fontFamily:"'Chillax',sans-serif",fontSize:9,letterSpacing:"0.07em",padding:"4px 12px",borderRadius:100,background:"rgba(251,191,36,0.07)",border:"1px solid rgba(251,191,36,0.2)",color:"#fbbf24" }}>
                 ⚠ LOCAL ONLY
               </span>
             )}
@@ -1052,8 +1052,8 @@ export default function DashboardPage() {
                 <div style={{ position:"absolute",inset:-1,borderRadius:22,border:"1px solid rgba(99,102,241,0.15)",animation:"ping 2.5s ease infinite" }}/>
               </div>
               <div style={{ textAlign:"center" }}>
-                <p style={{ fontFamily:"'Syne',sans-serif",fontSize:18,fontWeight:700,color:"var(--ink)",marginBottom:8 }}>No projects yet</p>
-                <p style={{ fontFamily:"'Outfit',sans-serif",fontSize:13,color:"var(--ink3)",lineHeight:1.7,maxWidth:340 }}>
+                <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:18,fontWeight:700,color:"var(--ink)",marginBottom:8 }}>No projects yet</p>
+                <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:13,color:"var(--ink3)",lineHeight:1.7,maxWidth:340 }}>
                   Launch a new ML project — upload a dataset and let the AI agent design, train, and evaluate your model end-to-end.
                 </p>
               </div>
@@ -1081,7 +1081,7 @@ export default function DashboardPage() {
           <section className="rise d5">
             <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:22 }}>
               <div style={{ width:3,height:18,borderRadius:2,background:"linear-gradient(180deg,#22d3ee,#818cf8)",flexShrink:0 }}/>
-              <h2 style={{ fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,letterSpacing:"-0.025em",color:"var(--ink)" }}>Recent Activity</h2>
+              <h2 style={{ fontFamily:"'Chillax',sans-serif",fontSize:22,fontWeight:700,letterSpacing:"-0.025em",color:"var(--ink)" }}>Recent Activity</h2>
             </div>
             <div className="glass" style={{ overflow:"hidden" }}>
               <div style={{ position:"absolute",top:0,left:50,right:50,height:1,background:"linear-gradient(90deg,transparent,rgba(34,211,238,0.2),transparent)" }}/>
@@ -1096,7 +1096,7 @@ export default function DashboardPage() {
                       width:36,height:36,borderRadius:10,flexShrink:0,
                       background:t.bg,border:`1px solid ${t.border}`,
                       display:"flex",alignItems:"center",justifyContent:"center",
-                      fontSize:13,color:t.col,fontFamily:"'DM Mono',monospace",
+                      fontSize:13,color:t.col,fontFamily:"'Chillax',sans-serif",
                       boxShadow:`0 0 12px ${t.glow}`,
                     }}>
                       {project.stage==="evaluated"||project.stage==="completed"?"✓"
@@ -1105,18 +1105,18 @@ export default function DashboardPage() {
                         :project.stage==="dataset_uploaded"?"▣":"○"}
                     </div>
                     <div style={{ flex:1,minWidth:0 }}>
-                      <p style={{ fontFamily:"'Outfit',sans-serif",fontSize:13,fontWeight:600,color:"var(--ink)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{project.name}</p>
-                      <p style={{ fontFamily:"'DM Mono',monospace",fontSize:10,color:"var(--ink3)",marginTop:2,letterSpacing:"0.03em" }}>
+                      <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:13,fontWeight:600,color:"var(--ink)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{project.name}</p>
+                      <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:10,color:"var(--ink3)",marginTop:2,letterSpacing:"0.03em" }}>
                         {stageLabel(project.stage)}
                         {project.dataset?.filename&&<span style={{ color:"rgba(255,255,255,0.11)" }}> · {project.dataset.filename}</span>}
                       </p>
                     </div>
                     <div style={{ textAlign:"right",flexShrink:0 }}>
-                      <p style={{ fontFamily:"'DM Mono',monospace",fontSize:10,color:"var(--ink3)",letterSpacing:"0.03em" }}>
+                      <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:10,color:"var(--ink3)",letterSpacing:"0.03em" }}>
                         {new Date(project.updatedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})}
                       </p>
                       {project.selectedModel&&(
-                        <p style={{ fontFamily:"'DM Mono',monospace",fontSize:9,color:"#818cf8",marginTop:3 }}>{project.selectedModel}</p>
+                        <p style={{ fontFamily:"'Chillax',sans-serif",fontSize:9,color:"#818cf8",marginTop:3 }}>{project.selectedModel}</p>
                       )}
                     </div>
                     <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="var(--ink3)">
