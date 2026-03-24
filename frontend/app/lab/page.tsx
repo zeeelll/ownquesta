@@ -820,6 +820,8 @@ export default function LabPage() {
               setPredictInputs={setPredictInputs}
               onPredict={predict}
               modelDownloadPrice={MODEL_DOWNLOAD_PRICE}
+              chatMsgs={chatMsgs}
+              onBuildPipeline={buildPipeline}
             />
           ) : (
             <>
@@ -1143,14 +1145,33 @@ interface EasyModePanelProps {
   featureColumns: string[]; predictInputs: Record<string, string>;
   setPredictInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onPredict(): void;
+  chatMsgs: ChatMsg[];
+  onBuildPipeline(modelName: string): void;
 }
 
-function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict }: EasyModePanelProps) {
-  const [aiPrompt, setAiPrompt]       = useState('');
-  const [testSize, setTestSize]       = useState(0.2);
-  const [cvFolds, setCvFolds]         = useState(5);
+function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline }: EasyModePanelProps) {
+  const [aiPrompt, setAiPrompt]         = useState('');
+  const [testSize, setTestSize]         = useState(0.2);
+  const [cvFolds, setCvFolds]           = useState(5);
   const [settingsNote, setSettingsNote] = useState('');
-  const [showParams, setShowParams]   = useState(false);
+  const [showParams, setShowParams]     = useState(false);
+  const [feReviewed, setFeReviewed]     = useState(false);
+  const [showCustomFE, setShowCustomFE] = useState(false);
+  const [customFEInput, setCustomFEInput] = useState('');
+
+  // Extract structured data from chat messages
+  const analysisMsg   = chatMsgs.find(m => m.type === 'analysis');
+  const feMsg         = chatMsgs.find(m => m.type === 'fe');
+  const modelsMsg     = chatMsgs.find(m => m.type === 'models');
+  const edaSummaryMsg = chatMsgs.find(m => m.type === 'eda_summary');
+  const insightMsgs   = chatMsgs.filter(m => m.type === 'insight');
+
+  // Auto-mark FE reviewed when pipeline is already built (session restore)
+  useEffect(() => { if (analysisStage === 'pipeline_built') setFeReviewed(true); }, [analysisStage]);
+  // Reset FE state when going back to idle (reset kernel)
+  useEffect(() => {
+    if (analysisStage === 'idle') { setFeReviewed(false); setShowCustomFE(false); setCustomFEInput(''); }
+  }, [analysisStage]);
 
   const allCharts: string[] = [];
   cells.forEach(cell => { (cell.out?.charts ?? []).forEach(c => allCharts.push(c)); });
@@ -1180,15 +1201,19 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
   const metrics = [...rawMetrics].reverse().filter(m => !seen.has(m.label) && seen.add(m.label)).reverse();
 
   const steps = [
-    { label: 'Upload',      done: !!uploadedFilename,                         active: false },
-    { label: 'Analyse',     done: analysisStage !== 'idle',                   active: analyzing },
-    { label: 'Train Model', done: analysisStage === 'pipeline_built',         active: buildingPipeline },
-    { label: 'Done',        done: analysisStage === 'pipeline_built' && !buildingPipeline, active: false },
+    { label: 'Upload',      done: !!uploadedFilename,                                            active: false },
+    { label: 'Analyse',     done: analysisStage !== 'idle',                                      active: analyzing },
+    { label: 'Train Model', done: analysisStage === 'pipeline_built',                            active: buildingPipeline },
+    { label: 'Done',        done: analysisStage === 'pipeline_built' && !buildingPipeline,       active: false },
   ];
   const busy = chatSending || analyzing || buildingPipeline;
+  // Content gated behind FE review
+  const showPostFE = feReviewed || analysisStage === 'pipeline_built';
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+
+      {/* ── Header / Stepper ── */}
       <div style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(110,84,200,0.13),rgba(74,222,128,0.05))', border: '1px solid rgba(110,84,200,0.28)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 16px rgba(110,84,200,0.4)' }}>✨</div>
@@ -1212,8 +1237,228 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       </div>
 
-      <EasyStatusCard analysisStage={analysisStage} analyzing={analyzing} buildingPipeline={buildingPipeline} selectedModel={selectedModel} uploadedFilename={uploadedFilename} />
+      {/* ── No dataset ── */}
+      {!uploadedFilename && (
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
+          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
+          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
+        </div>
+      )}
 
+      {/* ── Dataset ready (idle) ── */}
+      {uploadedFilename && analysisStage === 'idle' && !analyzing && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 22, flexShrink: 0 }}>📄</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#60a5fa', marginBottom: 2 }}>Dataset Ready</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>"{uploadedFilename}" uploaded. Set the target column (optional) then click <strong style={{ color: '#a87edf' }}>Analyse</strong> in the panel on the right.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Analysing in progress ── */}
+      {analyzing && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <SpinIcon size={20} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#a78bfa', marginBottom: 2 }}>Analysing Dataset…</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>The AI is exploring your data, detecting patterns and recommending models.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Analysis Results ── */}
+      {analysisMsg?.analysis && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(110,84,200,0.28)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 16px', background: 'rgba(110,84,200,0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>📊</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#c4b5fd' }}>Dataset Analysis</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>{analysisMsg.analysis.problem_type}</span>
+          </div>
+          <div style={{ padding: '14px 16px', fontSize: 13, lineHeight: 1.7, color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {analysisMsg.analysis.target_column && (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                <span style={{ color: '#475569', minWidth: 120, fontWeight: 600, fontSize: 12 }}>Target Column</span>
+                <code style={{ color: '#e2e8f0', fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '1px 8px', borderRadius: 4, fontSize: 12 }}>{analysisMsg.analysis.target_column}</code>
+              </div>
+            )}
+            {analysisMsg.analysis.dataset_summary && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Dataset Summary</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.dataset_summary}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.feature_analysis && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Features</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.feature_analysis}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.missing_values_note && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Missing Values</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.missing_values_note}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.feature_engineering_reasoning && (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <div style={{ color: '#818cf8', fontWeight: 600, marginBottom: 4, fontSize: 12, display: 'flex', gap: 5 }}><span>⚙️</span> Feature Engineering Plan</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.feature_engineering_reasoning}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature Engineering Review ── */}
+      {feMsg && analysisStage !== 'idle' && !feReviewed && !buildingPipeline && analysisStage !== 'pipeline_built' && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.4)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 16px', background: 'rgba(251,191,36,0.09)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>⚙️</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#fbbf24' }}>Feature Engineering Applied — Your Review Needed</span>
+          </div>
+          <div style={{ padding: '14px 16px' }}>
+            <p style={{ margin: '0 0 14px', fontSize: 13, color: '#94a3b8', lineHeight: 1.65 }}>
+              The AI has automatically applied feature engineering to prepare your dataset for model training. Please review what was done, then choose how to proceed.
+            </p>
+
+            {feMsg.fe?.code && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', marginBottom: 6, display: 'flex', gap: 5 }}><span>🔧</span> Transformations Applied:</div>
+                <pre style={{ margin: 0, padding: '10px 14px', background: 'rgba(0,0,0,0.38)', borderRadius: 8, color: '#e2e8f0', fontSize: 11.5, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', maxHeight: 220, overflow: 'auto', border: '1px solid rgba(255,255,255,0.06)' }}>{feMsg.fe.code}</pre>
+              </div>
+            )}
+            {feMsg.fe?.output && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', marginBottom: 6, display: 'flex', gap: 5 }}><span>✓</span> Result:</div>
+                <pre style={{ margin: 0, padding: '8px 12px', background: 'rgba(74,222,128,0.05)', borderRadius: 8, color: '#bbf7d0', fontSize: 11.5, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', border: '1px solid rgba(74,222,128,0.15)' }}>{feMsg.fe.output}</pre>
+              </div>
+            )}
+            {feMsg.fe?.error && (
+              <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5', fontSize: 12 }}>
+                ⚠ An error occurred but was auto-fixed. You may want to provide custom FE logic if results look unexpected.
+              </div>
+            )}
+
+            {/* Custom FE input area */}
+            {showCustomFE && (
+              <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 9, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.25)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', marginBottom: 8 }}>Describe your custom feature engineering logic:</div>
+                <textarea
+                  value={customFEInput}
+                  onChange={e => setCustomFEInput(e.target.value)}
+                  placeholder="e.g. 'Scale all numeric features with StandardScaler, drop the CustomerID column, one-hot encode Contract_Type only, and create an Age × Tenure interaction feature…'"
+                  rows={4}
+                  style={{ width: '100%', boxSizing: 'border-box' as const, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.6 }}
+                />
+                <button
+                  onClick={() => {
+                    if (customFEInput.trim()) {
+                      onSendPrompt(`Please redo the feature engineering with these specific instructions: ${customFEInput.trim()}`);
+                      setFeReviewed(true);
+                      setShowCustomFE(false);
+                    }
+                  }}
+                  disabled={!customFEInput.trim() || busy}
+                  style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, cursor: (!customFEInput.trim() || busy) ? 'not-allowed' : 'pointer', background: customFEInput.trim() && !busy ? 'linear-gradient(135deg,rgba(99,102,241,0.55),rgba(79,82,218,0.55))' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(99,102,241,0.4)', color: customFEInput.trim() && !busy ? '#e2e8f0' : '#475569', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
+                  {busy ? 'Working…' : 'Apply Custom Feature Engineering'}
+                </button>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+              <button
+                onClick={() => setFeReviewed(true)}
+                disabled={busy}
+                style={{ flex: 1, minWidth: 200, padding: '11px 16px', borderRadius: 10, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(74,222,128,0.04)' : 'linear-gradient(135deg,rgba(74,222,128,0.22),rgba(16,185,129,0.22))', border: '1px solid rgba(74,222,128,0.45)', color: '#4ade80', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <span>✓</span> Continue with Model Reasoning
+              </button>
+              <button
+                onClick={() => setShowCustomFE(s => !s)}
+                disabled={busy}
+                style={{ flex: 1, minWidth: 200, padding: '11px 16px', borderRadius: 10, cursor: busy ? 'not-allowed' : 'pointer', background: showCustomFE ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${showCustomFE ? 'rgba(99,102,241,0.55)' : 'rgba(255,255,255,0.14)'}`, color: showCustomFE ? '#818cf8' : '#94a3b8', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <span>✏️</span> Provide Custom FE Logic
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDA Visualisations (full-width, stacked, with AI insight captions) ── */}
+      {showPostFE && allCharts.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {allCharts.map((b64, i) => (
+              <div key={i} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(0,0,0,0.22)' }}>
+                <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ width: '100%', display: 'block' }} />
+                {insightMsgs[i] && (
+                  <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(13,148,136,0.07)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>📈</span>
+                    <div style={{ fontSize: 12, color: '#99f6e4', lineHeight: 1.65 }}>{insightMsgs[i].text}</div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── EDA Summary ── */}
+      {showPostFE && edaSummaryMsg?.edaSummary && (
+        <div style={{ marginBottom: 16 }}>
+          <EdaSummaryBubble
+            summary={edaSummaryMsg.edaSummary.summary}
+            featureImportance={edaSummaryMsg.edaSummary.featureImportance}
+            preprocessing={edaSummaryMsg.edaSummary.preprocessing}
+          />
+        </div>
+      )}
+
+      {/* ── Model Selection (inline, only while in 'analyzed' state) ── */}
+      {showPostFE && modelsMsg?.models && analysisStage === 'analyzed' && !buildingPipeline && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#c4b5fd', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><span>🏆</span> Select a Model to Train</div>
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>The AI has ranked the top models for your dataset. Click a model to build the full ML pipeline.</p>
+          {modelsMsg.models.map((m, i) => (
+            <ModelCard key={m.name} model={m} rank={i} isSelected={selectedModel === m.name} onSelect={() => onBuildPipeline(m.name)} disabled={buildingPipeline} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Building pipeline status ── */}
+      {buildingPipeline && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <SpinIcon size={20} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80', marginBottom: 2 }}>Training {selectedModel ?? 'Model'}…</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>The agent is writing and executing the ML pipeline step by step. This may take a minute.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Pipeline built ── */}
+      {analysisStage === 'pipeline_built' && !buildingPipeline && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.38)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <span style={{ fontSize: 22, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>✅</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80', marginBottom: 3 }}>Model Trained Successfully!</div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.55 }}>Your {selectedModel ?? 'ML'} model is ready. Explore the visualisations above, test predictions below, or download the model.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Metrics ── */}
       {metrics.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📊</span> Model Performance</div>
@@ -1228,19 +1473,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
-      {allCharts.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
-          <div style={{ display: 'grid', gridTemplateColumns: allCharts.length === 1 ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 10 }}>
-            {allCharts.map((b64, i) => (
-              <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)' }}>
-                <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ width: '100%', display: 'block' }} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
+      {/* ── Test Your Model ── */}
       {analysisStage === 'pipeline_built' && featureColumns.length > 0 && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.07)', fontSize: 13, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><span>🧪</span> Test Your Model</div>
@@ -1262,6 +1495,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
+      {/* ── Adjust Settings ── */}
       {uploadedFilename && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(99,102,241,0.22)', overflow: 'hidden' }}>
           <button onClick={() => setShowParams(p => !p)} style={{ width: '100%', padding: '10px 14px', background: 'rgba(99,102,241,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#818cf8', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
@@ -1293,6 +1527,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
+      {/* ── Ask the AI Agent ── */}
       <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
         <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.22)', fontSize: 13, fontWeight: 700, color: '#94a3b8', display: 'flex', gap: 6, alignItems: 'center' }}><span>💬</span> Ask the AI Agent</div>
         <div style={{ padding: '10px 12px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -1307,7 +1542,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       </div>
 
-      {/* Download Model + Script — payment-gated */}
+      {/* ── Download Model + Script — payment-gated ── */}
       {analysisStage === 'pipeline_built' && (
         <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onDownloadModel} disabled={downloadingModel}
@@ -1340,14 +1575,6 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
             <span style={{ fontSize: 18 }}>🐍</span><span>Open Python Script Editor</span>
           </button>
           <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'center' }}>Run, edit, and export your pipeline as <code style={{ fontFamily: 'monospace' }}>.py</code> or <code style={{ fontFamily: 'monospace' }}>.ipynb</code></p>
-        </div>
-      )}
-
-      {!uploadedFilename && (
-        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
-          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
-          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
         </div>
       )}
     </div>
