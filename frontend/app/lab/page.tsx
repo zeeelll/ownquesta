@@ -822,6 +822,12 @@ export default function LabPage() {
               modelDownloadPrice={MODEL_DOWNLOAD_PRICE}
               chatMsgs={chatMsgs}
               onBuildPipeline={buildPipeline}
+              uploading={uploading}
+              uploadErr={uploadErr}
+              targetCol={targetCol}
+              onTargetColChange={setTargetCol}
+              onUploadClick={() => fileInputRef.current?.click()}
+              onAnalyze={analyze}
             />
           ) : (
             <>
@@ -841,14 +847,14 @@ export default function LabPage() {
           )}
         </div>
 
-        {/* Drag handle */}
-        <div onMouseDown={e => { dragRef.current = { startX: e.clientX, startW: panelW }; e.preventDefault(); }}
+        {/* Drag handle — Code Mode only */}
+        {!easyMode && <div onMouseDown={e => { dragRef.current = { startX: e.clientX, startW: panelW }; e.preventDefault(); }}
           style={{ width: 5, flexShrink: 0, cursor: 'col-resize', background: 'rgba(110,84,200,0.12)', borderLeft: '1px solid rgba(110,84,200,0.2)' }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.4)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.12)'; }} />
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.12)'; }} />}
 
-        {/* Right: Chat Panel */}
-        <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0c0d1a', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+        {/* Right: Chat Panel — Code Mode only */}
+        {!easyMode && <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0c0d1a', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <span style={{ fontSize: 13 }}>🤖</span>
@@ -916,7 +922,7 @@ export default function LabPage() {
               {chatSending ? <SpinIcon size={11}/> : '↑'}
             </button>
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* ── Payment Modal ── */}
@@ -1039,6 +1045,156 @@ function EdaSummaryBubble({ summary, featureImportance, preprocessing }: { summa
   );
 }
 
+// ── Deep EDA Section ──────────────────────────────────────────────────────────
+interface DeepEdaSectionProps {
+  analysis: AnalysisData | null;
+  edaSummary: { summary: string; featureImportance: string; preprocessing: string } | null;
+  insightMsgs: ChatMsg[];
+  uploadedFilename: string | null;
+  onDownload(content: string): void;
+}
+
+function DeepEdaSection({ analysis, edaSummary, insightMsgs, uploadedFilename, onDownload }: DeepEdaSectionProps) {
+  const [openSec, setOpenSec] = useState<Record<string, boolean>>({
+    overview: true, features: true, missing: true, fePlan: true,
+    edaSummary: true, importance: true, preprocessing: true, insights: true,
+  });
+  const toggle = (k: string) => setOpenSec(p => ({ ...p, [k]: !p[k] }));
+
+  const Section = ({ id, icon, title, color, border, bg, children }: { id: string; icon: string; title: string; color: string; border: string; bg: string; children: React.ReactNode }) => (
+    <div style={{ marginBottom: 10, borderRadius: 12, border: `1px solid ${border}`, overflow: 'hidden' }}>
+      <button onClick={() => toggle(id)} style={{ width: '100%', padding: '10px 14px', background: bg, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color, fontSize: 13, fontWeight: 700, fontFamily: 'inherit', textAlign: 'left' as const }}>
+        <span>{icon}</span><span style={{ flex: 1 }}>{title}</span>
+        <span style={{ fontSize: 11, transform: openSec[id] ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s', color: '#475569' }}>▾</span>
+      </button>
+      {openSec[id] && <div style={{ padding: '12px 16px', borderTop: `1px solid ${border}`, background: 'rgba(0,0,0,0.18)' }}>{children}</div>}
+    </div>
+  );
+
+  const buildMarkdown = () => {
+    const lines: string[] = [];
+    const fname = uploadedFilename ?? 'dataset';
+    lines.push(`# EDA Report — ${fname}`, '', `*Generated ${new Date().toLocaleString()}*`, '');
+
+    if (analysis) {
+      lines.push(`## Problem Type`, `**${analysis.problem_type}**`, '');
+      if (analysis.target_column) lines.push(`## Target Column`, `\`${analysis.target_column}\``, '');
+      if (analysis.dataset_summary) lines.push(`## Dataset Overview`, analysis.dataset_summary, '');
+      if (analysis.feature_analysis) lines.push(`## Feature Analysis`, analysis.feature_analysis, '');
+      if (analysis.missing_values_note) lines.push(`## Missing Values`, analysis.missing_values_note, '');
+      if (analysis.feature_engineering_reasoning) lines.push(`## Feature Engineering Plan`, analysis.feature_engineering_reasoning, '');
+    }
+    if (edaSummary) {
+      if (edaSummary.summary) lines.push(`## EDA Summary`, edaSummary.summary, '');
+      if (edaSummary.featureImportance) lines.push(`## Feature Importance`, edaSummary.featureImportance, '');
+      if (edaSummary.preprocessing) lines.push(`## Preprocessing Recommendations`, edaSummary.preprocessing, '');
+    }
+    if (insightMsgs.length > 0) {
+      lines.push(`## Chart Insights`);
+      insightMsgs.forEach((m, i) => { if (m.text) lines.push(`### Chart ${i + 1}`, m.text, ''); });
+    }
+    return lines.join('\n');
+  };
+
+  const hasContent = !!(analysis || edaSummary || insightMsgs.length > 0);
+  if (!hasContent) return null;
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {/* Header with download button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 16 }}>🔬</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#22d3ee' }}>Deep Exploratory Data Analysis</span>
+        </div>
+        <button onClick={() => onDownload(buildMarkdown())}
+          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(34,211,238,0.18),rgba(6,182,212,0.18))', border: '1px solid rgba(34,211,238,0.45)', color: '#22d3ee', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0 }}>
+          <span>📥</span> Download EDA Report
+        </button>
+      </div>
+
+      {/* 1 — Dataset Overview */}
+      {analysis?.dataset_summary && (
+        <Section id="overview" icon="📊" title="Dataset Overview" color="#22d3ee" border="rgba(34,211,238,0.25)" bg="rgba(34,211,238,0.08)">
+          <p style={{ margin: '0 0 10px', fontSize: 13, color: '#a5f3fc', lineHeight: 1.75 }}>{analysis.dataset_summary}</p>
+          {analysis.problem_type && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 20, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)', fontSize: 12, color: '#22d3ee', fontWeight: 700 }}>
+              Problem Type: {analysis.problem_type}
+            </div>
+          )}
+        </Section>
+      )}
+
+      {/* 2 — Feature Analysis */}
+      {analysis?.feature_analysis && (
+        <Section id="features" icon="⚡" title="Feature Analysis" color="#a78bfa" border="rgba(167,139,250,0.25)" bg="rgba(167,139,250,0.08)">
+          <div style={{ fontSize: 13, color: '#c4b5fd', lineHeight: 1.75 }}><MdText text={analysis.feature_analysis} /></div>
+        </Section>
+      )}
+
+      {/* 3 — Missing Values */}
+      {analysis?.missing_values_note && (
+        <Section id="missing" icon="🕳️" title="Missing Values Analysis" color="#f59e0b" border="rgba(245,158,11,0.25)" bg="rgba(245,158,11,0.07)">
+          <div style={{ fontSize: 13, color: '#fcd34d', lineHeight: 1.75 }}><MdText text={analysis.missing_values_note} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#f59e0b' }}>Why it matters:</strong> Missing data can bias model predictions. The AI has accounted for this in the feature engineering step.
+          </div>
+        </Section>
+      )}
+
+      {/* 4 — Feature Engineering Plan */}
+      {analysis?.feature_engineering_reasoning && (
+        <Section id="fePlan" icon="⚙️" title="Feature Engineering Plan" color="#818cf8" border="rgba(129,140,248,0.25)" bg="rgba(129,140,248,0.07)">
+          <div style={{ fontSize: 13, color: '#c7d2fe', lineHeight: 1.75 }}><MdText text={analysis.feature_engineering_reasoning} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#818cf8' }}>Why it matters:</strong> Feature engineering transforms raw data into signals the model can learn from. Better features = better predictions.
+          </div>
+        </Section>
+      )}
+
+      {/* 5 — EDA Summary */}
+      {edaSummary?.summary && (
+        <Section id="edaSummary" icon="📋" title="EDA Summary" color="#4ade80" border="rgba(74,222,128,0.25)" bg="rgba(74,222,128,0.07)">
+          <div style={{ fontSize: 13, color: '#bbf7d0', lineHeight: 1.75 }}><MdText text={edaSummary.summary} /></div>
+        </Section>
+      )}
+
+      {/* 6 — Feature Importance */}
+      {edaSummary?.featureImportance && (
+        <Section id="importance" icon="⭐" title="Feature Importance & Correlations" color="#f472b6" border="rgba(244,114,182,0.25)" bg="rgba(244,114,182,0.07)">
+          <div style={{ fontSize: 13, color: '#fbcfe8', lineHeight: 1.75 }}><MdText text={edaSummary.featureImportance} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(244,114,182,0.07)', border: '1px solid rgba(244,114,182,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#f472b6' }}>Why it matters:</strong> High-importance features drive most of the model's predictive power. Low-importance ones may introduce noise.
+          </div>
+        </Section>
+      )}
+
+      {/* 7 — Preprocessing */}
+      {edaSummary?.preprocessing && (
+        <Section id="preprocessing" icon="🔧" title="Preprocessing Recommendations" color="#fb923c" border="rgba(251,146,60,0.25)" bg="rgba(251,146,60,0.07)">
+          <div style={{ fontSize: 13, color: '#fed7aa', lineHeight: 1.75 }}><MdText text={edaSummary.preprocessing} /></div>
+        </Section>
+      )}
+
+      {/* 8 — Per-chart insights */}
+      {insightMsgs.length > 0 && (
+        <Section id="insights" icon="💡" title={`AI Insights from ${insightMsgs.length} Chart${insightMsgs.length !== 1 ? 's' : ''}`} color="#22d3ee" border="rgba(34,211,238,0.2)" bg="rgba(34,211,238,0.06)">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {insightMsgs.map((m, i) => m.text && (
+              <div key={i} style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.15)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#22d3ee', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span>📊</span> Chart {i + 1}
+                </div>
+                <div style={{ fontSize: 13, color: '#a5f3fc', lineHeight: 1.7 }}>{m.text}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 function PredictForm({ featureColumns, inputs, setInputs, onPredict, predicting }: { featureColumns: string[]; inputs: Record<string,string>; setInputs: React.Dispatch<React.SetStateAction<Record<string,string>>>; onPredict(): void; predicting: boolean; }) {
   return (
     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
@@ -1147,9 +1303,12 @@ interface EasyModePanelProps {
   onPredict(): void;
   chatMsgs: ChatMsg[];
   onBuildPipeline(modelName: string): void;
+  uploading: boolean; uploadErr: string | null;
+  targetCol: string; onTargetColChange(v: string): void;
+  onUploadClick(): void; onAnalyze(): void;
 }
 
-function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline }: EasyModePanelProps) {
+function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
   const [aiPrompt, setAiPrompt]         = useState('');
   const [testSize, setTestSize]         = useState(0.2);
   const [cvFolds, setCvFolds]           = useState(5);
@@ -1167,10 +1326,10 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
   const insightMsgs   = chatMsgs.filter(m => m.type === 'insight');
 
   // Auto-mark FE reviewed when pipeline is already built (session restore)
-  useEffect(() => { if (analysisStage === 'pipeline_built') setFeReviewed(true); }, [analysisStage]);
+  useEffect(() => { if (analysisStage === 'pipeline_built') setTimeout(() => setFeReviewed(true), 0); }, [analysisStage]);
   // Reset FE state when going back to idle (reset kernel)
   useEffect(() => {
-    if (analysisStage === 'idle') { setFeReviewed(false); setShowCustomFE(false); setCustomFEInput(''); }
+    if (analysisStage === 'idle') setTimeout(() => { setFeReviewed(false); setShowCustomFE(false); setCustomFEInput(''); }, 0);
   }, [analysisStage]);
 
   const allCharts: string[] = [];
@@ -1237,27 +1396,49 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       </div>
 
-      {/* ── No dataset ── */}
-      {!uploadedFilename && (
-        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
-          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
-          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
+      {/* ── Upload / Analyse controls ── */}
+      <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(110,84,200,0.28)', overflow: 'hidden' }}>
+        <div style={{ padding: '10px 16px', background: 'rgba(110,84,200,0.10)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 16 }}>📂</span>
+          <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>Dataset</span>
+          {uploadedFilename && (
+            <span style={{ marginLeft: 'auto', fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.35)', color: '#4ade80', fontFamily: 'monospace', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{uploadedFilename}</span>
+          )}
         </div>
-      )}
-
-      {/* ── Dataset ready (idle) ── */}
-      {uploadedFilename && analysisStage === 'idle' && !analyzing && (
-        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.25)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>📄</span>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#60a5fa', marginBottom: 2 }}>Dataset Ready</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>"{uploadedFilename}" uploaded. Set the target column (optional) then click <strong style={{ color: '#a87edf' }}>Analyse</strong> in the panel on the right.</div>
+        <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {!uploadedFilename ? (
+            <button onClick={onUploadClick} disabled={uploading}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', borderRadius: 10, cursor: uploading ? 'not-allowed' : 'pointer', background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(110,84,200,0.4)', color: '#94a3b8', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', transition: 'all 0.2s' }}>
+              {uploading ? <><SpinIcon size={14}/><span>Uploading…</span></> : <><span style={{ fontSize: 20 }}>📂</span><span>Upload CSV / Excel</span></>}
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' as const }}>
+              {analysisStage === 'idle' && (
+                <button onClick={onUploadClick} disabled={uploading}
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 8, cursor: 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.2)', color: '#64748b', fontSize: 11, fontFamily: 'inherit' }}>
+                  {uploading ? <SpinIcon size={10}/> : '🔄'} Replace file
+                </button>
+              )}
             </div>
-          </div>
+          )}
+          {uploadErr && <div style={{ fontSize: 11, color: '#f87171', padding: '6px 10px', borderRadius: 7, background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)' }}>⚠ {uploadErr}</div>}
+          {uploadedFilename && analysisStage === 'idle' && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input value={targetCol} onChange={e => onTargetColChange(e.target.value)} placeholder="target column (optional, e.g. price)"
+                style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '7px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'monospace' }} />
+              <button onClick={onAnalyze} disabled={!uploadedFilename || analyzing}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, cursor: (!uploadedFilename || analyzing) ? 'not-allowed' : 'pointer', background: (!uploadedFilename || analyzing) ? 'rgba(110,84,200,0.1)' : 'linear-gradient(135deg,rgba(110,84,200,0.75),rgba(124,92,191,0.75))', border: '1px solid rgba(110,84,200,0.55)', color: !uploadedFilename ? '#475569' : '#e2e8f0', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
+                {analyzing ? <><SpinIcon size={11}/><span>Analysing…</span></> : <><span>🔍</span><span>Analyse</span></>}
+              </button>
+            </div>
+          )}
+          {uploadedFilename && analysisStage !== 'idle' && (
+            <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#4ade80' }}>✓</span> Dataset loaded{targetCol ? ` — target: ` : ''}{targetCol && <code style={{ fontFamily: 'monospace', color: '#a87edf', background: 'rgba(168,126,223,0.1)', padding: '1px 6px', borderRadius: 4 }}>{targetCol}</code>}
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* ── Analysing in progress ── */}
       {analyzing && (
@@ -1390,35 +1571,69 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
-      {/* ── EDA Visualisations (full-width, stacked, with AI insight captions) ── */}
+      {/* ── EDA Visualisations (full-width, stacked, with AI explanations) ── */}
       {showPostFE && allCharts.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#c4b5fd', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>📈</span> Exploratory Visualisations
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#475569', fontWeight: 400 }}>{allCharts.length} chart{allCharts.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {allCharts.map((b64, i) => (
-              <div key={i} style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.09)', background: 'rgba(0,0,0,0.22)' }}>
+              <div key={i} style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(110,84,200,0.22)', background: 'rgba(0,0,0,0.28)', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}>
+                {/* Chart header */}
+                <div style={{ padding: '10px 16px', background: 'rgba(110,84,200,0.10)', borderBottom: '1px solid rgba(110,84,200,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>📊</span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>Chart {i + 1}</span>
+                  {insightMsgs[i]?.text && (
+                    <span style={{ marginLeft: 'auto', fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)', color: '#22d3ee' }}>AI Insight</span>
+                  )}
+                </div>
+                {/* Chart image */}
                 <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ width: '100%', display: 'block' }} />
-                {insightMsgs[i] && (
-                  <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(13,148,136,0.07)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>📈</span>
-                    <div style={{ fontSize: 12, color: '#99f6e4', lineHeight: 1.65 }}>{insightMsgs[i].text}</div>
-                  </div>
-                )}
+                {/* AI explanation block — always shown */}
+                {(() => {
+                  const insight = insightMsgs[i]?.text;
+                  const fallbacks = [
+                    'This chart shows the distribution of your target variable across the dataset. Use it to check whether the classes or values are balanced — a heavily skewed distribution can affect how the model learns and may require resampling or class-weight adjustments.',
+                    'This correlation heatmap reveals how strongly each pair of numeric features relates to one another. Values near +1 or −1 indicate strong relationships; values near 0 suggest independence. Highly correlated feature pairs can cause multicollinearity, which may reduce model interpretability.',
+                    'This plot visualises the spread and shape of a key feature in your dataset. Look for skewness, multiple peaks (bimodal), or heavy tails — these patterns often signal that feature transformation (e.g. log-scaling) would help the model learn more effectively.',
+                    'This visualisation compares feature values across different groups or categories. Differences in distribution between groups can indicate that the feature carries predictive signal for your target variable.',
+                    'This chart provides an overview of patterns, counts, or relationships within a feature. Studying the shape of the distribution helps identify outliers, dominant categories, or trends that the model will learn from.',
+                  ];
+                  const text = insight ?? fallbacks[i % fallbacks.length];
+                  const isAI = !!insight;
+                  return (
+                    <div style={{ padding: '14px 18px', borderTop: `1px solid ${isAI ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.06)'}`, background: isAI ? 'linear-gradient(135deg,rgba(13,148,136,0.09),rgba(34,211,238,0.04))' : 'rgba(255,255,255,0.02)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ fontSize: 13 }}>{isAI ? '🤖' : '📖'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: isAI ? '#22d3ee' : '#94a3b8', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+                          {isAI ? 'What this chart tells you' : 'How to read this chart'}
+                        </span>
+                        {!isAI && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#475569', marginLeft: 2 }}>guide</span>}
+                      </div>
+                      <div style={{ fontSize: 13, color: isAI ? '#a5f3fc' : '#94a3b8', lineHeight: 1.75 }}>{text}</div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── EDA Summary ── */}
-      {showPostFE && edaSummaryMsg?.edaSummary && (
-        <div style={{ marginBottom: 16 }}>
-          <EdaSummaryBubble
-            summary={edaSummaryMsg.edaSummary.summary}
-            featureImportance={edaSummaryMsg.edaSummary.featureImportance}
-            preprocessing={edaSummaryMsg.edaSummary.preprocessing}
-          />
-        </div>
+      {/* ── Deep EDA Section ── */}
+      {showPostFE && (analysisMsg?.analysis || edaSummaryMsg?.edaSummary || insightMsgs.length > 0) && (
+        <DeepEdaSection
+          analysis={analysisMsg?.analysis ?? null}
+          edaSummary={edaSummaryMsg?.edaSummary ?? null}
+          insightMsgs={insightMsgs}
+          uploadedFilename={uploadedFilename}
+          onDownload={(content: string) => {
+            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+            triggerBlobDownload(blob, `EDA_Report_${(uploadedFilename ?? 'dataset').replace(/\.[^.]+$/, '')}.md`);
+          }}
+        />
       )}
 
       {/* ── Model Selection (inline, only while in 'analyzed' state) ── */}
