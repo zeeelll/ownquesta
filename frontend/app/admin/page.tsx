@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities } from "@/services/api";
+import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminProjects, getAdminProjectStats } from "@/services/api";
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 import {
@@ -49,6 +49,102 @@ interface User {
   createdAt: string;
 }
 
+interface AdminProject {
+  _id: string;
+  sessionId: string;
+  name: string;
+  stage: string;
+  problemType?: string;
+  targetColumn?: string;
+  selectedModel?: string;
+  dataset?: {
+    filename?: string;
+    rowCount?: number;
+    fileType?: string;
+    sizeKb?: number;
+  };
+  metrics?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | string;
+}
+
+interface ProjectStats {
+  total: number;
+  active: number;
+  completed: number;
+  initialized: number;
+  recent: number;
+  byStage: Record<string, number>;
+}
+
+const formatProjectStage = (stage?: string) =>
+  (stage || 'initialized')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const projectStageBadgeClass = (stage?: string) => {
+  if (['trained', 'evaluated', 'completed'].includes(stage || '')) {
+    return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+  }
+  if (['dataset_uploaded', 'eda_completed', 'model_selected', 'training'].includes(stage || '')) {
+    return 'bg-violet-500/15 text-violet-300 border border-violet-500/30';
+  }
+  return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
+};
+
+const isProjectActivity = (action?: string) => (action || '').startsWith('project_');
+
+const matchesActivityFilter = (activity: any, filter: string) => {
+  const action = activity?.action || '';
+
+  if (filter === 'all') return true;
+  if (filter === 'login') return action === 'login';
+  if (filter === 'logout') return action === 'logout';
+  if (filter === 'registration') return action === 'registration';
+  if (filter === 'admin') return action.startsWith('admin_');
+  if (filter === 'profile') return action === 'admin_update_profile' || action === 'update_profile';
+  if (filter === 'upload') return action.includes('upload');
+  if (filter === 'project') return isProjectActivity(action);
+  if (filter === 'delete') return action.includes('delete');
+
+  return true;
+};
+
+const getActivityAppearance = (action?: string) => {
+  if (action === 'login') {
+    return { Icon: CheckCircle, iconClass: 'text-emerald-400', chipClass: 'action-chip-green' };
+  }
+  if (action === 'logout') {
+    return { Icon: XCircle, iconClass: 'text-rose-400', chipClass: 'action-chip-red' };
+  }
+  if (action === 'registration') {
+    return { Icon: Plus, iconClass: 'text-blue-400', chipClass: 'action-chip-blue' };
+  }
+  if (isProjectActivity(action)) {
+    return { Icon: Monitor, iconClass: 'text-violet-400', chipClass: 'action-chip-purple' };
+  }
+  if ((action || '').startsWith('admin_')) {
+    return { Icon: Shield, iconClass: 'text-red-400', chipClass: 'action-chip-red' };
+  }
+  if ((action || '').includes('delete')) {
+    return { Icon: Trash2, iconClass: 'text-red-400', chipClass: 'action-chip-red' };
+  }
+  if ((action || '').includes('update')) {
+    return { Icon: Edit, iconClass: 'text-amber-400', chipClass: 'action-chip-amber' };
+  }
+  if ((action || '').includes('upload')) {
+    return { Icon: Plus, iconClass: 'text-purple-400', chipClass: 'action-chip-purple' };
+  }
+
+  return { Icon: Info, iconClass: 'text-slate-400', chipClass: 'action-chip-slate' };
+};
+
 export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -71,15 +167,20 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [allActivities, setAllActivities] = useState<any[]>([]);
+  const [projects, setProjects] = useState<AdminProject[]>([]);
+  const [projectStats, setProjectStats] = useState<ProjectStats>({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
+  const [projectError, setProjectError] = useState('');
   const [showActivities, setShowActivities] = useState(false);
   const [activityView, setActivityView] = useState<'user' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
+  const [projectStageFilter, setProjectStageFilter] = useState<string>('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [systemStatus, setSystemStatus] = useState('online');
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [activitySearch, setActivitySearch] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'activities' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'activities' | 'settings'>('dashboard');
   const router = useRouter();
 
   useEffect(() => {
@@ -108,17 +209,42 @@ export default function AdminPage() {
     if (activeTab === 'activities' && allActivities.length === 0) {
       handleViewAllActivities();
     }
+    if (activeTab === 'projects' && projects.length === 0) {
+      handleLoadProjects();
+    }
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'users') {
       setSearchTerm('');
     }
+    if (activeTab !== 'projects') {
+      setProjectSearch('');
+      setProjectStageFilter('all');
+    }
     if (activeTab !== 'activities') {
       setActivitySearch('');
       setActivityFilter('all');
     }
   }, [activeTab]);
+
+  const filteredProjects = projects.filter((project) => {
+    const owner = project.userId && typeof project.userId === 'object' ? project.userId : null;
+    const q = projectSearch.trim().toLowerCase();
+
+    const matchesSearch = !q || [
+      project.name,
+      project.dataset?.filename,
+      project.problemType,
+      project.targetColumn,
+      project.selectedModel,
+      owner?.name,
+      owner?.email,
+    ].some((value) => (value || '').toString().toLowerCase().includes(q));
+
+    const matchesStage = projectStageFilter === 'all' || project.stage === projectStageFilter;
+    return matchesSearch && matchesStage;
+  });
 
   const checkAuthAndLoadUsers = async () => {
     try {
@@ -139,8 +265,28 @@ export default function AdminPage() {
 
       setCurrentUser(authData.user);
 
-      const response = await getAllUsers();
-      setUsers(response.users);
+      const userResponse = await getAllUsers();
+      setUsers(userResponse.users);
+
+      try {
+        const projectStatsResponse = await getAdminProjectStats();
+        setProjectStats({
+          total: projectStatsResponse.total || 0,
+          active: projectStatsResponse.active || 0,
+          completed: projectStatsResponse.completed || 0,
+          initialized: projectStatsResponse.initialized || 0,
+          recent: projectStatsResponse.recent || 0,
+          byStage: projectStatsResponse.byStage || {}
+        });
+        setProjectError('');
+      } catch (projectErr: any) {
+        setProjectStats({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
+        setProjectError(
+          projectErr?.message === 'Not Found'
+            ? 'Projects data is not available yet. Restart the backend server, then refresh this page.'
+            : (projectErr?.message || 'Projects data is temporarily unavailable.')
+        );
+      }
     } catch (err: any) {
       setError(err.message);
       if (err.message.includes('Unauthorized') || err.message.includes('Forbidden')) {
@@ -283,6 +429,35 @@ export default function AdminPage() {
     }
   };
 
+  const handleLoadProjects = async () => {
+    setActionLoading('load-projects');
+    setProjectError('');
+    try {
+      const [projectResponse, projectStatsResponse] = await Promise.all([
+        getAdminProjects(300),
+        getAdminProjectStats()
+      ]);
+      setProjects(projectResponse.projects || []);
+      setProjectStats({
+        total: projectStatsResponse.total || 0,
+        active: projectStatsResponse.active || 0,
+        completed: projectStatsResponse.completed || 0,
+        initialized: projectStatsResponse.initialized || 0,
+        recent: projectStatsResponse.recent || 0,
+        byStage: projectStatsResponse.byStage || {}
+      });
+    } catch (err: any) {
+      setProjects([]);
+      setProjectError(
+        err?.message === 'Not Found'
+          ? 'The new project endpoints are not active yet. Restart the backend server and refresh.'
+          : (err?.message || 'Failed to load projects.')
+      );
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleMaintenanceMode = async () => {
     setActionLoading('maintenance-mode');
     try {
@@ -386,6 +561,7 @@ export default function AdminPage() {
             {([
               { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { key: 'users',     icon: Users,    label: 'User Management' },
+              { key: 'projects',  icon: Monitor,  label: 'Projects' },
               { key: 'activities',icon: Activity,  label: 'Activity Log' },
               { key: 'settings',  icon: Settings,  label: 'Settings' },
             ] as const).map(({ key, icon: Icon, label }) => (
@@ -409,7 +585,7 @@ export default function AdminPage() {
         {activeTab === 'dashboard' && (
           <div className="space-y-6 fade-in">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
@@ -470,6 +646,27 @@ export default function AdminPage() {
                   }} />
                 </div>
               </div>
+
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center">
+                      <Monitor className="h-3.5 w-3.5 mr-2" />
+                      Total Projects
+                    </p>
+                    <p className="stat-number">{projectStats.total}</p>
+                    <p className="stat-sub">Stored in MongoDB</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue">
+                    <Monitor className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="stat-bar mt-4">
+                  <div className="stat-bar-fill stat-bar-blue" style={{
+                    width: projectStats.total ? `${Math.min(100, ((projectStats.completed + projectStats.active) / projectStats.total) * 100)}%` : '0%'
+                  }} />
+                </div>
+              </div>
             </div>
 
             {/* Quick Actions */}
@@ -478,13 +675,20 @@ export default function AdminPage() {
                 <Activity className="h-5 w-5 mr-2 text-cyan-400" />
                 Quick Actions
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Button
                   onClick={() => setActiveTab('users')}
                   className="quick-action-btn quick-action-blue flex items-center justify-center space-x-2 h-12"
                 >
                   <Users className="h-4 w-4" />
                   <span>Manage Users</span>
+                </Button>
+                <Button
+                  onClick={() => setActiveTab('projects')}
+                  className="quick-action-btn quick-action-purple flex items-center justify-center space-x-2 h-12"
+                >
+                  <Monitor className="h-4 w-4" />
+                  <span>View Projects</span>
                 </Button>
                 <Button
                   onClick={() => setActiveTab('activities')}
@@ -656,6 +860,179 @@ export default function AdminPage() {
         )}
 
         {/* ══════════════════════════════════════
+            PROJECTS TAB
+        ══════════════════════════════════════ */}
+        {activeTab === 'projects' && (
+          <div className="space-y-6 fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Monitor className="h-3.5 w-3.5 mr-2" />Total Projects</p>
+                    <p className="stat-number">{projectStats.total}</p>
+                    <p className="stat-sub">All user projects</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><Monitor className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-purple">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Activity className="h-3.5 w-3.5 mr-2" />Active Projects</p>
+                    <p className="stat-number">{projectStats.active}</p>
+                    <p className="stat-sub">In progress right now</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-purple"><Activity className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-emerald">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><CheckCircle className="h-3.5 w-3.5 mr-2" />Completed</p>
+                    <p className="stat-number">{projectStats.completed}</p>
+                    <p className="stat-sub">Trained / evaluated</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-emerald"><CheckCircle className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Calendar className="h-3.5 w-3.5 mr-2" />New This Week</p>
+                    <p className="stat-number">{projectStats.recent}</p>
+                    <p className="stat-sub">Created in last 7 days</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><Calendar className="h-6 w-6" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel-card p-6">
+              <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+                <div>
+                  <h3 className="panel-title mb-1 flex items-center"><Monitor className="h-5 w-5 mr-2 text-cyan-400" />User Projects</h3>
+                  <p className="text-slate-500 text-sm font-mono">View every project stored in MongoDB, including owner, dataset, stage, and model details.</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+                  <div className="relative min-w-[260px]">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search by project, owner, dataset, model..."
+                      value={projectSearch}
+                      onChange={(e) => setProjectSearch(e.target.value)}
+                      className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                    />
+                  </div>
+
+                  <select
+                    value={projectStageFilter}
+                    onChange={(e) => setProjectStageFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Stages</option>
+                    <option value="initialized">Initialized</option>
+                    <option value="dataset_uploaded">Dataset Uploaded</option>
+                    <option value="eda_completed">EDA Completed</option>
+                    <option value="model_selected">Model Selected</option>
+                    <option value="training">Training</option>
+                    <option value="trained">Trained</option>
+                    <option value="evaluated">Evaluated</option>
+                    <option value="completed">Completed</option>
+                  </select>
+
+                  <Button
+                    onClick={() => handleLoadProjects()}
+                    className="quick-action-btn quick-action-blue flex items-center space-x-2"
+                    disabled={actionLoading === 'load-projects'}
+                  >
+                    {actionLoading === 'load-projects'
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Monitor className="h-4 w-4" />}
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel-card overflow-hidden">
+              {projectError && (
+                <div className="mx-6 mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                  {projectError}
+                </div>
+              )}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="table-th">Project</th>
+                      <th className="table-th">Owner</th>
+                      <th className="table-th">Stage</th>
+                      <th className="table-th">Dataset</th>
+                      <th className="table-th">Model / Goal</th>
+                      <th className="table-th">Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {filteredProjects.map((project) => {
+                      const owner = project.userId && typeof project.userId === 'object' ? project.userId : null;
+
+                      return (
+                        <tr key={project._id} className="table-row-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{project.name || 'Untitled Project'}</div>
+                              <div className="text-xs text-slate-500 font-mono">Session: {project.sessionId || '—'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{owner?.name || 'Unknown user'}</div>
+                              <div className="text-xs text-slate-500 font-mono">{owner?.email || 'No email'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${projectStageBadgeClass(project.stage)}`}>
+                              {formatProjectStage(project.stage)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{project.dataset?.filename || <span className="text-slate-600">—</span>}</div>
+                            {project.dataset?.fileType && (
+                              <div className="text-xs text-slate-500 font-mono mt-1">{project.dataset.fileType.toUpperCase()}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{project.selectedModel || project.problemType || <span className="text-slate-600">—</span>}</div>
+                            {project.targetColumn && (
+                              <div className="text-xs text-slate-500 font-mono mt-1">Target: {project.targetColumn}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-500 font-mono">
+                            {new Date(project.updatedAt || project.createdAt).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredProjects.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="text-5xl mb-4 opacity-30">📁</div>
+                  <p className="text-slate-400 text-sm font-mono">No projects match the current filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════
             ACTIVITIES TAB
         ══════════════════════════════════════ */}
         {activeTab === 'activities' && (
@@ -685,7 +1062,7 @@ export default function AdminPage() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                   <input
                     type="text"
-                    placeholder="Search by user name or email..."
+                    placeholder="Search by user, email, project, or action..."
                     value={activitySearch}
                     onChange={(e) => setActivitySearch(e.target.value)}
                     className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
@@ -698,9 +1075,11 @@ export default function AdminPage() {
                 >
                   <option value="all">All Actions</option>
                   <option value="login">Login</option>
+                  <option value="logout">Logout</option>
                   <option value="registration">Registration</option>
                   <option value="admin">Admin Actions</option>
                   <option value="profile">Profile Updates</option>
+                  <option value="project">Project Activity</option>
                   <option value="upload">File Uploads</option>
                   <option value="delete">Deletions</option>
                 </select>
@@ -717,21 +1096,23 @@ export default function AdminPage() {
                   <div className="divide-y divide-slate-800/60">
                     {allActivities
                       .filter(activity => {
-                        const matchesSearch = activitySearch === '' ||
-                          activity.userName.toLowerCase().includes(activitySearch.toLowerCase()) ||
-                          activity.userEmail.toLowerCase().includes(activitySearch.toLowerCase());
+                        const query = activitySearch.trim().toLowerCase();
+                        const metadataText = JSON.stringify(activity.metadata || {}).toLowerCase();
+                        const matchesSearch = query === '' || [
+                          activity.userName || '',
+                          activity.userEmail || '',
+                          activity.description || '',
+                          activity.action || '',
+                          metadataText,
+                        ].some((value) => value.toLowerCase().includes(query));
 
-                        const matchesFilter = activityFilter === 'all' ||
-                          (activityFilter === 'login' && activity.action === 'login') ||
-                          (activityFilter === 'registration' && activity.action === 'registration') ||
-                          (activityFilter === 'admin' && activity.action.startsWith('admin_')) ||
-                          (activityFilter === 'profile' && activity.action === 'admin_update_profile') ||
-                          (activityFilter === 'upload' && activity.action.includes('upload')) ||
-                          (activityFilter === 'delete' && activity.action === 'admin_delete_account');
-
-                        return matchesSearch && matchesFilter;
+                        return matchesSearch && matchesActivityFilter(activity, activityFilter);
                       })
-                      .map((activity: any) => (
+                      .map((activity: any) => {
+                        const activityAppearance = getActivityAppearance(activity.action);
+                        const ActivityIcon = activityAppearance.Icon;
+
+                        return (
                         <div key={activity._id} className="activity-row p-6 transition-colors">
                           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                             <div className="flex-1">
@@ -764,27 +1145,8 @@ export default function AdminPage() {
 
                               <div className="mb-3">
                                 <div className="flex items-center space-x-2 mb-2">
-                                  {activity.action === 'login' && <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />}
-                                  {activity.action === 'registration' && <Plus className="h-3.5 w-3.5 text-blue-400" />}
-                                  {activity.action.includes('admin') && <Shield className="h-3.5 w-3.5 text-red-400" />}
-                                  {activity.action.includes('delete') && <Trash2 className="h-3.5 w-3.5 text-red-400" />}
-                                  {activity.action.includes('update') && <Edit className="h-3.5 w-3.5 text-amber-400" />}
-                                  {activity.action.includes('upload') && <Plus className="h-3.5 w-3.5 text-purple-400" />}
-                                  {!['login', 'registration'].includes(activity.action) &&
-                                   !activity.action.includes('admin') &&
-                                   !activity.action.includes('delete') &&
-                                   !activity.action.includes('update') &&
-                                   !activity.action.includes('upload') && <Info className="h-3.5 w-3.5 text-slate-400" />}
-
-                                  <span className={`action-chip ${
-                                    activity.action === 'login' ? 'action-chip-green' :
-                                    activity.action === 'registration' ? 'action-chip-blue' :
-                                    activity.action.includes('admin') ? 'action-chip-red' :
-                                    activity.action.includes('delete') ? 'action-chip-red' :
-                                    activity.action.includes('update') ? 'action-chip-amber' :
-                                    activity.action.includes('upload') ? 'action-chip-purple' :
-                                    'action-chip-slate'
-                                  }`}>
+                                  <ActivityIcon className={`h-3.5 w-3.5 ${activityAppearance.iconClass}`} />
+                                  <span className={`action-chip ${activityAppearance.chipClass}`}>
                                     {activity.action.replace(/_/g, ' ').toUpperCase()}
                                   </span>
                                 </div>
@@ -823,7 +1185,7 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </div>
-                      ))}
+                      )})}
                   </div>
                 </div>
 
@@ -832,17 +1194,16 @@ export default function AdminPage() {
                     Showing{' '}
                     <span className="text-cyan-400">
                       {allActivities.filter(activity => {
-                        const matchesSearch = activitySearch === '' ||
-                          activity.userName.toLowerCase().includes(activitySearch.toLowerCase()) ||
-                          activity.userEmail.toLowerCase().includes(activitySearch.toLowerCase());
-                        const matchesFilter = activityFilter === 'all' ||
-                          (activityFilter === 'login' && activity.action === 'login') ||
-                          (activityFilter === 'registration' && activity.action === 'registration') ||
-                          (activityFilter === 'admin' && activity.action.startsWith('admin_')) ||
-                          (activityFilter === 'profile' && activity.action === 'admin_update_profile') ||
-                          (activityFilter === 'upload' && activity.action.includes('upload')) ||
-                          (activityFilter === 'delete' && activity.action === 'admin_delete_account');
-                        return matchesSearch && matchesFilter;
+                        const query = activitySearch.trim().toLowerCase();
+                        const metadataText = JSON.stringify(activity.metadata || {}).toLowerCase();
+                        const matchesSearch = query === '' || [
+                          activity.userName || '',
+                          activity.userEmail || '',
+                          activity.description || '',
+                          activity.action || '',
+                          metadataText,
+                        ].some((value) => value.toLowerCase().includes(query));
+                        return matchesSearch && matchesActivityFilter(activity, activityFilter);
                       }).length}
                     </span>
                     {' '}of{' '}

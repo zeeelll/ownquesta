@@ -16,9 +16,14 @@ router.delete("/users/:id", adminController.deleteUser);
 router.put("/users/:id/make-admin", adminController.makeAdmin);
 router.put("/users/:id/remove-admin", adminController.removeAdmin);
 router.get("/users/:id/activities", adminController.getUserActivities);
+router.get("/users/:id/projects", adminController.getUserProjects);
 
 // Activity routes
 router.get("/activities", adminController.getAllActivities);
+
+// Project routes
+router.get("/projects", adminController.getAllProjects);
+router.get("/projects/stats", adminController.getProjectStats);
 
 // Admin registration endpoint
 router.post("/register-admin", authController.registerAdmin);

@@ -1,7 +1,11 @@
 // Admin controller
 
 const User = require("../models/User");
+const Project = require("../models/Project");
 const ActivityService = require("../services/activity.service");
+
+const ACTIVE_PROJECT_STAGES = ["dataset_uploaded", "eda_completed", "model_selected", "training"];
+const COMPLETED_PROJECT_STAGES = ["trained", "evaluated", "completed"];
 
 exports.getAllUsers = async (req, res) => {
   try {
@@ -187,6 +191,84 @@ exports.getAllActivities = async (req, res) => {
     res.json({ activities });
   } catch (error) {
     console.error("Error fetching activities:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all user projects for admin view
+exports.getAllProjects = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 200, 500);
+    const stage = typeof req.query.stage === "string" ? req.query.stage.trim() : "";
+    const search = typeof req.query.search === "string" ? req.query.search.trim().toLowerCase() : "";
+
+    const query = {};
+    if (stage && stage !== "all") query.stage = stage;
+
+    let projects = await Project.find(query)
+      .populate("userId", "name email role")
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .lean();
+
+    if (search) {
+      projects = projects.filter((project) => {
+        const owner = project.userId && typeof project.userId === "object" ? project.userId : null;
+        return [
+          project.name,
+          project.dataset?.filename,
+          project.problemType,
+          project.targetColumn,
+          project.selectedModel,
+          owner?.name,
+          owner?.email,
+        ].some((value) => typeof value === "string" && value.toLowerCase().includes(search));
+      });
+    }
+
+    res.json({ projects });
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get aggregate project statistics for admin dashboard
+exports.getProjectStats = async (req, res) => {
+  try {
+    const projects = await Project.find().select("stage createdAt").lean();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const byStage = projects.reduce((acc, project) => {
+      const key = project.stage || "initialized";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      total: projects.length,
+      active: projects.filter((project) => ACTIVE_PROJECT_STAGES.includes(project.stage)).length,
+      completed: projects.filter((project) => COMPLETED_PROJECT_STAGES.includes(project.stage)).length,
+      initialized: projects.filter((project) => (project.stage || "initialized") === "initialized").length,
+      recent: projects.filter((project) => project.createdAt && new Date(project.createdAt) >= sevenDaysAgo).length,
+      byStage,
+    });
+  } catch (error) {
+    console.error("Error fetching project stats:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get all projects for a specific user (admin)
+exports.getUserProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ userId: req.params.id })
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    res.json({ projects });
+  } catch (error) {
+    console.error("Error fetching user projects:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

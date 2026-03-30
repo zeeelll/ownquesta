@@ -93,6 +93,17 @@ exports.register = async (req, res) => {
       user.firstLogin = false;
       await user.save();
       console.log("✅ User auto-logged in after registration");
+
+      await ActivityService.logActivity(
+        user._id,
+        user.email,
+        user.name,
+        'login',
+        `${userRole === 'admin' ? 'Admin' : 'User'} logged in after registration`,
+        req,
+        { loginMethod: 'local', loginSource: 'registration', role: userRole }
+      );
+
       const userObj = user.toObject();
       delete userObj.password;
       
@@ -142,9 +153,9 @@ exports.login = (req, res, next) => {
         user.email,
         user.name,
         'login',
-        `User logged in`,
+        `${user.role === 'admin' ? 'Admin' : 'User'} logged in`,
         req,
-        { loginMethod: 'local' }
+        { loginMethod: 'local', role: user.role }
       );
       
       // Send welcome email on first login (asynchronously)
@@ -172,7 +183,23 @@ exports.login = (req, res, next) => {
   })(req, res, next);
 };
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
+  const actor = req.user
+    ? { id: req.user._id, email: req.user.email, name: req.user.name, role: req.user.role, provider: req.user.provider }
+    : null;
+
+  if (actor) {
+    await ActivityService.logActivity(
+      actor.id,
+      actor.email,
+      actor.name,
+      'logout',
+      `${actor.role === 'admin' ? 'Admin' : 'User'} logged out`,
+      req,
+      { logoutMethod: actor.provider || 'session', role: actor.role }
+    );
+  }
+
   req.logout((err) => {
     if (err) {
       console.error("❌ Logout error:", err);

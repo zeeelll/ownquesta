@@ -419,7 +419,11 @@ export default function LabPage() {
     if (!raw) return;
     localStorage.removeItem('mlNewProject');
     try {
-      const proj = JSON.parse(raw) as { name?: string; goal?: string; targetCol?: string };
+      const proj = JSON.parse(raw) as { sessionId?: string; name?: string; goal?: string; targetCol?: string };
+      if (proj.sessionId) {
+        sidRef.current = proj.sessionId;
+        setSid(proj.sessionId);
+      }
       if (proj.name)      newProjectNameRef.current = proj.name;
       if (proj.targetCol) setTargetCol(proj.targetCol);
       const goalLabel: Record<string, string> = { auto: 'Auto-detect the best ML approach', classification: 'Predict a category (Classification)', regression: 'Predict a number (Regression)', clustering: 'Group similar items (Clustering)', anomaly: 'Detect anomalies' };
@@ -510,7 +514,7 @@ export default function LabPage() {
       const d = await r.json(); setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
       addMsg({ type: 'info', text: `📄 **${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
       saveLabProjectToDashboard(d.filename);
-      updateProjectProgress('dataset_uploaded', { name: d.filename.replace(/\.[^/.]+$/, ''), dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() } });
+      updateProjectProgress('dataset_uploaded', { name: newProjectNameRef.current || d.filename.replace(/\.[^/.]+$/, ''), dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() } });
     } catch (e: any) { setUploadErr(e.message); }
     finally { setUploading(false); }
   }, [getSession, addMsg]);

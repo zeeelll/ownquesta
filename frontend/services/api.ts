@@ -119,6 +119,24 @@ export async function getAllActivities(limit?: number, skip?: number) {
   return api(`/api/admin/activities?${params.toString()}`);
 }
 
+// Admin project APIs
+export async function getAdminProjects(limit?: number, stage?: string, search?: string) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  if (stage && stage !== 'all') params.append('stage', stage);
+  if (search?.trim()) params.append('search', search.trim());
+  const query = params.toString();
+  return api(`/api/admin/projects${query ? `?${query}` : ''}`);
+}
+
+export async function getAdminProjectStats() {
+  return api('/api/admin/projects/stats');
+}
+
+export async function getUserProjectsForAdmin(userId: string) {
+  return api(`/api/admin/users/${userId}/projects`);
+}
+
 // Gen agent (explain) — proxies to backend /api/gen/explain
 export async function explainModelViaGen(best_model: any, eda_result?: any, goal?: any, processed_sample?: any, model_summaries?: any) {
   return api('/api/gen/explain', {

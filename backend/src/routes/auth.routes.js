@@ -3,6 +3,7 @@
 const router = require("express").Router();
 const passport = require("passport");
 const authController = require("../controllers/auth.controller");
+const ActivityService = require("../services/activity.service");
 
 // Helper function to generate unique user ID
 async function generateUniqueUserId() {
@@ -65,6 +66,16 @@ router.get("/google/callback", (req, res, next) => {
         await user.save();
         console.log(`📍 Generated new user ID for Google user: ${user.userId}`);
       }
+
+      await ActivityService.logActivity(
+        user._id,
+        user.email,
+        user.name,
+        'login',
+        `${user.role === 'admin' ? 'Admin' : 'User'} logged in with Google`,
+        req,
+        { loginMethod: 'google', role: user.role }
+      );
 
       console.log('Google user firstLogin:', user.firstLogin);
       // Send welcome email on first login
