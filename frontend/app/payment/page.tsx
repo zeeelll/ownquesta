@@ -28,13 +28,12 @@ export default function PaymentPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
   const [upiId, setUpiId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     const params = new URLSearchParams(window.location.search);
     const parsedPrice = Number.parseFloat(params.get('price') ?? `${DEFAULT_PRICE}`);
-
     setCheckout({
       source: params.get('source') ?? 'lab',
       sessionId: params.get('session') ?? '',
@@ -52,7 +51,9 @@ export default function PaymentPage() {
     [sessionId],
   );
 
-  const formatCardNumber = (value: string) => value.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  const formatCardNumber = (value: string) =>
+    value.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+
   const formatExpiry = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 4);
     return digits.length >= 3 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
@@ -60,321 +61,624 @@ export default function PaymentPage() {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
-
     if (!name.trim()) nextErrors.name = 'Full name is required.';
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = 'Enter a valid email address.';
-
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      nextErrors.email = 'Enter a valid email address.';
     if (paymentMethod === 'card') {
-      if (cardNumber.replace(/\s/g, '').length < 16) nextErrors.cardNumber = 'Enter a valid 16-digit card number.';
+      if (cardNumber.replace(/\s/g, '').length < 16)
+        nextErrors.cardNumber = 'Enter a valid 16-digit card number.';
       if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) nextErrors.expiry = 'Use MM/YY format.';
       if (cvv.length < 3) nextErrors.cvv = 'Enter a valid CVV.';
     } else if (!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
       nextErrors.upiId = 'Enter a valid UPI ID.';
     }
-
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
   const handleCheckout = () => {
     if (!validate()) return;
-
     setStep('processing');
+    setProgress(0);
+
+    // Animate progress bar
+    let p = 0;
+    const interval = setInterval(() => {
+      p += Math.random() * 15;
+      if (p >= 95) { clearInterval(interval); p = 95; }
+      setProgress(Math.min(p, 95));
+    }, 120);
 
     window.setTimeout(() => {
-      setStep('success');
-
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(
-          'ownquesta_model_payment',
-          JSON.stringify({
-            paid: true,
-            product,
-            sessionId,
-            modelName,
-            price,
-            paidAt: Date.now(),
-          }),
-        );
-      }
-
+      clearInterval(interval);
+      setProgress(100);
       window.setTimeout(() => {
-        const params = new URLSearchParams();
-        params.set('payment', 'success');
-        if (sessionId) params.set('session', sessionId);
-        router.push(`${returnPath}?${params.toString()}`);
-      }, 1200);
+        setStep('success');
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(
+            'ownquesta_model_payment',
+            JSON.stringify({ paid: true, product, sessionId, modelName, price, paidAt: Date.now() }),
+          );
+        }
+        window.setTimeout(() => {
+          const params = new URLSearchParams();
+          params.set('payment', 'success');
+          if (sessionId) params.set('session', sessionId);
+          router.push(`${returnPath}?${params.toString()}`);
+        }, 1200);
+      }, 400);
     }, 1700);
   };
 
   const trustItems = [
-    'One-time purchase with instant access',
-    'Download your trained `.pkl` model right after checkout',
-    'Pay securely with card or UPI and return automatically to the lab',
+    { icon: '⚡', text: 'One-time purchase with instant access' },
+    { icon: '📦', text: 'Download your trained `.pkl` model right after checkout' },
+    { icon: '🔒', text: 'Pay securely with card or UPI and return automatically to the lab' },
   ];
 
   return (
-    <div
-      className="min-h-screen text-[#e6eef8] font-chillax relative overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #06080f 0%, #0b0d1a 48%, #080b18 100%)' }}
-    >
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-120px] left-[12%] w-[320px] h-[320px] rounded-full blur-3xl" style={{ background: 'rgba(110,84,200,0.16)' }} />
-        <div className="absolute bottom-[-120px] right-[10%] w-[360px] h-[360px] rounded-full blur-3xl" style={{ background: 'rgba(96,165,250,0.12)' }} />
-      </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-      <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 md:px-10 py-4 bg-[rgba(10,11,20,0.72)] backdrop-blur-xl border-b border-white/[0.06]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <Logo href="/home" size="md" />
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="hidden sm:inline-flex px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-[0.16em] uppercase border border-violet-400/20 bg-violet-500/10 text-violet-300">
-              {step === 'details' ? 'Secure checkout' : step === 'processing' ? 'Processing payment' : 'Returning to lab'}
-            </span>
-            {step === 'details' && (
-              <Link
-                href={returnPath}
-                className="px-4 py-2 rounded-xl text-sm font-semibold border border-white/10 bg-white/[0.03] text-[#c5d4ed] hover:text-white hover:bg-white/[0.06] transition-all"
-              >
-                ← Back to Lab
-              </Link>
-            )}
+        .pay-wrap * { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        /* Animated background grid */
+        .pay-bg-grid {
+          position: fixed; inset: 0; z-index: 0; pointer-events: none;
+          background-image:
+            linear-gradient(rgba(110,84,200,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(110,84,200,0.04) 1px, transparent 1px);
+          background-size: 48px 48px;
+          mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+        }
+
+        /* Glowing orbs */
+        .orb {
+          position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+          animation: orbFloat 10s ease-in-out infinite alternate;
+        }
+        .orb-1 {
+          width: 480px; height: 480px; top: -140px; left: -80px;
+          background: radial-gradient(circle, rgba(110,84,200,0.22) 0%, transparent 65%);
+          filter: blur(60px);
+        }
+        .orb-2 {
+          width: 420px; height: 420px; bottom: -120px; right: -60px;
+          background: radial-gradient(circle, rgba(96,165,250,0.16) 0%, transparent 65%);
+          filter: blur(60px); animation-delay: -5s;
+        }
+        .orb-3 {
+          width: 260px; height: 260px; top: 40%; right: 18%;
+          background: radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%);
+          filter: blur(40px); animation-delay: -2.5s;
+        }
+        @keyframes orbFloat {
+          from { transform: translate(0, 0) scale(1); }
+          to   { transform: translate(20px, 30px) scale(1.06); }
+        }
+
+        /* Glass panel */
+        .glass-panel {
+          background: rgba(255,255,255,0.032);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 28px;
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        /* Top shimmer line */
+        .glass-panel::before {
+          content: '';
+          position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+          border-radius: 1px;
+        }
+
+        /* Enhanced input */
+        .pay-input {
+          width: 100%;
+          background: rgba(255,255,255,0.04);
+          border: 1.5px solid rgba(255,255,255,0.08);
+          border-radius: 14px;
+          padding: 13px 16px;
+          font-size: 14px;
+          font-weight: 500;
+          color: #e6eef8;
+          outline: none;
+          transition: all 0.2s ease;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .pay-input::placeholder { color: #3d5166; }
+        .pay-input:focus {
+          border-color: rgba(139,92,246,0.55);
+          background: rgba(139,92,246,0.06);
+          box-shadow: 0 0 0 4px rgba(139,92,246,0.1), 0 2px 12px rgba(0,0,0,0.2);
+        }
+        .pay-input.has-error { border-color: rgba(248,113,113,0.55); }
+        .pay-input.has-error:focus { box-shadow: 0 0 0 4px rgba(248,113,113,0.1); }
+
+        /* Method button */
+        .method-btn {
+          flex: 1; border: none; cursor: pointer; padding: 11px 14px;
+          border-radius: 12px; font-size: 13px; font-weight: 700;
+          transition: all 0.22s cubic-bezier(0.34,1.1,0.64,1);
+          display: flex; align-items: center; justify-content: center; gap: 7px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          position: relative; overflow: hidden;
+        }
+        .method-btn.inactive { background: transparent; color: #4a6080; border: 1.5px solid transparent; }
+        .method-btn.inactive:hover { background: rgba(255,255,255,0.04); color: #8fa3c4; }
+        .method-btn.active-card {
+          background: linear-gradient(135deg, rgba(110,84,200,0.35), rgba(139,92,246,0.28));
+          color: #c4b5fd;
+          border: 1.5px solid rgba(139,92,246,0.4);
+          box-shadow: 0 4px 18px rgba(110,84,200,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .method-btn.active-upi {
+          background: linear-gradient(135deg, rgba(16,185,129,0.28), rgba(52,211,153,0.2));
+          color: #6ee7b7;
+          border: 1.5px solid rgba(52,211,153,0.35);
+          box-shadow: 0 4px 18px rgba(16,185,129,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        /* Pay button */
+        .pay-btn {
+          width: 100%; padding: 15px 20px; border: none; cursor: pointer;
+          border-radius: 18px; font-size: 15px; font-weight: 800;
+          color: #fff; transition: all 0.22s cubic-bezier(0.34,1.1,0.64,1);
+          font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.01em;
+          position: relative; overflow: hidden;
+        }
+        .pay-btn:hover { transform: translateY(-2px); }
+        .pay-btn:active { transform: translateY(0) scale(0.99); }
+        .pay-btn.card-pay {
+          background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 40%, #8b5cf6 80%, #a78bfa 100%);
+          box-shadow: 0 10px 36px rgba(109,40,217,0.5), 0 1px 0 rgba(255,255,255,0.12) inset;
+        }
+        .pay-btn.card-pay:hover { box-shadow: 0 16px 48px rgba(109,40,217,0.6); }
+        .pay-btn.upi-pay {
+          background: linear-gradient(135deg, #065f46 0%, #059669 40%, #10b981 80%, #34d399 100%);
+          box-shadow: 0 10px 36px rgba(5,150,105,0.45), 0 1px 0 rgba(255,255,255,0.1) inset;
+        }
+        .pay-btn.upi-pay:hover { box-shadow: 0 16px 48px rgba(5,150,105,0.55); }
+
+        /* Shimmer on pay button */
+        .pay-btn::after {
+          content: '';
+          position: absolute; inset: 0;
+          background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.12) 50%, transparent 70%);
+          transform: translateX(-100%);
+          transition: transform 0.6s ease;
+        }
+        .pay-btn:hover::after { transform: translateX(100%); }
+
+        /* Progress bar */
+        .prog-track {
+          width: 100%; height: 5px; border-radius: 999px;
+          background: rgba(255,255,255,0.07); overflow: hidden; margin-top: 20px;
+        }
+        .prog-fill {
+          height: 100%; border-radius: 999px;
+          transition: width 0.14s linear;
+          background: linear-gradient(90deg, #6d28d9, #8b5cf6, #a78bfa, #60a5fa);
+          background-size: 200%;
+          animation: shimmerBar 1.5s linear infinite;
+        }
+        .prog-fill.upi-fill {
+          background: linear-gradient(90deg, #059669, #10b981, #34d399, #6ee7b7);
+          background-size: 200%;
+        }
+        @keyframes shimmerBar {
+          from { background-position: 200% center; }
+          to   { background-position: -200% center; }
+        }
+
+        /* Spinner */
+        .spin-ring {
+          width: 60px; height: 60px; border-radius: 50%;
+          border: 2.5px solid rgba(255,255,255,0.06);
+          border-top-color: #8b5cf6;
+          animation: spin 0.85s linear infinite;
+          margin: 0 auto 20px;
+          box-shadow: 0 0 20px rgba(139,92,246,0.3);
+        }
+        .spin-ring.upi-spin {
+          border-top-color: #10b981;
+          box-shadow: 0 0 20px rgba(16,185,129,0.3);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Success check */
+        .success-ring {
+          width: 70px; height: 70px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 28px; margin: 0 auto 20px;
+          background: radial-gradient(circle, rgba(16,185,129,0.2), rgba(16,185,129,0.05));
+          border: 1.5px solid rgba(52,211,153,0.4);
+          box-shadow: 0 0 32px rgba(16,185,129,0.35);
+          animation: popCheck 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes popCheck {
+          from { transform: scale(0.3); opacity: 0; }
+          to   { transform: scale(1); opacity: 1; }
+        }
+
+        /* Field label */
+        .f-label {
+          display: block;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.13em;
+          text-transform: uppercase; color: #4a5e78; margin-bottom: 8px;
+        }
+        .f-error { display: block; font-size: 11px; color: #f87171; margin-top: 6px; font-weight: 500; }
+
+        /* Chip */
+        .chip {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 5px 12px; border-radius: 100px;
+          font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+        }
+        .chip-dot { width: 6px; height: 6px; border-radius: 50%; animation: pulseDot 1.8s ease-in-out infinite; }
+        @keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+        /* Divider */
+        .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 20px 0; }
+
+        /* Card badges */
+        .card-wrap { position: relative; }
+        .card-badges {
+          position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+          display: flex; gap: 4px;
+        }
+        .cbadge {
+          font-size: 9px; font-weight: 800; letter-spacing: 0.06em;
+          padding: 3px 7px; border-radius: 6px;
+        }
+
+        /* UPI supported row */
+        .upi-row {
+          display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+        }
+        .upi-chip {
+          padding: 5px 11px; border-radius: 8px; font-size: 11px; font-weight: 600;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.04); color: #c5d4ed;
+          transition: background 0.15s;
+        }
+
+        /* Security items */
+        .sec-row {
+          display: flex; justify-content: center; flex-wrap: wrap; gap: 16px; margin-top: 14px;
+        }
+        .sec-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #374f66; font-weight: 500; }
+
+        /* Delivery box */
+        .delivery-box {
+          border-radius: 20px;
+          border: 1px solid rgba(110,84,200,0.2);
+          background: linear-gradient(135deg, rgba(110,84,200,0.09), rgba(99,102,241,0.05));
+          padding: 20px; margin-top: 20px;
+        }
+
+        /* Meta cards */
+        .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        @media (max-width:500px) { .meta-row { grid-template-columns:1fr; } }
+        .meta-card {
+          background: rgba(255,255,255,0.033);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px; padding: 15px;
+        }
+
+        /* Fade-in for step transitions */
+        .fade-in { animation: fadeIn 0.3s ease both; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+      `}</style>
+
+      <div
+        className="pay-wrap min-h-screen text-[#e6eef8] relative overflow-hidden"
+        style={{ background: 'linear-gradient(160deg, #06080f 0%, #0b0d1a 48%, #080b18 100%)' }}
+      >
+        {/* Background */}
+        <div className="pay-bg-grid" />
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+
+        {/* ── NAV ── */}
+        <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 md:px-10 py-4 bg-[rgba(8,10,20,0.75)] backdrop-blur-2xl border-b border-white/[0.055]">
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+            <Logo href="/home" size="md" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="chip hidden sm:inline-flex border border-violet-400/20 bg-violet-500/10 text-violet-300">
+                <span className="chip-dot bg-violet-400" />
+                {step === 'details' ? 'Secure checkout' : step === 'processing' ? 'Processing payment' : 'Returning to lab'}
+              </span>
+              {step === 'details' && (
+                <Link
+                  href={returnPath}
+                  className="px-4 py-2 rounded-xl text-sm font-semibold border border-white/10 bg-white/[0.03] text-[#c5d4ed] hover:text-white hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200"
+                >
+                  ← Back to Lab
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 xl:gap-8 items-start">
-          <section className="card-premium glass-dark rounded-[28px] p-6 sm:p-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 text-[11px] font-semibold tracking-[0.18em] uppercase border border-emerald-400/20 bg-emerald-500/10 text-emerald-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Premium model delivery
-            </div>
+        {/* ── MAIN ── */}
+        <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 xl:gap-8 items-start">
 
-            <h1 className="text-3xl sm:text-4xl font-bold leading-tight tracking-tight text-white mb-3">
-              Complete your <span className="gradient-text">Ownquesta</span> checkout
-            </h1>
-            <p className="text-sm sm:text-base text-[#8fa3c4] leading-relaxed max-w-xl">
-              Your model is ready. Finish the payment below and we will send you straight back to the Lab Playground for an instant download.
-            </p>
+            {/* ── LEFT PANEL ── */}
+            <section className="glass-panel p-6 sm:p-8">
+              <div className="chip border border-emerald-400/20 bg-emerald-500/10 text-emerald-300 mb-5">
+                <span className="chip-dot bg-emerald-400" />
+                Premium model delivery
+              </div>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="glass rounded-2xl border border-white/10 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-[#7f8da8] mb-2">Product</p>
-                <div className="flex items-start justify-between gap-3">
+              <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight tracking-tight text-white mb-3" style={{ letterSpacing: '-0.03em' }}>
+                Complete your{' '}
+                <span style={{ background: 'linear-gradient(135deg,#a78bfa,#818cf8,#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Ownquesta
+                </span>{' '}
+                checkout
+              </h1>
+              <p className="text-sm sm:text-[15px] text-[#7a8fa8] leading-relaxed max-w-xl mb-0">
+                Your model is ready. Finish the payment below and we will send you straight back to the Lab Playground for an instant download.
+              </p>
+
+              {/* Order meta */}
+              <div className="meta-row">
+                <div className="meta-card">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a5e78] mb-2 font-bold">Product</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-white font-bold text-[15px]">{modelName} (.pkl)</p>
+                      <p className="text-xs text-[#5a718a] mt-1">Trained ML model · Python pickle</p>
+                    </div>
+                    <span
+                      className="text-xl font-black shrink-0"
+                      style={{ background: 'linear-gradient(135deg,#a78bfa,#818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+                    >
+                      ${price.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="meta-card">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a5e78] mb-2 font-bold">Order ID</p>
+                  <p className="text-white font-bold tracking-wider text-[15px]">{orderId}</p>
+                  <p className="text-xs text-[#5a718a] mt-1">Linked to your current lab session</p>
+                </div>
+              </div>
+
+              {/* Delivery info */}
+              <div className="delivery-box">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20 shrink-0">📦</div>
                   <div>
-                    <p className="text-white font-semibold">{modelName} (.pkl)</p>
-                    <p className="text-sm text-[#8fa3c4] mt-1">Trained ML model · Python pickle format</p>
-                  </div>
-                  <span className="text-xl font-black text-violet-300">${price.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="glass rounded-2xl border border-white/10 p-4">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-[#7f8da8] mb-2">Order ID</p>
-                <p className="text-white font-semibold tracking-wide">{orderId}</p>
-                <p className="text-sm text-[#8fa3c4] mt-1">Linked to your current lab session</p>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-[24px] border border-violet-400/20 bg-[linear-gradient(135deg,rgba(110,84,200,0.12),rgba(96,165,250,0.06))] p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20">📦</div>
-                <div>
-                  <p className="text-white font-semibold">What you get after payment</p>
-                  <p className="text-sm text-[#9fb3d9]">Fast, branded, and friction-free delivery</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {trustItems.map((item) => (
-                  <div key={item} className="flex items-start gap-3 text-sm text-[#d7def0]">
-                    <span className="mt-0.5 text-emerald-400">✓</span>
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="card-premium glass-dark rounded-[28px] p-6 sm:p-7">
-            {step === 'details' && (
-              <>
-                <div className="flex items-start justify-between gap-3 mb-5">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-violet-300 mb-2">Payment details</p>
-                    <h2 className="text-2xl font-bold text-white">Download trained model</h2>
-                    <p className="text-sm text-[#8fa3c4] mt-1">One-time payment · instant delivery</p>
-                  </div>
-                  <div className="px-3 py-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 text-emerald-300 text-sm font-bold">
-                    ${price.toFixed(2)}
+                    <p className="text-white font-bold text-[15px]">What you get after payment</p>
+                    <p className="text-xs text-[#5a718a] mt-0.5">Fast, branded, and friction-free delivery</p>
                   </div>
                 </div>
-
-                <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.02] p-1.5">
-                  <button
-                    type="button"
-                    onClick={() => { setPaymentMethod('card'); setErrors({}); }}
-                    className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${paymentMethod === 'card' ? 'bg-[linear-gradient(135deg,rgba(110,84,200,0.28),rgba(168,126,223,0.22))] text-white border border-violet-400/30' : 'text-[#8fa3c4] border border-transparent hover:bg-white/[0.04]'}`}
-                  >
-                    💳 Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setPaymentMethod('upi'); setErrors({}); }}
-                    className={`rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${paymentMethod === 'upi' ? 'bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(96,165,250,0.18))] text-white border border-emerald-400/30' : 'text-[#8fa3c4] border border-transparent hover:bg-white/[0.04]'}`}
-                  >
-                    📱 UPI
-                  </button>
+                <div className="space-y-3">
+                  {trustItems.map((item) => (
+                    <div key={item.text} className="flex items-start gap-3 text-sm text-[#c5d4ed]">
+                      <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
+                      <span>{item.text}</span>
+                    </div>
+                  ))}
                 </div>
+              </div>
+            </section>
 
-                {paymentMethod === 'card' ? (
-                  <div className="space-y-4">
-                    <Field label="Cardholder name" error={errors.name}>
-                      <input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
-                        className={inputClass(Boolean(errors.name))}
-                      />
-                    </Field>
+            {/* ── RIGHT PANEL ── */}
+            <section className="glass-panel p-6 sm:p-7">
 
-                    <Field label="Receipt email" error={errors.email}>
-                      <input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="john@example.com"
-                        type="email"
-                        className={inputClass(Boolean(errors.email))}
-                      />
-                    </Field>
+              {/* ── DETAILS STEP ── */}
+              {step === 'details' && (
+                <div className="fade-in">
+                  <div className="flex items-start justify-between gap-3 mb-6">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-violet-400 mb-1.5 font-bold">Payment details</p>
+                      <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>Download trained model</h2>
+                      <p className="text-xs text-[#5a718a] mt-1">One-time payment · instant delivery</p>
+                    </div>
+                    <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0">
+                      ${price.toFixed(2)}
+                    </div>
+                  </div>
 
-                    <Field label="Card number" error={errors.cardNumber}>
-                      <div className="relative">
+                  {/* Method switcher */}
+                  <div className="flex gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1.5 mb-6">
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod('card'); setErrors({}); }}
+                      className={`method-btn ${paymentMethod === 'card' ? 'active-card' : 'inactive'}`}
+                    >
+                      💳 Card
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod('upi'); setErrors({}); }}
+                      className={`method-btn ${paymentMethod === 'upi' ? 'active-upi' : 'inactive'}`}
+                    >
+                      📱 UPI
+                    </button>
+                  </div>
+
+                  {/* ── CARD FIELDS ── */}
+                  {paymentMethod === 'card' ? (
+                    <div className="space-y-4">
+                      <Field label="Cardholder name" error={errors.name}>
                         <input
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                          placeholder="0000 0000 0000 0000"
-                          className={`${inputClass(Boolean(errors.cardNumber))} pr-24`}
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className={`pay-input${errors.name ? ' has-error' : ''}`}
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-[10px] font-bold">
-                          <span className="px-2 py-1 rounded-md bg-sky-500/10 border border-sky-400/20 text-sky-300">VISA</span>
-                          <span className="px-2 py-1 rounded-md bg-orange-500/10 border border-orange-400/20 text-orange-300">MC</span>
+                      </Field>
+
+                      <Field label="Receipt email" error={errors.email}>
+                        <input
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          type="email"
+                          className={`pay-input${errors.email ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <Field label="Card number" error={errors.cardNumber}>
+                        <div className="card-wrap">
+                          <input
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                            placeholder="0000 0000 0000 0000"
+                            className={`pay-input${errors.cardNumber ? ' has-error' : ''}`}
+                            style={{ paddingRight: '90px' }}
+                          />
+                          <div className="card-badges">
+                            <span className="cbadge bg-sky-500/10 border border-sky-400/20 text-sky-300">VISA</span>
+                            <span className="cbadge bg-orange-500/10 border border-orange-400/20 text-orange-300">MC</span>
+                          </div>
+                        </div>
+                      </Field>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Expiry" error={errors.expiry}>
+                          <input
+                            value={expiry}
+                            onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                            placeholder="MM/YY"
+                            className={`pay-input${errors.expiry ? ' has-error' : ''}`}
+                          />
+                        </Field>
+                        <Field label="CVV" error={errors.cvv}>
+                          <input
+                            value={cvv}
+                            onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                            placeholder="•••"
+                            type="password"
+                            className={`pay-input${errors.cvv ? ' has-error' : ''}`}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+
+                  ) : (
+                    /* ── UPI FIELDS ── */
+                    <div className="space-y-4">
+                      <Field label="Full name" error={errors.name}>
+                        <input
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className={`pay-input${errors.name ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <Field label="Receipt email" error={errors.email}>
+                        <input
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          type="email"
+                          className={`pay-input${errors.email ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <Field label="UPI ID" error={errors.upiId}>
+                        <input
+                          value={upiId}
+                          onChange={(e) => setUpiId(e.target.value.trim())}
+                          placeholder="yourname@okaxis"
+                          className={`pay-input${errors.upiId ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.06] p-4">
+                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-emerald-400 mb-3">Supported UPI apps</p>
+                        <div className="upi-row">
+                          {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
+                            <span key={app} className="upi-chip">{app}</span>
+                          ))}
                         </div>
                       </div>
-                    </Field>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Expiry" error={errors.expiry}>
-                        <input
-                          value={expiry}
-                          onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                          placeholder="MM/YY"
-                          className={inputClass(Boolean(errors.expiry))}
-                        />
-                      </Field>
-                      <Field label="CVV" error={errors.cvv}>
-                        <input
-                          value={cvv}
-                          onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                          placeholder="•••"
-                          type="password"
-                          className={inputClass(Boolean(errors.cvv))}
-                        />
-                      </Field>
                     </div>
+                  )}
+
+                  {/* Summary */}
+                  <div className="divider" />
+                  <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-[#5a718a]">{modelName} (.pkl)</span>
+                    <span className="text-[#c5d4ed] font-semibold">${price.toFixed(2)}</span>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Field label="Full name" error={errors.name}>
-                      <input
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
-                        className={inputClass(Boolean(errors.name))}
-                      />
-                    </Field>
-
-                    <Field label="Receipt email" error={errors.email}>
-                      <input
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="john@example.com"
-                        type="email"
-                        className={inputClass(Boolean(errors.email))}
-                      />
-                    </Field>
-
-                    <Field label="UPI ID" error={errors.upiId}>
-                      <input
-                        value={upiId}
-                        onChange={(e) => setUpiId(e.target.value.trim())}
-                        placeholder="yourname@okaxis"
-                        className={inputClass(Boolean(errors.upiId))}
-                      />
-                    </Field>
-
-                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/5 p-4">
-                      <p className="text-xs font-semibold tracking-[0.16em] uppercase text-emerald-300">Supported UPI apps</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
-                          <span key={app} className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-white/10 bg-white/[0.04] text-[#d7def0]">
-                            {app}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-[#5a718a]">Platform fee</span>
+                    <span className="text-emerald-400 font-semibold">$0.00</span>
                   </div>
-                )}
 
-                <button
-                  onClick={handleCheckout}
-                  className="w-full mt-6 rounded-2xl px-5 py-3.5 text-sm sm:text-[15px] font-extrabold text-white transition-all hover:-translate-y-0.5"
-                  style={{
-                    background: paymentMethod === 'card'
-                      ? 'linear-gradient(135deg, #6e54c8 0%, #a87edf 60%, #8b5cf6 100%)'
-                      : 'linear-gradient(135deg, #059669 0%, #10b981 50%, #38bdf8 100%)',
-                    boxShadow: paymentMethod === 'card'
-                      ? '0 10px 32px rgba(110,84,200,0.35)'
-                      : '0 10px 32px rgba(16,185,129,0.28)',
-                  }}
-                >
-                  {paymentMethod === 'card' ? `Pay $${price.toFixed(2)} & Download Model` : `Pay $${price.toFixed(2)} with UPI`}
-                </button>
+                  {/* Pay button */}
+                  <button
+                    onClick={handleCheckout}
+                    className={`pay-btn mt-5 ${paymentMethod === 'card' ? 'card-pay' : 'upi-pay'}`}
+                  >
+                    {paymentMethod === 'card'
+                      ? `Pay $${price.toFixed(2)} & Download Model`
+                      : `Pay $${price.toFixed(2)} with UPI`}
+                  </button>
 
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-[11px] text-[#90a0bf]">
-                  <span>🔒 SSL encrypted</span>
-                  <span>✓ Secure checkout</span>
-                  <span>⚡ Instant delivery</span>
+                  {/* Security */}
+                  <div className="sec-row">
+                    <span className="sec-item"><span>🔒</span> SSL encrypted</span>
+                    <span className="sec-item"><span>✓</span> Secure checkout</span>
+                    <span className="sec-item"><span>⚡</span> Instant delivery</span>
+                  </div>
                 </div>
-              </>
-            )}
+              )}
 
-            {step === 'processing' && (
-              <div className="py-10 text-center">
-                <div className={`w-16 h-16 mx-auto rounded-full border-2 mb-5 animate-spin ${paymentMethod === 'card' ? 'border-violet-400/20 border-t-violet-400' : 'border-emerald-400/20 border-t-emerald-400'}`} />
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {paymentMethod === 'card' ? 'Processing card payment…' : 'Confirming UPI payment…'}
-                </h3>
-                <p className="text-sm text-[#8fa3c4]">Please wait while we secure your order and prepare the automatic return to the Lab Playground.</p>
-                <div className="mt-6 h-2 rounded-full overflow-hidden bg-white/5">
-                  <div className={`h-full rounded-full animate-pulse ${paymentMethod === 'card' ? 'bg-[linear-gradient(90deg,#6e54c8,#a87edf,#60a5fa)]' : 'bg-[linear-gradient(90deg,#10b981,#34d399,#60a5fa)]'}`} style={{ width: '82%' }} />
+              {/* ── PROCESSING STEP ── */}
+              {step === 'processing' && (
+                <div className="fade-in py-10 text-center">
+                  <div className={`spin-ring ${paymentMethod === 'upi' ? 'upi-spin' : ''}`} />
+                  <h3 className="text-xl font-extrabold text-white mb-2" style={{ letterSpacing: '-0.02em' }}>
+                    {paymentMethod === 'card' ? 'Processing card payment…' : 'Confirming UPI payment…'}
+                  </h3>
+                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[260px] mx-auto">
+                    Please wait while we secure your order and prepare the automatic return to the Lab Playground.
+                  </p>
+                  <div className="prog-track mx-auto" style={{ maxWidth: '240px' }}>
+                    <div
+                      className={`prog-fill ${paymentMethod === 'upi' ? 'upi-fill' : ''}`}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-[#374f66] mt-3 font-semibold">{Math.round(progress)}%</p>
                 </div>
-              </div>
-            )}
+              )}
 
-            {step === 'success' && (
-              <div className="py-10 text-center">
-                <div className="w-16 h-16 mx-auto mb-5 rounded-full flex items-center justify-center text-2xl border border-emerald-400/30 bg-emerald-500/10 text-emerald-300">
-                  ✓
+              {/* ── SUCCESS STEP ── */}
+              {step === 'success' && (
+                <div className="fade-in py-10 text-center">
+                  <div className="success-ring">✓</div>
+                  <h3 className="text-xl font-extrabold text-white mb-2" style={{ letterSpacing: '-0.02em' }}>
+                    Payment successful
+                  </h3>
+                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[260px] mx-auto">
+                    Done. Returning you automatically to the Lab Playground to start the download…
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Payment successful</h3>
-                <p className="text-sm text-[#8fa3c4]">Done. Returning you automatically to the Lab Playground to start the download…</p>
-              </div>
-            )}
-          </section>
-        </div>
-      </main>
-    </div>
+              )}
+
+            </section>
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
 
@@ -389,13 +693,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block text-[11px] font-semibold tracking-[0.14em] uppercase text-[#91a0bf] mb-2">{label}</span>
+      <span className="f-label">{label}</span>
       {children}
-      {error && <span className="block mt-2 text-xs text-rose-400">{error}</span>}
+      {error && <span className="f-error">⚠ {error}</span>}
     </label>
   );
-}
-
-function inputClass(hasError: boolean) {
-  return `w-full rounded-2xl border bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-white placeholder:text-[#60708f] outline-none transition-all focus:border-violet-400/50 focus:ring-2 focus:ring-violet-500/15 ${hasError ? 'border-rose-400/60' : 'border-white/10'}`;
 }
