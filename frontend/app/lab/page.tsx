@@ -682,24 +682,62 @@ export default function LabPage() {
     } finally { setDownloadingModel(false); }
   }, [sid, addMsg]);
 
+  // ── Checkout page / payment success ──────────────────────────────────────
+  const openPaymentPage = useCallback(() => {
+    const session = sid || sidRef.current;
+    if (!session) {
+      addMsg({ type: 'error', text: 'Build your pipeline first, then download the trained model.' });
+      return;
+    }
+
+    const params = new URLSearchParams({
+      source: 'lab',
+      product: 'trained-model',
+      session,
+      model: selectedModel ?? 'Trained Model',
+      price: String(MODEL_DOWNLOAD_PRICE),
+    });
+
+    router.push(`/payment?${params.toString()}`);
+  }, [sid, selectedModel, router, addMsg]);
+
   // ── Download Model click — gate with payment ──────────────────────────────
   const downloadModel = useCallback(() => {
     if (modelPaid) {
-      // Already paid this session — download directly
       doDownloadModel();
-    } else {
-      // Open payment modal first
-      setShowPayModal(true);
+      return;
     }
-  }, [modelPaid, doDownloadModel]);
+    openPaymentPage();
+  }, [modelPaid, doDownloadModel, openPaymentPage]);
 
   // ── Payment success handler ───────────────────────────────────────────────
   const handlePaySuccess = useCallback(() => {
     setModelPaid(true);
     setShowPayModal(false);
-    // Small delay so the modal success state is visible briefly
     setTimeout(() => doDownloadModel(), 350);
   }, [doDownloadModel]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') !== 'success') return;
+
+    const raw = sessionStorage.getItem('ownquesta_model_payment');
+    if (!raw) return;
+
+    try {
+      const payment = JSON.parse(raw) as { paid?: boolean; product?: string; sessionId?: string };
+      const activeSession = sid || sidRef.current;
+      if (!payment.paid || payment.product !== 'trained-model' || !activeSession || payment.sessionId !== activeSession) return;
+
+      setModelPaid(true);
+      sessionStorage.removeItem('ownquesta_model_payment');
+      window.history.replaceState({}, '', window.location.pathname);
+      addMsg({ type: 'info', text: '✅ Payment confirmed. Preparing your trained model download…' });
+      setTimeout(() => doDownloadModel(), 150);
+    } catch { /* ignore invalid payment state */ }
+  }, [sid, doDownloadModel, addMsg]);
 
   // ── Reset ─────────────────────────────────────────────────────────────────
   const reset = () => {
