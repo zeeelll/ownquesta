@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Lenis from 'lenis';
+import { api } from '@/services/api';
 import Logo from '../components/Logo';
 import Button from '../components/Button';
 
@@ -133,12 +134,11 @@ export default function ProfilePage() {
     if (!profile) return;
     setSaving(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+      const json = await api('/api/auth/profile', {
         method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          name: profile.name, 
+          name: profile.name,
+          email: profile.email,
           phone: profile.phone, 
           bio: profile.bio, 
           avatar: profile.avatar,
@@ -148,12 +148,27 @@ export default function ProfilePage() {
           skills: profile.skills
         })
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Save failed');
+      if (json.user) {
+        const u = json.user;
+        setProfile((prev: any) => ({
+          ...prev,
+          name: u.name || '',
+          email: u.email || '',
+          userId: u.userId || prev?.userId || '',
+          phone: u.phone || '',
+          bio: u.bio || '',
+          avatar: u.avatar || DEFAULT_AVATAR,
+          company: u.company || '',
+          jobTitle: u.jobTitle || '',
+          location: u.location || '',
+          skills: u.skills || '',
+          darkMode: u.settings?.darkMode ?? prev?.darkMode ?? true,
+          twoFactorAuth: u.settings?.twoFactorAuth ?? prev?.twoFactorAuth ?? false,
+        }));
+      }
       alert('Profile saved successfully!');
     } catch (err: any) {
-      console.error(err);
-      alert('Save failed: ' + (err.message || err));
+      alert('Save failed: ' + (err.message || 'Unable to save profile right now.'));
     } finally {
       setSaving(false);
     }
@@ -525,12 +540,14 @@ export default function ProfilePage() {
                       <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      Email Address <span className="text-xs text-slate-500 ml-1">(readonly)</span>
+                      Email Address <span className="text-xs text-slate-500 ml-1">(updates admin + database on save)</span>
                     </div>
                     <input 
+                      type="email"
                       value={profile.email} 
-                      readOnly 
-                      className="w-full p-4 border-2 border-slate-700/50 rounded-xl bg-slate-900/30 text-slate-400 cursor-not-allowed" 
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      className="w-full p-4 border-2 border-slate-700 rounded-xl bg-slate-900/50 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all duration-300 hover:border-slate-600" 
+                      placeholder="Enter your email address"
                     />
                   </label>
 

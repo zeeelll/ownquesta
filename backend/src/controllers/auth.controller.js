@@ -242,6 +242,23 @@ exports.updateProfile = async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    const originalEmail = user.email;
+
+    if (req.body.email !== undefined) {
+      const nextEmail = String(req.body.email).trim().toLowerCase();
+      if (!nextEmail) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+
+      if (nextEmail !== user.email) {
+        const existingEmailUser = await User.findOne({ email: nextEmail, _id: { $ne: user._id } });
+        if (existingEmailUser) {
+          return res.status(400).json({ message: 'Email already used' });
+        }
+        user.email = nextEmail;
+      }
+    }
+
     // Update individual fields
     const fields = ['name', 'phone', 'bio', 'company', 'jobTitle', 'location', 'skills', 'avatar'];
     fields.forEach(field => {
@@ -259,6 +276,11 @@ exports.updateProfile = async (req, res) => {
 
     console.log("✅ Profile updated successfully");
 
+    const updatedFields = [
+      ...fields.filter(field => req.body[field] !== undefined),
+      ...(req.body.email !== undefined && user.email !== originalEmail ? ['email'] : [])
+    ];
+
     // Log the profile update activity
     await ActivityService.logActivity(
       user._id,
@@ -268,19 +290,35 @@ exports.updateProfile = async (req, res) => {
       `Profile information updated`,
       req,
       {
-        updatedFields: fields.filter(field => req.body[field] !== undefined),
-        hasSettingsUpdate: !!req.body.settings
+        updatedFields,
+        hasSettingsUpdate: !!req.body.settings,
+        previousEmail: originalEmail,
+        currentEmail: user.email,
       }
     );
-
-    // Send notification email if email notifications are enabled
-    if (user.settings.emailNotif) {
-      await sendNotificationEmail(user.email, 'Profile Updated', `<h1>Hi ${user.name},</h1><p>Your profile has been updated successfully.</p><p>Best,<br>Ownquesta Team</p>`);
-    }
 
     const userObj = user.toObject();
     delete userObj.password;
     res.json({ message: "Profile updated successfully", user: userObj });
+
+    // Send notification email in the background so SMTP issues do not break profile saving
+    if (user.settings.emailNotif) {
+      setImmediate(async () => {
+        try {
+          const result = await sendNotificationEmail(
+            user.email,
+            'Profile Updated',
+            `<h1>Hi ${user.name},</h1><p>Your profile has been updated successfully.</p><p>Best,<br>Ownquesta Team</p>`
+          );
+
+          if (!result?.ok) {
+            console.warn('Profile update notification email failed:', result?.error?.message || result?.error);
+          }
+        } catch (emailErr) {
+          console.warn('Profile update notification email failed:', emailErr?.message || emailErr);
+        }
+      });
+    }
   } catch (err) {
     console.error("❌ Profile update error:", err);
     res.status(500).json({ message: err.message });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminProjects, getAdminProjectStats } from "@/services/api";
 import Button from '../components/Button';
@@ -246,6 +246,24 @@ export default function AdminPage() {
     return matchesSearch && matchesStage;
   });
 
+  const refreshUsers = useCallback(async (showLoader = false) => {
+    if (showLoader) setActionLoading('reload-users');
+    try {
+      const response = await getAllUsers();
+      setUsers(response.users || []);
+    } catch (err: any) {
+      setError(err.message || 'Failed to reload users');
+    } finally {
+      if (showLoader) setActionLoading(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      refreshUsers();
+    }
+  }, [activeTab, refreshUsers]);
+
   const checkAuthAndLoadUsers = async () => {
     try {
       const authResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"}/api/auth/me`, {
@@ -265,8 +283,7 @@ export default function AdminPage() {
 
       setCurrentUser(authData.user);
 
-      const userResponse = await getAllUsers();
-      setUsers(userResponse.users);
+      await refreshUsers();
 
       try {
         const projectStatsResponse = await getAdminProjectStats();
@@ -749,6 +766,16 @@ export default function AdminPage() {
               >
                 <Plus className="h-4 w-4" />
                 <span>Add User</span>
+              </Button>
+              <Button
+                onClick={() => refreshUsers(true)}
+                className="quick-action-btn quick-action-blue flex items-center space-x-2 px-5"
+                disabled={actionLoading === 'reload-users'}
+              >
+                {actionLoading === 'reload-users'
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Users className="h-4 w-4" />}
+                <span>Refresh Users</span>
               </Button>
             </div>
 
