@@ -56,14 +56,20 @@ function PaymentModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [step, setStep]     = useState<'details' | 'processing' | 'success'>('details');
+  const [step, setStep] = useState<'details' | 'processing' | 'success'>('details');
+  const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'card' | 'upi'>('paypal');
   const [cardNum, setCardNum] = useState('');
-  const [expiry,  setExpiry]  = useState('');
-  const [cvv,     setCvv]     = useState('');
-  const [name,    setName]    = useState('');
-  const [errors,  setErrors]  = useState<Record<string, string>>({});
+  const [expiry, setExpiry] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [progress, setProgress] = useState(0);
+  const [statusNote, setStatusNote] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
-  const formatCard   = (v: string) => v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  const formatCard = (v: string) => v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
   const formatExpiry = (v: string) => {
     const d = v.replace(/\D/g, '').slice(0, 4);
     return d.length >= 3 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
@@ -72,114 +78,237 @@ function PaymentModal({
   const validate = () => {
     const e: Record<string, string> = {};
     if (!name.trim()) e.name = 'Required';
-    if (cardNum.replace(/\s/g, '').length < 16) e.card = 'Enter 16-digit card number';
-    if (expiry.length < 5) e.expiry = 'Enter MM/YY';
-    if (cvv.length < 3) e.cvv = 'Enter 3-digit CVV';
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      e.email = paymentMethod === 'paypal' ? 'Enter your PayPal email' : 'Enter a valid email';
+    }
+    if (paymentMethod === 'card') {
+      if (cardNum.replace(/\s/g, '').length < 16) e.card = 'Enter 16-digit card number';
+      if (expiry.length < 5) e.expiry = 'Enter MM/YY';
+      if (cvv.length < 3) e.cvv = 'Enter 3-digit CVV';
+    }
+    if (paymentMethod === 'upi' && !/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
+      e.upi = 'Enter a valid UPI ID';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (!validate()) return;
-    setStep('processing');
-    setTimeout(() => {
-      setStep('success');
-      setTimeout(onSuccess, 1800);
-    }, 2200);
+
+    setSubmitError('');
+    setStatusNote('');
+
+    try {
+      const response = await fetch('/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentMethod,
+          name,
+          email,
+          upiId,
+          sessionId: '',
+          product: downloadType === 'py' ? 'python-script' : 'jupyter-notebook',
+          modelName: fileLabel,
+          price: DOWNLOAD_PRICE,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Unable to start the payment.');
+      }
+
+      setStatusNote(data.instructions || 'Checkout session created successfully.');
+      setStep('processing');
+      setProgress(8);
+
+      if (paymentMethod === 'upi' && data.payment?.upiIntentUrl && typeof window !== 'undefined') {
+        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+        if (isMobileDevice) {
+          window.open(data.payment.upiIntentUrl, '_self');
+        }
+      }
+
+      let p = 8;
+      const interval = window.setInterval(() => {
+        p += Math.random() * 16;
+        if (p >= 94) {
+          window.clearInterval(interval);
+          p = 94;
+        }
+        setProgress(Math.min(p, 94));
+      }, 120);
+
+      await new Promise((resolve) => window.setTimeout(resolve, 1400));
+
+      const confirmResponse = await fetch('/api/payments/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: data.payment.orderId }),
+      });
+      const confirmData = await confirmResponse.json();
+
+      window.clearInterval(interval);
+      if (!confirmResponse.ok || !confirmData.success) {
+        throw new Error(confirmData.error || 'Unable to confirm the payment.');
+      }
+
+      setProgress(100);
+      setStatusNote('Payment confirmed. Your export download is starting now…');
+      window.setTimeout(() => {
+        setStep('success');
+        window.setTimeout(onSuccess, 1000);
+      }, 250);
+    } catch (error: any) {
+      setStep('details');
+      setProgress(0);
+      setSubmitError(error?.message || 'Payment failed. Please try again.');
+    }
   };
 
   const fileLabel = downloadType === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
+  const accent = paymentMethod === 'paypal' ? '#38bdf8' : paymentMethod === 'upi' ? '#34d399' : '#a87edf';
+  const payAction =
+    paymentMethod === 'paypal'
+      ? `Pay $${DOWNLOAD_PRICE} with PayPal`
+      : paymentMethod === 'upi'
+        ? `Pay $${DOWNLOAD_PRICE} with UPI`
+        : `Pay $${DOWNLOAD_PRICE} by Card`;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      {/* Backdrop */}
       <div
         onClick={step === 'details' ? onClose : undefined}
         style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
       />
 
-      {/* Card */}
       <div style={{
-        position: 'relative', width: '100%', maxWidth: 420, borderRadius: 20,
+        position: 'relative', width: '100%', maxWidth: 440, borderRadius: 20,
         background: 'linear-gradient(160deg, #0e0f1f 0%, #0a0b18 100%)',
         border: '1px solid rgba(255,255,255,0.1)',
         boxShadow: '0 24px 80px rgba(0,0,0,0.8)',
         overflow: 'hidden',
       }}>
-        {/* Accent top bar */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #6e54c8, #a87edf, #60a5fa)' }} />
+        <div style={{ height: 3, background: paymentMethod === 'paypal' ? 'linear-gradient(90deg, #2563eb, #38bdf8, #60a5fa)' : paymentMethod === 'upi' ? 'linear-gradient(90deg, #059669, #10b981, #6ee7b7)' : 'linear-gradient(90deg, #6e54c8, #a87edf, #60a5fa)' }} />
 
         <div style={{ padding: 28 }}>
-
-          {/* ── Details ── */}
           {step === 'details' && (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#6e54c8', marginBottom: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: accent, marginBottom: 4 }}>
                     Secure Checkout
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9' }}>Download File</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>One-time purchase · Instant download</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Pay with PayPal, card, or UPI</div>
                 </div>
                 <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 16 }}>×</button>
               </div>
 
-              {/* Summary */}
-              <div style={{ background: 'rgba(110,84,200,0.08)', border: '1px solid rgba(110,84,200,0.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ background: 'rgba(110,84,200,0.08)', border: '1px solid rgba(110,84,200,0.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: 13, color: '#c4b5fd', fontWeight: 600 }}>
                     {downloadType === 'py' ? '🐍' : '📓'} {fileLabel}
                   </div>
-                  <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>pipeline · Python</div>
+                  <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>pipeline export · instant unlock</div>
                 </div>
                 <div style={{ fontSize: 24, fontWeight: 900, color: '#a87edf' }}>${DOWNLOAD_PRICE}</div>
               </div>
 
-              {/* Form */}
+              <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 18 }}>
+                {[
+                  { key: 'paypal', label: '🅿️ PayPal' },
+                  { key: 'card', label: '💳 Card' },
+                  { key: 'upi', label: '📱 UPI' },
+                ].map((item) => {
+                  const active = paymentMethod === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => { setPaymentMethod(item.key as 'paypal' | 'card' | 'upi'); setErrors({}); }}
+                      style={{
+                        flex: 1,
+                        borderRadius: 10,
+                        border: active ? `1px solid ${accent}55` : '1px solid transparent',
+                        background: active ? `${accent}18` : 'transparent',
+                        color: active ? '#f8fafc' : '#94a3b8',
+                        padding: '9px 10px',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Field label="Cardholder Name" error={errors.name}>
-                  <input value={name} onChange={e => setName(e.target.value)}
-                    placeholder="John Doe" style={inputStyle(!!errors.name)} />
+                <Field label="Full Name" error={errors.name}>
+                  <input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" style={inputStyle(!!errors.name)} />
                 </Field>
-                <Field label="Card Number" error={errors.card}>
-                  <div style={{ position: 'relative' }}>
-                    <input value={cardNum} onChange={e => setCardNum(formatCard(e.target.value))}
-                      placeholder="0000 0000 0000 0000"
-                      style={{ ...inputStyle(!!errors.card), paddingRight: 80 }} />
-                    <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 4 }}>
-                      <CardBadge label="VISA" color="#60a5fa" />
-                      <CardBadge label="MC"   color="#f97316" />
-                    </div>
+
+                <Field label={paymentMethod === 'paypal' ? 'PayPal Email' : 'Receipt Email'} error={errors.email}>
+                  <input value={email} onChange={e => setEmail(e.target.value)} placeholder="john@example.com" type="email" style={inputStyle(!!errors.email)} />
+                </Field>
+
+                {paymentMethod === 'paypal' ? (
+                  <div style={{ borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(56,189,248,0.25)', background: 'rgba(56,189,248,0.08)', fontSize: 12, color: '#dbeafe', lineHeight: 1.5 }}>
+                    Use your PayPal balance or any linked debit / credit card for a fast secure checkout billed under the Ownquesta account.
                   </div>
-                </Field>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Field label="Expiry" error={errors.expiry} style={{ flex: 1 }}>
-                    <input value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))}
-                      placeholder="MM/YY" style={inputStyle(!!errors.expiry)} />
-                  </Field>
-                  <Field label="CVV" error={errors.cvv} style={{ flex: 1 }}>
-                    <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      placeholder="•••" type="password" style={inputStyle(!!errors.cvv)} />
-                  </Field>
-                </div>
+                ) : paymentMethod === 'card' ? (
+                  <>
+                    <Field label="Card Number" error={errors.card}>
+                      <div style={{ position: 'relative' }}>
+                        <input value={cardNum} onChange={e => setCardNum(formatCard(e.target.value))} placeholder="0000 0000 0000 0000" style={{ ...inputStyle(!!errors.card), paddingRight: 80 }} />
+                        <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: 4 }}>
+                          <CardBadge label="VISA" color="#60a5fa" />
+                          <CardBadge label="MC" color="#f97316" />
+                        </div>
+                      </div>
+                    </Field>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <Field label="Expiry" error={errors.expiry} style={{ flex: 1 }}>
+                        <input value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))} placeholder="MM/YY" style={inputStyle(!!errors.expiry)} />
+                      </Field>
+                      <Field label="CVV" error={errors.cvv} style={{ flex: 1 }}>
+                        <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="•••" type="password" style={inputStyle(!!errors.cvv)} />
+                      </Field>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Field label="UPI ID" error={errors.upi}>
+                      <input value={upiId} onChange={e => setUpiId(e.target.value.trim())} placeholder="ownquesta@oksbi" style={inputStyle(!!errors.upi)} />
+                    </Field>
+                    <div style={{ borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(52,211,153,0.25)', background: 'rgba(16,185,129,0.08)', fontSize: 12, color: '#d1fae5', lineHeight: 1.5 }}>
+                      Supported on GPay, PhonePe, Paytm, and BHIM for quick one-tap confirmation.
+                    </div>
+                  </>
+                )}
               </div>
 
               <button onClick={handlePay} style={{
                 marginTop: 20, width: '100%', padding: 14, borderRadius: 12,
-                background: 'linear-gradient(135deg,#6e54c8,#a87edf)',
+                background: paymentMethod === 'paypal' ? 'linear-gradient(135deg,#1d4ed8,#38bdf8)' : paymentMethod === 'upi' ? 'linear-gradient(135deg,#047857,#10b981)' : 'linear-gradient(135deg,#6e54c8,#a87edf)',
                 border: 'none', color: '#fff', fontSize: 15, fontWeight: 800,
                 cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 4px 24px rgba(110,84,200,0.45)',
-                transition: 'transform 0.15s, box-shadow 0.15s',
-              }}
-                onMouseEnter={e => { (e.currentTarget).style.transform = 'translateY(-1px)'; (e.currentTarget).style.boxShadow = '0 8px 32px rgba(110,84,200,0.55)'; }}
-                onMouseLeave={e => { (e.currentTarget).style.transform = ''; (e.currentTarget).style.boxShadow = '0 4px 24px rgba(110,84,200,0.45)'; }}
-              >
-                Pay ${DOWNLOAD_PRICE} & Download
+                boxShadow: paymentMethod === 'paypal' ? '0 4px 24px rgba(37,99,235,0.4)' : paymentMethod === 'upi' ? '0 4px 24px rgba(5,150,105,0.35)' : '0 4px 24px rgba(110,84,200,0.45)',
+              }}>
+                {payAction}
               </button>
 
-              <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', gap: 16, fontSize: 11, color: '#475569' }}>
+              {(submitError || statusNote) && (
+                <div style={{ marginTop: 10, fontSize: 12, color: submitError ? '#f87171' : '#7dd3fc', lineHeight: 1.5 }}>
+                  {submitError || statusNote}
+                </div>
+              )}
+
+              <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', gap: 16, fontSize: 11, color: '#475569', flexWrap: 'wrap' }}>
                 <span>🔒 SSL Encrypted</span>
                 <span>✓ Secure Payment</span>
                 <span>⚡ Instant Delivery</span>
@@ -187,21 +316,20 @@ function PaymentModal({
             </>
           )}
 
-          {/* ── Processing ── */}
           {step === 'processing' && (
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
               <div style={{ fontSize: 48, marginBottom: 16, display: 'inline-block', animation: 'pmSpin 1s linear infinite' }}>⚙️</div>
               <style>{`@keyframes pmSpin { to { transform: rotate(360deg); } }`}</style>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>Processing Payment…</div>
-              <div style={{ fontSize: 13, color: '#64748b' }}>Please wait, do not close this window</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>
+                {paymentMethod === 'paypal' ? 'Connecting to PayPal…' : paymentMethod === 'upi' ? 'Confirming UPI Payment…' : 'Processing Card Payment…'}
+              </div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>{statusNote || 'Please wait, do not close this window'}</div>
               <div style={{ marginTop: 20, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: 'linear-gradient(90deg,#6e54c8,#a87edf)', borderRadius: 4, animation: 'pmProg 2.2s ease-out forwards' }} />
-                <style>{`@keyframes pmProg { from { width:0% } to { width:100% } }`}</style>
+                <div style={{ width: `${progress}%`, height: '100%', background: paymentMethod === 'paypal' ? 'linear-gradient(90deg,#2563eb,#38bdf8)' : paymentMethod === 'upi' ? 'linear-gradient(90deg,#059669,#34d399)' : 'linear-gradient(90deg,#6e54c8,#a87edf)', borderRadius: 4, transition: 'width 0.12s linear' }} />
               </div>
             </div>
           )}
 
-          {/* ── Success ── */}
           {step === 'success' && (
             <div style={{ textAlign: 'center', padding: '32px 0' }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '2px solid #4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 28 }}>✓</div>
@@ -305,6 +433,42 @@ export default function ScriptPage() {
   }, []);
 
   useEffect(() => {
+    if (!sessionId || typeof window === 'undefined') return;
+
+    const rawAccess = sessionStorage.getItem('ownquesta_export_access') ?? sessionStorage.getItem('ownquesta_model_payment');
+    if (!rawAccess) return;
+
+    try {
+      const access = JSON.parse(rawAccess) as {
+        paid?: boolean;
+        sessionId?: string;
+        types?: string[];
+        unlocks?: string[];
+      };
+
+      if (!access.paid) return;
+      if (access.sessionId && access.sessionId !== sessionId) return;
+
+      const unlocked = new Set<DownloadType>();
+      access.types?.forEach((type) => {
+        if (type === 'py' || type === 'ipynb') unlocked.add(type);
+      });
+      access.unlocks?.forEach((type) => {
+        if (type === 'py' || type === 'ipynb') unlocked.add(type);
+      });
+
+      if (!unlocked.size) {
+        unlocked.add('py');
+        unlocked.add('ipynb');
+      }
+
+      setPaidTypes(prev => new Set([...prev, ...Array.from(unlocked)]));
+    } catch {
+      // ignore invalid payment cache
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
     fetchAvailableModels(AGENT_URL).then(m => {
       if (m.length > 0) {
         setModels(m);
@@ -382,10 +546,24 @@ export default function ScriptPage() {
   // ── Payment success ───────────────────────────────────────────────────────
   const handlePaySuccess = () => {
     const type = payModal!;
-    setPaidTypes(prev => new Set([...prev, type]));
+    const nextPaid = new Set<DownloadType>([...paidTypes, type]);
+    setPaidTypes(nextPaid);
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(
+        'ownquesta_export_access',
+        JSON.stringify({
+          paid: true,
+          sessionId,
+          types: Array.from(nextPaid),
+          grantedAt: Date.now(),
+        }),
+      );
+    }
+
     setPayModal(null);
     setTimeout(() => {
-      if (type === 'py')    doDownloadPy();
+      if (type === 'py') doDownloadPy();
       if (type === 'ipynb') doDownloadNotebook();
     }, 300);
   };

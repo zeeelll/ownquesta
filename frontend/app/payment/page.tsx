@@ -1,46 +1,51 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Logo from '../components/Logo';
 
 const DEFAULT_PRICE = 4.99;
 
 type CheckoutStep = 'details' | 'processing' | 'success';
-type PaymentMethod = 'card' | 'upi';
+type PaymentMethod = 'paypal' | 'card' | 'upi';
 
 export default function PaymentPage() {
   const router = useRouter();
-  const [checkout, setCheckout] = useState({
-    source: 'lab',
-    sessionId: '',
-    modelName: 'RandomForestClassifier',
-    product: 'trained-model',
-    price: DEFAULT_PRICE,
-  });
   const [step, setStep] = useState<CheckoutStep>('details');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paypal');
   const [upiId, setUpiId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusNote, setStatusNote] = useState('');
+  const [paidOrderId, setPaidOrderId] = useState('');
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  const checkout = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {
+        source: 'lab',
+        sessionId: '',
+        modelName: 'RandomForestClassifier',
+        product: 'trained-model',
+        price: DEFAULT_PRICE,
+      };
+    }
+
     const params = new URLSearchParams(window.location.search);
     const parsedPrice = Number.parseFloat(params.get('price') ?? `${DEFAULT_PRICE}`);
-    setCheckout({
+    return {
       source: params.get('source') ?? 'lab',
       sessionId: params.get('session') ?? '',
       modelName: params.get('model') ?? 'RandomForestClassifier',
       product: params.get('product') ?? 'trained-model',
       price: Number.isFinite(parsedPrice) ? parsedPrice : DEFAULT_PRICE,
-    });
+    };
   }, []);
 
   const { source, sessionId, modelName, product, price } = checkout;
@@ -62,58 +67,156 @@ export default function PaymentPage() {
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (!name.trim()) nextErrors.name = 'Full name is required.';
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      nextErrors.email = 'Enter a valid email address.';
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      nextErrors.email =
+        paymentMethod === 'paypal'
+          ? 'Enter the email linked to your PayPal account.'
+          : 'Enter a valid email address.';
+    }
+
     if (paymentMethod === 'card') {
-      if (cardNumber.replace(/\s/g, '').length < 16)
+      if (cardNumber.replace(/\s/g, '').length < 16) {
         nextErrors.cardNumber = 'Enter a valid 16-digit card number.';
+      }
       if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) nextErrors.expiry = 'Use MM/YY format.';
       if (cvv.length < 3) nextErrors.cvv = 'Enter a valid CVV.';
-    } else if (!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
+    }
+
+    if (paymentMethod === 'upi' && !/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
       nextErrors.upiId = 'Enter a valid UPI ID.';
     }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleCheckout = () => {
-    if (!validate()) return;
+  const completeCheckout = async (createdOrderId: string) => {
     setStep('processing');
-    setProgress(0);
+    setProgress(8);
 
-    // Animate progress bar
-    let p = 0;
-    const interval = setInterval(() => {
-      p += Math.random() * 15;
-      if (p >= 95) { clearInterval(interval); p = 95; }
-      setProgress(Math.min(p, 95));
+    let p = 8;
+    const interval = window.setInterval(() => {
+      p += Math.random() * 14;
+      if (p >= 94) {
+        window.clearInterval(interval);
+        p = 94;
+      }
+      setProgress(Math.min(p, 94));
     }, 120);
 
-    window.setTimeout(() => {
-      clearInterval(interval);
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 1400));
+
+      const confirmResponse = await fetch('/api/payments/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: createdOrderId }),
+      });
+      const confirmData = await confirmResponse.json();
+
+      if (!confirmResponse.ok || !confirmData.success) {
+        throw new Error(confirmData.error || 'Unable to confirm payment.');
+      }
+
+      window.clearInterval(interval);
       setProgress(100);
+      setPaidOrderId(createdOrderId);
+      setStatusNote('Payment confirmed. Unlocking your model and code exports now…');
+      setStep('success');
+
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(
+          'ownquesta_model_payment',
+          JSON.stringify({
+            paid: true,
+            product,
+            sessionId,
+            modelName,
+            price,
+            paidAt: Date.now(),
+            method: paymentMethod,
+            orderId: createdOrderId,
+            unlocks: ['trained-model', 'py', 'ipynb'],
+          }),
+        );
+        sessionStorage.setItem(
+          'ownquesta_export_access',
+          JSON.stringify({
+            paid: true,
+            sessionId,
+            types: ['py', 'ipynb'],
+            orderId: createdOrderId,
+            grantedAt: Date.now(),
+          }),
+        );
+      }
+
       window.setTimeout(() => {
-        setStep('success');
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(
-            'ownquesta_model_payment',
-            JSON.stringify({ paid: true, product, sessionId, modelName, price, paidAt: Date.now() }),
-          );
+        const params = new URLSearchParams();
+        params.set('payment', 'success');
+        if (sessionId) params.set('session', sessionId);
+        router.push(`${returnPath}?${params.toString()}`);
+      }, 1100);
+    } catch (error) {
+      window.clearInterval(interval);
+      throw error;
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!validate() || isSubmitting) return;
+
+    setErrors({});
+    setStatusNote('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentMethod,
+          name,
+          email,
+          upiId,
+          sessionId,
+          product,
+          modelName,
+          price,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Unable to start the checkout.');
+      }
+
+      setStatusNote(data.instructions || 'Secure checkout created successfully.');
+
+      if (paymentMethod === 'upi' && data.payment?.upiIntentUrl && typeof window !== 'undefined') {
+        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
+        if (isMobileDevice) {
+          window.open(data.payment.upiIntentUrl, '_self');
         }
-        window.setTimeout(() => {
-          const params = new URLSearchParams();
-          params.set('payment', 'success');
-          if (sessionId) params.set('session', sessionId);
-          router.push(`${returnPath}?${params.toString()}`);
-        }, 1200);
-      }, 400);
-    }, 1700);
+      }
+
+      await completeCheckout(data.payment.orderId as string);
+    } catch (error: any) {
+      setStep('details');
+      setProgress(0);
+      setErrors((prev) => ({
+        ...prev,
+        general: error?.message || 'Payment could not be completed. Please try again.',
+      }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const trustItems = [
-    { icon: '⚡', text: 'One-time purchase with instant access' },
-    { icon: '📦', text: 'Download your trained `.pkl` model right after checkout' },
-    { icon: '🔒', text: 'Pay securely with card or UPI and return automatically to the lab' },
+    { icon: '⚡', text: 'One checkout unlocks your trained model plus matching `.py` and `.ipynb` exports' },
+    { icon: '📦', text: 'Download the `.pkl` model instantly and continue from the same lab session' },
+    { icon: '🔒', text: 'Choose PayPal, debit/credit card, or UPI with a smooth return back to Ownquesta' },
   ];
 
   return (
@@ -212,6 +315,12 @@ export default function PaymentPage() {
         }
         .method-btn.inactive { background: transparent; color: #4a6080; border: 1.5px solid transparent; }
         .method-btn.inactive:hover { background: rgba(255,255,255,0.04); color: #8fa3c4; }
+        .method-btn.active-paypal {
+          background: linear-gradient(135deg, rgba(37,99,235,0.3), rgba(56,189,248,0.22));
+          color: #7dd3fc;
+          border: 1.5px solid rgba(56,189,248,0.35);
+          box-shadow: 0 4px 18px rgba(56,189,248,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
         .method-btn.active-card {
           background: linear-gradient(135deg, rgba(110,84,200,0.35), rgba(139,92,246,0.28));
           color: #c4b5fd;
@@ -235,6 +344,11 @@ export default function PaymentPage() {
         }
         .pay-btn:hover { transform: translateY(-2px); }
         .pay-btn:active { transform: translateY(0) scale(0.99); }
+        .pay-btn.paypal-pay {
+          background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 35%, #0ea5e9 80%, #38bdf8 100%);
+          box-shadow: 0 10px 36px rgba(37,99,235,0.42), 0 1px 0 rgba(255,255,255,0.1) inset;
+        }
+        .pay-btn.paypal-pay:hover { box-shadow: 0 16px 48px rgba(37,99,235,0.55); }
         .pay-btn.card-pay {
           background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 40%, #8b5cf6 80%, #a78bfa 100%);
           box-shadow: 0 10px 36px rgba(109,40,217,0.5), 0 1px 0 rgba(255,255,255,0.12) inset;
@@ -268,6 +382,10 @@ export default function PaymentPage() {
           background-size: 200%;
           animation: shimmerBar 1.5s linear infinite;
         }
+        .prog-fill.paypal-fill {
+          background: linear-gradient(90deg, #2563eb, #0ea5e9, #60a5fa, #93c5fd);
+          background-size: 200%;
+        }
         .prog-fill.upi-fill {
           background: linear-gradient(90deg, #059669, #10b981, #34d399, #6ee7b7);
           background-size: 200%;
@@ -285,6 +403,10 @@ export default function PaymentPage() {
           animation: spin 0.85s linear infinite;
           margin: 0 auto 20px;
           box-shadow: 0 0 20px rgba(139,92,246,0.3);
+        }
+        .spin-ring.paypal-spin {
+          border-top-color: #38bdf8;
+          box-shadow: 0 0 20px rgba(56,189,248,0.32);
         }
         .spin-ring.upi-spin {
           border-top-color: #10b981;
@@ -347,6 +469,20 @@ export default function PaymentPage() {
           border: 1px solid rgba(255,255,255,0.08);
           background: rgba(255,255,255,0.04); color: #c5d4ed;
           transition: background 0.15s;
+        }
+        .paypal-note {
+          border-radius: 16px;
+          border: 1px solid rgba(56,189,248,0.22);
+          background: rgba(56,189,248,0.08);
+          padding: 14px 16px;
+        }
+        .bundle-row {
+          display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+        }
+        .bundle-chip {
+          padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+          border: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.04); color: #dbeafe;
         }
 
         /* Security items */
@@ -436,8 +572,8 @@ export default function PaymentPage() {
                   <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a5e78] mb-2 font-bold">Product</p>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-white font-bold text-[15px]">{modelName} (.pkl)</p>
-                      <p className="text-xs text-[#5a718a] mt-1">Trained ML model · Python pickle</p>
+                      <p className="text-white font-bold text-[15px]">{modelName} delivery bundle</p>
+                      <p className="text-xs text-[#5a718a] mt-1">Trained `.pkl` model + matching `.py` and `.ipynb` exports</p>
                     </div>
                     <span
                       className="text-xl font-black shrink-0"
@@ -461,8 +597,13 @@ export default function PaymentPage() {
                   <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20 shrink-0">📦</div>
                   <div>
                     <p className="text-white font-bold text-[15px]">What you get after payment</p>
-                    <p className="text-xs text-[#5a718a] mt-0.5">Fast, branded, and friction-free delivery</p>
+                    <p className="text-xs text-[#5a718a] mt-0.5">Fast, branded, friction-free delivery for all export files</p>
                   </div>
+                </div>
+                <div className="bundle-row mb-4">
+                  <span className="bundle-chip">📦 model.pkl</span>
+                  <span className="bundle-chip">🐍 pipeline.py</span>
+                  <span className="bundle-chip">📓 pipeline.ipynb</span>
                 </div>
                 <div className="space-y-3">
                   {trustItems.map((item) => (
@@ -484,7 +625,7 @@ export default function PaymentPage() {
                   <div className="flex items-start justify-between gap-3 mb-6">
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.16em] text-violet-400 mb-1.5 font-bold">Payment details</p>
-                      <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>Download trained model</h2>
+                      <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>Download model + exports</h2>
                       <p className="text-xs text-[#5a718a] mt-1">One-time payment · instant delivery</p>
                     </div>
                     <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0">
@@ -494,6 +635,13 @@ export default function PaymentPage() {
 
                   {/* Method switcher */}
                   <div className="flex gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1.5 mb-6">
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod('paypal'); setErrors({}); }}
+                      className={`method-btn ${paymentMethod === 'paypal' ? 'active-paypal' : 'inactive'}`}
+                    >
+                      🅿️ PayPal
+                    </button>
                     <button
                       type="button"
                       onClick={() => { setPaymentMethod('card'); setErrors({}); }}
@@ -510,8 +658,35 @@ export default function PaymentPage() {
                     </button>
                   </div>
 
-                  {/* ── CARD FIELDS ── */}
-                  {paymentMethod === 'card' ? (
+                  {paymentMethod === 'paypal' ? (
+                    <div className="space-y-4">
+                      <Field label="Full name" error={errors.name}>
+                        <input
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className={`pay-input${errors.name ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <Field label="PayPal email" error={errors.email}>
+                        <input
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="john@example.com"
+                          type="email"
+                          className={`pay-input${errors.email ? ' has-error' : ''}`}
+                        />
+                      </Field>
+
+                      <div className="paypal-note">
+                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-300 mb-2">PayPal checkout</p>
+                        <p className="text-sm text-[#dbeafe] leading-relaxed">
+                          Use your PayPal balance or any linked Visa / MasterCard. The payment will appear under the Ownquesta account and return straight back to the lab after confirmation.
+                        </p>
+                      </div>
+                    </div>
+                  ) : paymentMethod === 'card' ? (
                     <div className="space-y-4">
                       <Field label="Cardholder name" error={errors.name}>
                         <input
@@ -568,9 +743,7 @@ export default function PaymentPage() {
                         </Field>
                       </div>
                     </div>
-
                   ) : (
-                    /* ── UPI FIELDS ── */
                     <div className="space-y-4">
                       <Field label="Full name" error={errors.name}>
                         <input
@@ -595,7 +768,7 @@ export default function PaymentPage() {
                         <input
                           value={upiId}
                           onChange={(e) => setUpiId(e.target.value.trim())}
-                          placeholder="yourname@okaxis"
+                          placeholder="ownquesta@oksbi"
                           className={`pay-input${errors.upiId ? ' has-error' : ''}`}
                         />
                       </Field>
@@ -614,23 +787,42 @@ export default function PaymentPage() {
                   {/* Summary */}
                   <div className="divider" />
                   <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-[#5a718a]">{modelName} (.pkl)</span>
+                    <span className="text-[#5a718a]">{modelName} delivery bundle</span>
                     <span className="text-[#c5d4ed] font-semibold">${price.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-[#5a718a]">Python script + notebook</span>
+                    <span className="text-sky-300 font-semibold">Included</span>
+                  </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-[#5a718a]">Platform fee</span>
+                    <span className="text-[#5a718a]">Processing & platform fee</span>
                     <span className="text-emerald-400 font-semibold">$0.00</span>
                   </div>
+                  <p className="text-[11px] text-[#6d84a3] mt-3 leading-relaxed">
+                    The same payment also unlocks the matching <code>.py</code> and <code>.ipynb</code> exports in the Script Editor.
+                  </p>
 
                   {/* Pay button */}
                   <button
                     onClick={handleCheckout}
-                    className={`pay-btn mt-5 ${paymentMethod === 'card' ? 'card-pay' : 'upi-pay'}`}
+                    disabled={isSubmitting}
+                    className={`pay-btn mt-5 ${paymentMethod === 'paypal' ? 'paypal-pay' : paymentMethod === 'card' ? 'card-pay' : 'upi-pay'}`}
+                    style={{ opacity: isSubmitting ? 0.9 : 1 }}
                   >
-                    {paymentMethod === 'card'
-                      ? `Pay $${price.toFixed(2)} & Download Model`
-                      : `Pay $${price.toFixed(2)} with UPI`}
+                    {isSubmitting
+                      ? 'Starting secure checkout…'
+                      : paymentMethod === 'paypal'
+                        ? `Pay $${price.toFixed(2)} with PayPal`
+                        : paymentMethod === 'card'
+                          ? `Pay $${price.toFixed(2)} by Card`
+                          : `Pay $${price.toFixed(2)} with UPI`}
                   </button>
+
+                  {(errors.general || statusNote) && (
+                    <p className={`mt-3 text-xs leading-relaxed ${errors.general ? 'text-rose-400' : 'text-sky-300'}`}>
+                      {errors.general || statusNote}
+                    </p>
+                  )}
 
                   {/* Security */}
                   <div className="sec-row">
@@ -644,16 +836,20 @@ export default function PaymentPage() {
               {/* ── PROCESSING STEP ── */}
               {step === 'processing' && (
                 <div className="fade-in py-10 text-center">
-                  <div className={`spin-ring ${paymentMethod === 'upi' ? 'upi-spin' : ''}`} />
+                  <div className={`spin-ring ${paymentMethod === 'paypal' ? 'paypal-spin' : paymentMethod === 'upi' ? 'upi-spin' : ''}`} />
                   <h3 className="text-xl font-extrabold text-white mb-2" style={{ letterSpacing: '-0.02em' }}>
-                    {paymentMethod === 'card' ? 'Processing card payment…' : 'Confirming UPI payment…'}
+                    {paymentMethod === 'paypal'
+                      ? 'Connecting to PayPal…'
+                      : paymentMethod === 'card'
+                        ? 'Processing card payment…'
+                        : 'Confirming UPI payment…'}
                   </h3>
-                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[260px] mx-auto">
-                    Please wait while we secure your order and prepare the automatic return to the Lab Playground.
+                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[280px] mx-auto">
+                    {statusNote || 'Please wait while we secure your order, unlock your exports, and prepare the automatic return to the Lab Playground.'}
                   </p>
                   <div className="prog-track mx-auto" style={{ maxWidth: '240px' }}>
                     <div
-                      className={`prog-fill ${paymentMethod === 'upi' ? 'upi-fill' : ''}`}
+                      className={`prog-fill ${paymentMethod === 'paypal' ? 'paypal-fill' : paymentMethod === 'upi' ? 'upi-fill' : ''}`}
                       style={{ width: `${progress}%` }}
                     />
                   </div>
@@ -668,9 +864,12 @@ export default function PaymentPage() {
                   <h3 className="text-xl font-extrabold text-white mb-2" style={{ letterSpacing: '-0.02em' }}>
                     Payment successful
                   </h3>
-                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[260px] mx-auto">
-                    Done. Returning you automatically to the Lab Playground to start the download…
+                  <p className="text-sm text-[#5a718a] leading-relaxed max-w-[280px] mx-auto">
+                    {statusNote || 'Done. Returning you automatically to the Lab Playground to start the download…'}
                   </p>
+                  {paidOrderId && (
+                    <p className="text-[11px] text-sky-300 mt-3 font-semibold">Order #{paidOrderId}</p>
+                  )}
                 </div>
               )}
 
