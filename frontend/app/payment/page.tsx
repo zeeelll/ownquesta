@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import Logo from '../components/Logo';
 
 const DEFAULT_PRICE = 4.99;
+const UPI_EXCHANGE_RATE = 83;
+const OWNQUESTA_UPI_ID = 'ownquesta@oksbi';
+const OWNQUESTA_UPI_NAME = 'Ownquesta';
 
 type CheckoutStep = 'details' | 'processing' | 'success';
 type PaymentMethod = 'paypal' | 'card' | 'upi';
@@ -25,6 +28,7 @@ export default function PaymentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusNote, setStatusNote] = useState('');
   const [paidOrderId, setPaidOrderId] = useState('');
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   const checkout = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -55,6 +59,31 @@ export default function PaymentPage() {
     () => (sessionId ? `OQ-${sessionId.slice(0, 8).toUpperCase()}` : 'OQ-INSTANT-DL'),
     [sessionId],
   );
+
+  const upiApproxAmount = useMemo(() => Number((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);
+  const upiPaymentLink = useMemo(() => {
+    const params = new URLSearchParams({
+      pa: OWNQUESTA_UPI_ID,
+      pn: OWNQUESTA_UPI_NAME,
+      tn: `Ownquesta ${orderId}`,
+      tr: orderId,
+      am: upiApproxAmount.toString(),
+      cu: 'INR',
+    });
+    return `upi://pay?${params.toString()}`;
+  }, [orderId, upiApproxAmount]);
+
+  const handleCopyUpi = async () => {
+    if (typeof window === 'undefined' || !window.navigator?.clipboard) return;
+    await window.navigator.clipboard.writeText(OWNQUESTA_UPI_ID);
+    setCopiedUpi(true);
+    window.setTimeout(() => setCopiedUpi(false), 1500);
+  };
+
+  const handleOpenUpiApp = () => {
+    if (typeof window === 'undefined') return;
+    window.open(upiPaymentLink, '_self');
+  };
 
   const formatCardNumber = (value: string) =>
     value.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
@@ -628,8 +657,11 @@ export default function PaymentPage() {
                       <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>Download model + exports</h2>
                       <p className="text-xs text-[#5a718a] mt-1">One-time payment · instant delivery</p>
                     </div>
-                    <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0">
-                      ${price.toFixed(2)}
+                    <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0 text-right">
+                      <div>{paymentMethod === 'upi' ? `₹${upiApproxAmount.toFixed(2)}` : `$${price.toFixed(2)}`}</div>
+                      {paymentMethod === 'upi' && (
+                        <div className="text-[10px] text-emerald-200/80 font-semibold mt-0.5">≈ ${price.toFixed(2)} USD</div>
+                      )}
                     </div>
                   </div>
 
@@ -768,12 +800,36 @@ export default function PaymentPage() {
                         <input
                           value={upiId}
                           onChange={(e) => setUpiId(e.target.value.trim())}
-                          placeholder="ownquesta@oksbi"
+                          placeholder="yourname@okaxis"
                           className={`pay-input${errors.upiId ? ' has-error' : ''}`}
                         />
                       </Field>
 
                       <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.06] p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                          <div>
+                            <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-emerald-400 mb-2">Pay to Ownquesta UPI account</p>
+                            <p className="text-sm text-white font-bold">{OWNQUESTA_UPI_NAME}</p>
+                            <p className="text-xs text-[#bfe8d7] mt-1">UPI ID: <span className="font-semibold text-emerald-300">{OWNQUESTA_UPI_ID}</span></p>
+                            <p className="text-xs text-[#92b8a7] mt-1">Use any supported app below to pay approximately ₹{upiApproxAmount.toFixed(2)} based on ${price.toFixed(2)} USD.</p>
+                          </div>
+                          <div className="flex gap-2 flex-wrap">
+                            <button
+                              type="button"
+                              onClick={handleCopyUpi}
+                              className="px-3 py-2 rounded-xl border border-emerald-300/25 bg-emerald-500/10 text-emerald-200 text-xs font-bold"
+                            >
+                              {copiedUpi ? 'Copied' : 'Copy UPI ID'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleOpenUpiApp}
+                              className="px-3 py-2 rounded-xl border border-sky-300/25 bg-sky-500/10 text-sky-200 text-xs font-bold"
+                            >
+                              Open UPI App
+                            </button>
+                          </div>
+                        </div>
                         <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-emerald-400 mb-3">Supported UPI apps</p>
                         <div className="upi-row">
                           {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
@@ -794,6 +850,12 @@ export default function PaymentPage() {
                     <span className="text-[#5a718a]">Python script + notebook</span>
                     <span className="text-sky-300 font-semibold">Included</span>
                   </div>
+                  {paymentMethod === 'upi' && (
+                    <div className="flex justify-between items-center text-sm mb-1">
+                      <span className="text-[#5a718a]">UPI converted total</span>
+                      <span className="text-emerald-300 font-semibold">₹{upiApproxAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-[#5a718a]">Processing & platform fee</span>
                     <span className="text-emerald-400 font-semibold">$0.00</span>
@@ -815,7 +877,7 @@ export default function PaymentPage() {
                         ? `Pay $${price.toFixed(2)} with PayPal`
                         : paymentMethod === 'card'
                           ? `Pay $${price.toFixed(2)} by Card`
-                          : `Pay $${price.toFixed(2)} with UPI`}
+                          : `Pay ₹${upiApproxAmount.toFixed(2)} with UPI`}
                   </button>
 
                   {(errors.general || statusNote) && (

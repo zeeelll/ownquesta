@@ -78,13 +78,16 @@ export function getPaymentRecord(orderId: string) {
 export function buildUpiIntent(orderId: string, amount: number) {
   const payeeId = process.env.NEXT_PUBLIC_UPI_ID || 'ownquesta@oksbi';
   const payeeName = process.env.NEXT_PUBLIC_UPI_NAME || 'Ownquesta';
+  const upiRate = Number(process.env.NEXT_PUBLIC_UPI_EXCHANGE_RATE || 83);
+  const inrAmount = sanitizePrice(amount * upiRate, amount);
+
   const params = new URLSearchParams({
     pa: payeeId,
     pn: payeeName,
     tn: `Ownquesta ${orderId}`,
     tr: orderId,
-    am: sanitizePrice(amount).toFixed(2),
-    cu: 'USD',
+    am: inrAmount.toFixed(2),
+    cu: 'INR',
   });
 
   return `upi://pay?${params.toString()}`;

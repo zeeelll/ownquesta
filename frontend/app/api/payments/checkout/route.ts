@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       paymentMethod === 'paypal'
         ? 'PayPal checkout session created successfully.'
         : paymentMethod === 'upi'
-          ? 'UPI payment request prepared. Approve it in your UPI app.'
+          ? 'UPI payment request prepared for Ownquesta (ownquesta@oksbi). Approve it in your UPI app.'
           : 'Card payment authorized and ready to confirm.';
 
     return NextResponse.json({

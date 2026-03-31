@@ -68,6 +68,7 @@ function PaymentModal({
   const [progress, setProgress] = useState(0);
   const [statusNote, setStatusNote] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   const formatCard = (v: string) => v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
   const formatExpiry = (v: string) => {
@@ -169,13 +170,22 @@ function PaymentModal({
   };
 
   const fileLabel = downloadType === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
+  const ownquestaUpiId = 'ownquesta@oksbi';
+  const upiApproxAmount = Number((DOWNLOAD_PRICE * 83).toFixed(2));
   const accent = paymentMethod === 'paypal' ? '#38bdf8' : paymentMethod === 'upi' ? '#34d399' : '#a87edf';
   const payAction =
     paymentMethod === 'paypal'
       ? `Pay $${DOWNLOAD_PRICE} with PayPal`
       : paymentMethod === 'upi'
-        ? `Pay $${DOWNLOAD_PRICE} with UPI`
+        ? `Pay ₹${upiApproxAmount.toFixed(2)} with UPI`
         : `Pay $${DOWNLOAD_PRICE} by Card`;
+
+  const handleCopyUpi = async () => {
+    if (typeof window === 'undefined' || !window.navigator?.clipboard) return;
+    await window.navigator.clipboard.writeText(ownquestaUpiId);
+    setCopiedUpi(true);
+    window.setTimeout(() => setCopiedUpi(false), 1500);
+  };
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -214,7 +224,10 @@ function PaymentModal({
                   </div>
                   <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>pipeline export · instant unlock</div>
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 900, color: '#a87edf' }}>${DOWNLOAD_PRICE}</div>
+                <div style={{ fontSize: 24, fontWeight: 900, color: '#a87edf', textAlign: 'right' }}>
+                  <div>{paymentMethod === 'upi' ? `₹${upiApproxAmount.toFixed(2)}` : `$${DOWNLOAD_PRICE}`}</div>
+                  {paymentMethod === 'upi' && <div style={{ fontSize: 10, color: '#cbd5e1', marginTop: 2 }}>≈ ${DOWNLOAD_PRICE} USD</div>}
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 18 }}>
@@ -283,10 +296,18 @@ function PaymentModal({
                 ) : (
                   <>
                     <Field label="UPI ID" error={errors.upi}>
-                      <input value={upiId} onChange={e => setUpiId(e.target.value.trim())} placeholder="ownquesta@oksbi" style={inputStyle(!!errors.upi)} />
+                      <input value={upiId} onChange={e => setUpiId(e.target.value.trim())} placeholder="yourname@okaxis" style={inputStyle(!!errors.upi)} />
                     </Field>
                     <div style={{ borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(52,211,153,0.25)', background: 'rgba(16,185,129,0.08)', fontSize: 12, color: '#d1fae5', lineHeight: 1.5 }}>
-                      Supported on GPay, PhonePe, Paytm, and BHIM for quick one-tap confirmation.
+                      <div style={{ fontWeight: 700, color: '#86efac', marginBottom: 6 }}>Pay to Ownquesta • {ownquestaUpiId}</div>
+                      <div>Supported on GPay, PhonePe, Paytm, and BHIM for quick one-tap confirmation. Approximate UPI amount: ₹{upiApproxAmount.toFixed(2)} based on ${DOWNLOAD_PRICE} USD.</div>
+                      <button
+                        type="button"
+                        onClick={handleCopyUpi}
+                        style={{ marginTop: 10, padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(134,239,172,0.3)', background: 'rgba(134,239,172,0.08)', color: '#d1fae5', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        {copiedUpi ? 'Copied UPI ID' : 'Copy Ownquesta UPI ID'}
+                      </button>
                     </div>
                   </>
                 )}
