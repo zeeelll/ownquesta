@@ -343,6 +343,17 @@ exports.changePassword = async (req, res) => {
     const hash = await bcrypt.hash(newPassword, 10);
     user.password = hash;
     await user.save();
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'password_changed',
+      'Account password changed successfully',
+      req,
+      { source: 'profile_security' }
+    );
+
     res.json({ message: 'Password updated' });
   } catch (err) {
     console.error('❌ Change password error:', err);
@@ -381,6 +392,16 @@ exports.verify2fa = async (req, res) => {
     user.settings.twoFactorAuth = true;
     await user.save();
 
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'two_factor_enabled',
+      'Two-factor authentication was enabled',
+      req,
+      { securityEvent: true }
+    );
+
     res.json({ verified: true, message: 'Two-factor authentication enabled' });
   } catch (err) {
     console.error('❌ 2FA verify error:', err);
@@ -398,6 +419,17 @@ exports.disable2fa = async (req, res) => {
     if (!user.settings) user.settings = {};
     user.settings.twoFactorAuth = false;
     await user.save();
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'two_factor_disabled',
+      'Two-factor authentication was disabled',
+      req,
+      { securityEvent: true }
+    );
+
     res.json({ message: 'Two-factor authentication disabled' });
   } catch (err) {
     console.error('❌ 2FA disable error:', err);
@@ -419,6 +451,16 @@ exports.deleteAccount = async (req, res) => {
 
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ message: 'Password incorrect' });
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'account_deleted',
+      'User deleted their account',
+      req,
+      { role: user.role, provider: user.provider || 'local' }
+    );
 
     // delete user
     await User.findByIdAndDelete(req.user._id);
@@ -455,6 +497,16 @@ exports.forgotPassword = async (req, res) => {
     user.resetOtp = otp;
     user.resetOtpExpiry = expiry;
     await user.save();
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'password_reset_requested',
+      'Password reset OTP requested',
+      req,
+      { delivery: 'email', expiresAt: expiry.toISOString() }
+    );
 
     // Log OTP to console for debugging
     console.log('\n========================================');
@@ -518,6 +570,16 @@ exports.verifyOtp = async (req, res) => {
       return res.status(400).json({ message: 'Invalid OTP' });
     }
 
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'password_reset_verified',
+      'Password reset OTP verified successfully',
+      req,
+      { delivery: 'email' }
+    );
+
     res.json({ message: 'OTP verified successfully' });
   } catch (err) {
     console.error('❌ Verify OTP error:', err);
@@ -558,6 +620,16 @@ exports.resetPassword = async (req, res) => {
     user.resetOtp = null;
     user.resetOtpExpiry = null;
     await user.save();
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'password_reset_completed',
+      'Password reset completed successfully',
+      req,
+      { delivery: 'email' }
+    );
 
     res.json({ message: 'Password reset successfully' });
   } catch (err) {
@@ -605,6 +677,16 @@ exports.registerAdmin = async (req, res) => {
     });
 
     console.log(`✅ Admin user created: ${user._id} (${user.name}) - User ID: ${userId}`);
+
+    await ActivityService.logActivity(
+      user._id,
+      user.email,
+      user.name,
+      'admin_create_account',
+      `Administrator account created by ${req.user.name}`,
+      req,
+      { createdRole: 'admin', createdBy: req.user.email }
+    );
 
     res.json({
       message: 'Admin user created successfully',

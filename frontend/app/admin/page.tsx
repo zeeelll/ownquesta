@@ -112,6 +112,8 @@ const matchesActivityFilter = (activity: any, filter: string) => {
   if (filter === 'upload') return action.includes('upload');
   if (filter === 'project') return isProjectActivity(action);
   if (filter === 'delete') return action.includes('delete');
+  if (filter === 'navigation') return action === 'page_view';
+  if (filter === 'security') return action.startsWith('password_') || action.startsWith('two_factor');
 
   return true;
 };
@@ -125,6 +127,12 @@ const getActivityAppearance = (action?: string) => {
   }
   if (action === 'registration') {
     return { Icon: Plus, iconClass: 'text-blue-400', chipClass: 'action-chip-blue' };
+  }
+  if (action === 'page_view') {
+    return { Icon: Globe, iconClass: 'text-cyan-400', chipClass: 'action-chip-blue' };
+  }
+  if ((action || '').startsWith('password_') || (action || '').startsWith('two_factor')) {
+    return { Icon: Shield, iconClass: 'text-amber-400', chipClass: 'action-chip-amber' };
   }
   if (isProjectActivity(action)) {
     return { Icon: Monitor, iconClass: 'text-violet-400', chipClass: 'action-chip-purple' };
@@ -228,6 +236,23 @@ export default function AdminPage() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    if (activeTab !== 'activities' || !currentUser) {
+      return;
+    }
+
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await getAllActivities(100);
+        setAllActivities(response.activities || []);
+      } catch {
+        // keep current activity list if refresh fails temporarily
+      }
+    }, 30000);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeTab, currentUser]);
+
   const filteredProjects = projects.filter((project) => {
     const owner = project.userId && typeof project.userId === 'object' ? project.userId : null;
     const q = projectSearch.trim().toLowerCase();
@@ -303,6 +328,13 @@ export default function AdminPage() {
             ? 'Projects data is not available yet. Restart the backend server, then refresh this page.'
             : (projectErr?.message || 'Projects data is temporarily unavailable.')
         );
+      }
+
+      try {
+        const activityResponse = await getAllActivities(100);
+        setAllActivities(activityResponse.activities || []);
+      } catch (activityErr: any) {
+        console.warn('Unable to preload activity log:', activityErr?.message || activityErr);
       }
     } catch (err: any) {
       setError(err.message);
@@ -1107,6 +1139,8 @@ export default function AdminPage() {
                   <option value="admin">Admin Actions</option>
                   <option value="profile">Profile Updates</option>
                   <option value="project">Project Activity</option>
+                  <option value="navigation">Page Views</option>
+                  <option value="security">Security Events</option>
                   <option value="upload">File Uploads</option>
                   <option value="delete">Deletions</option>
                 </select>

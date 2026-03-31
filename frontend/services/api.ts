@@ -112,6 +112,20 @@ export async function getUserActivities(userId: string) {
   return api(`/api/admin/users/${userId}/activities`);
 }
 
+export async function getMyActivities(limit?: number) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  const query = params.toString();
+  return api(`/api/user/activities${query ? `?${query}` : ''}`);
+}
+
+export async function trackUserActivity(action: string, description: string, metadata: Record<string, any> = {}) {
+  return api('/api/user/activity', {
+    method: 'POST',
+    body: JSON.stringify({ action, description, metadata })
+  });
+}
+
 export async function getAllActivities(limit?: number, skip?: number) {
   const params = new URLSearchParams();
   if (limit) params.append('limit', limit.toString());

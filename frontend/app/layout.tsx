@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import ActivityTracker from "./components/ActivityTracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,10 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=chillax@300,400,500,600,700&display=swap"
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <ActivityTracker />
+        {children}
+      </body>
     </html>
   );
 }
