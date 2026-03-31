@@ -114,6 +114,12 @@ export default function Home() {
               >
                 Tutorial
               </Link>
+              <Link
+                href="/help"
+                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 border border-[#a87edf]/30 bg-[#a87edf]/10 hover:bg-[#a87edf]/18 hover:border-[#a87edf]/45 hover:-translate-y-0.5 backdrop-blur-sm tracking-wide text-[#efe7ff]"
+              >
+                Help
+              </Link>
             </>
           ) : (
             <div id="user-dropdown" className="relative">
@@ -216,6 +222,12 @@ export default function Home() {
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide glass hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all duration-300 text-[#c5d4ed]"
                 >
                   Learn More
+                </Link>
+                <Link
+                  href="/help"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide border border-[#a87edf]/30 bg-[#a87edf]/10 hover:bg-[#a87edf]/18 hover:-translate-y-0.5 transition-all duration-300 text-[#efe7ff]"
+                >
+                  Help Center
                 </Link>
               </div>
             </div>
