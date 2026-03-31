@@ -538,6 +538,8 @@ export default function ScriptPage() {
       const access = JSON.parse(rawAccess) as {
         paid?: boolean;
         sessionId?: string;
+        product?: string;
+        downloadTarget?: string;
         types?: string[];
         unlocks?: string[];
       };
@@ -552,11 +554,10 @@ export default function ScriptPage() {
       access.unlocks?.forEach((type) => {
         if (type === 'py' || type === 'ipynb') unlocked.add(type);
       });
+      if (access.downloadTarget === 'py' || access.product === 'python-script') unlocked.add('py');
+      if (access.downloadTarget === 'ipynb' || access.product === 'jupyter-notebook') unlocked.add('ipynb');
 
-      if (!unlocked.size) {
-        unlocked.add('py');
-        unlocked.add('ipynb');
-      }
+      if (!unlocked.size) return;
 
       setPaidTypes(prev => new Set([...prev, ...Array.from(unlocked)]));
     } catch {
@@ -606,9 +607,11 @@ export default function ScriptPage() {
   }, [isRunning, sessionId, script]);
 
   // ── Actual download helpers (called AFTER payment) ────────────────────────
-  const doDownloadPy = () => triggerDownload(script, 'pipeline.py', 'text/x-python');
+  const doDownloadPy = useCallback(() => {
+    triggerDownload(script, 'pipeline.py', 'text/x-python');
+  }, [script]);
 
-  const doDownloadNotebook = async () => {
+  const doDownloadNotebook = useCallback(async () => {
     if (dlNotebook || !sessionId) return;
     setDlNotebook(true);
     try {
@@ -624,8 +627,54 @@ export default function ScriptPage() {
         const fname = res.headers.get('content-disposition')?.match(/filename="?([^"]+)"?/)?.[1] ?? 'pipeline.ipynb';
         triggerDownload(await blob.text(), fname, 'application/json');
       }
-    } catch { /* silent */ } finally { setDlNotebook(false); }
-  };
+    } catch {
+      // silent
+    } finally {
+      setDlNotebook(false);
+    }
+  }, [dlNotebook, sessionId, script]);
+
+  useEffect(() => {
+    if (!sessionId || typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') !== 'success') return;
+
+    const rawPayment = sessionStorage.getItem('ownquesta_model_payment');
+    if (!rawPayment) return;
+
+    try {
+      const payment = JSON.parse(rawPayment) as {
+        paid?: boolean;
+        sessionId?: string;
+        product?: string;
+        downloadTarget?: DownloadType | 'trained-model';
+      };
+
+      if (!payment.paid) return;
+      if (payment.sessionId && payment.sessionId !== sessionId) return;
+
+      const target: DownloadType | null =
+        payment.downloadTarget === 'py' || payment.product === 'python-script'
+          ? 'py'
+          : payment.downloadTarget === 'ipynb' || payment.product === 'jupyter-notebook'
+            ? 'ipynb'
+            : null;
+
+      if (!target) return;
+
+      setPaidTypes(prev => new Set([...prev, target]));
+      sessionStorage.removeItem('ownquesta_model_payment');
+      window.history.replaceState({}, '', window.location.pathname);
+
+      window.setTimeout(() => {
+        if (target === 'py') doDownloadPy();
+        if (target === 'ipynb') void doDownloadNotebook();
+      }, 150);
+    } catch {
+      // ignore invalid payment cache
+    }
+  }, [sessionId, doDownloadPy, doDownloadNotebook]);
 
   // ── Download click handlers — check payment first ─────────────────────────
   const handleDownloadPy = () => {
@@ -652,7 +701,18 @@ export default function ScriptPage() {
           paid: true,
           sessionId,
           types: Array.from(nextPaid),
+          downloadTarget: type,
           grantedAt: Date.now(),
+        }),
+      );
+      sessionStorage.setItem(
+        'ownquesta_model_payment',
+        JSON.stringify({
+          paid: true,
+          product: type === 'py' ? 'python-script' : 'jupyter-notebook',
+          sessionId,
+          downloadTarget: type,
+          paidAt: Date.now(),
         }),
       );
     }

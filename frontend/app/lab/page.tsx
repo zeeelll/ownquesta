@@ -728,8 +728,13 @@ export default function LabPage() {
 
     try {
       const payment = JSON.parse(raw) as { paid?: boolean; product?: string; sessionId?: string };
-      const activeSession = sid || sidRef.current;
-      if (!payment.paid || payment.product !== 'trained-model' || !activeSession || payment.sessionId !== activeSession) return;
+      const returnedSession = params.get('session') ?? payment.sessionId ?? '';
+
+      if (!payment.paid || payment.product !== 'trained-model' || !returnedSession) return;
+      if (sid && sid !== returnedSession) return;
+
+      sidRef.current = returnedSession;
+      if (sid !== returnedSession) setSid(returnedSession);
 
       setModelPaid(true);
       sessionStorage.removeItem('ownquesta_model_payment');

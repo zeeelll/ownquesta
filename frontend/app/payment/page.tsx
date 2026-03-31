@@ -68,6 +68,43 @@ export default function PaymentPage() {
     [sessionId],
   );
 
+  const downloadTarget =
+    product === 'python-script'
+      ? 'py'
+      : product === 'jupyter-notebook'
+        ? 'ipynb'
+        : 'trained-model';
+  const exportTypes =
+    product === 'python-script'
+      ? ['py']
+      : product === 'jupyter-notebook'
+        ? ['ipynb']
+        : [];
+  const checkoutTitle =
+    downloadTarget === 'trained-model'
+      ? 'Download trained model'
+      : downloadTarget === 'py'
+        ? 'Download Python script'
+        : 'Download Jupyter notebook';
+  const productSummary =
+    downloadTarget === 'trained-model'
+      ? `${modelName} trained model (.pkl)`
+      : downloadTarget === 'py'
+        ? 'Python pipeline export (.py)'
+        : 'Jupyter notebook export (.ipynb)';
+  const productDetails =
+    downloadTarget === 'trained-model'
+      ? 'Trained `.pkl` model only'
+      : downloadTarget === 'py'
+        ? 'Python script file only'
+        : 'Notebook file only';
+  const deliveryChips =
+    downloadTarget === 'trained-model'
+      ? ['📦 model.pkl']
+      : downloadTarget === 'py'
+        ? ['🐍 pipeline.py']
+        : ['📓 pipeline.ipynb'];
+
   const upiApproxAmount = useMemo(() => Number((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);
   const upiPaymentLink = useMemo(() => {
     const params = new URLSearchParams({
@@ -166,7 +203,11 @@ export default function PaymentPage() {
       window.clearInterval(interval);
       setProgress(100);
       setPaidOrderId(createdOrderId);
-      setStatusNote('Payment confirmed. Unlocking your model and code exports now…');
+      setStatusNote(
+        downloadTarget === 'trained-model'
+          ? 'Payment confirmed. Starting your trained model download now…'
+          : 'Payment confirmed. Starting your file download now…',
+      );
       setStep('success');
 
       if (typeof window !== 'undefined') {
@@ -181,7 +222,8 @@ export default function PaymentPage() {
             paidAt: Date.now(),
             method: paymentMethod,
             orderId: createdOrderId,
-            unlocks: ['trained-model', 'py', 'ipynb'],
+            downloadTarget,
+            unlocks: [downloadTarget],
           }),
         );
         sessionStorage.setItem(
@@ -189,7 +231,8 @@ export default function PaymentPage() {
           JSON.stringify({
             paid: true,
             sessionId,
-            types: ['py', 'ipynb'],
+            types: exportTypes,
+            downloadTarget,
             orderId: createdOrderId,
             grantedAt: Date.now(),
           }),
@@ -264,8 +307,20 @@ export default function PaymentPage() {
   };
 
   const trustItems = [
-    { icon: '⚡', text: 'One checkout unlocks your trained model plus matching `.py` and `.ipynb` exports' },
-    { icon: '📦', text: 'Download the `.pkl` model instantly and continue from the same lab session' },
+    {
+      icon: '⚡',
+      text:
+        downloadTarget === 'trained-model'
+          ? 'This checkout unlocks only the trained `.pkl` model download for your current session.'
+          : `This checkout unlocks only the ${downloadTarget === 'py' ? 'Python script' : 'Jupyter notebook'} you selected.`,
+    },
+    {
+      icon: '📦',
+      text:
+        downloadTarget === 'trained-model'
+          ? 'Download the trained model instantly and keep the export files behind their own payment gate.'
+          : 'Your paid file starts downloading automatically right after payment confirmation.',
+    },
     { icon: '🔒', text: 'Choose PayPal, debit/credit card, or UPI with a smooth return back to Ownquesta' },
   ];
 
@@ -622,8 +677,8 @@ export default function PaymentPage() {
                   <p className="text-[10px] uppercase tracking-[0.16em] text-[#4a5e78] mb-2 font-bold">Product</p>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-white font-bold text-[15px]">{modelName} delivery bundle</p>
-                      <p className="text-xs text-[#5a718a] mt-1">Trained `.pkl` model + matching `.py` and `.ipynb` exports</p>
+                      <p className="text-white font-bold text-[15px]">{productSummary}</p>
+                      <p className="text-xs text-[#5a718a] mt-1">{productDetails}</p>
                     </div>
                     <span
                       className="text-xl font-black shrink-0"
@@ -647,13 +702,13 @@ export default function PaymentPage() {
                   <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20 shrink-0">📦</div>
                   <div>
                     <p className="text-white font-bold text-[15px]">What you get after payment</p>
-                    <p className="text-xs text-[#5a718a] mt-0.5">Fast, branded, friction-free delivery for all export files</p>
+                    <p className="text-xs text-[#5a718a] mt-0.5">Only the item you selected will unlock and download</p>
                   </div>
                 </div>
                 <div className="bundle-row mb-4">
-                  <span className="bundle-chip">📦 model.pkl</span>
-                  <span className="bundle-chip">🐍 pipeline.py</span>
-                  <span className="bundle-chip">📓 pipeline.ipynb</span>
+                  {deliveryChips.map((chip) => (
+                    <span key={chip} className="bundle-chip">{chip}</span>
+                  ))}
                 </div>
                 <div className="space-y-3">
                   {trustItems.map((item) => (
@@ -675,7 +730,7 @@ export default function PaymentPage() {
                   <div className="flex items-start justify-between gap-3 mb-6">
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.16em] text-violet-400 mb-1.5 font-bold">Payment details</p>
-                      <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>Download model + exports</h2>
+                      <h2 className="text-2xl font-extrabold text-white" style={{ letterSpacing: '-0.025em' }}>{checkoutTitle}</h2>
                       <p className="text-xs text-[#5a718a] mt-1">One-time payment · instant delivery</p>
                     </div>
                     <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0 text-right">
@@ -899,12 +954,12 @@ export default function PaymentPage() {
                   {/* Summary */}
                   <div className="divider" />
                   <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-[#5a718a]">{modelName} delivery bundle</span>
+                    <span className="text-[#5a718a]">{productSummary}</span>
                     <span className="text-[#c5d4ed] font-semibold">${price.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-[#5a718a]">Python script + notebook</span>
-                    <span className="text-sky-300 font-semibold">Included</span>
+                    <span className="text-[#5a718a]">Other downloads</span>
+                    <span className="text-amber-300 font-semibold">Separate payment</span>
                   </div>
                   {paymentMethod === 'upi' && (
                     <div className="flex justify-between items-center text-sm mb-1">
@@ -917,7 +972,7 @@ export default function PaymentPage() {
                     <span className="text-emerald-400 font-semibold">$0.00</span>
                   </div>
                   <p className="text-[11px] text-[#6d84a3] mt-3 leading-relaxed">
-                    The same payment also unlocks the matching <code>.py</code> and <code>.ipynb</code> exports in the Script Editor.
+                    Each download type is billed separately. Paying for the model does <strong>not</strong> unlock the <code>.py</code> or <code>.ipynb</code> files.
                   </p>
 
                   {/* Pay button */}
