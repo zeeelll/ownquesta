@@ -16,6 +16,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:500
 
 // ── Payment config ────────────────────────────────────────────────────────────
 const MODEL_DOWNLOAD_PRICE = 4.99;
+const FREE_DOWNLOADS_KEY = 'ownquesta_free_download_usage';
 
 // ── Restrictions ──────────────────────────────────────────────────────────────
 const BLOCKED: { re: RegExp; msg: string }[] = [
@@ -701,14 +702,35 @@ export default function LabPage() {
     router.push(`/payment?${params.toString()}`);
   }, [sid, selectedModel, router, addMsg]);
 
-  // ── Download Model click — gate with payment ──────────────────────────────
+  // ── Download Model click — first download free, then payment ──────────────
   const downloadModel = useCallback(() => {
     if (modelPaid) {
       doDownloadModel();
       return;
     }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = window.localStorage.getItem(FREE_DOWNLOADS_KEY);
+        const usage = raw ? JSON.parse(raw) as Record<string, number> : {};
+        const freeCount = usage.model ?? 0;
+
+        if (freeCount < 1) {
+          window.localStorage.setItem(
+            FREE_DOWNLOADS_KEY,
+            JSON.stringify({ ...usage, model: freeCount + 1 }),
+          );
+          addMsg({ type: 'info', text: '🎁 Your first model download is free. Payment will be required from the second download.' });
+          doDownloadModel();
+          return;
+        }
+      } catch {
+        // ignore storage issues and continue to payment
+      }
+    }
+
     openPaymentPage();
-  }, [modelPaid, doDownloadModel, openPaymentPage]);
+  }, [modelPaid, doDownloadModel, openPaymentPage, addMsg]);
 
   // ── Payment success handler ───────────────────────────────────────────────
   const handlePaySuccess = useCallback(() => {

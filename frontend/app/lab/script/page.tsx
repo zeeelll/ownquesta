@@ -45,6 +45,7 @@ type DownloadType = 'py' | 'ipynb';
 
 // ── Payment config — adjust price / label as needed ──────────────────────────
 const DOWNLOAD_PRICE = 2.99;
+const FREE_DOWNLOADS_KEY = 'ownquesta_free_download_usage';
 const UPI_APP_OPTIONS = [
   { key: 'gpay', short: 'GPay', label: 'Google Pay', mark: 'G', accent: '#7dd3fc', bg: 'rgba(14,165,233,0.14)', border: 'rgba(56,189,248,0.32)' },
   { key: 'phonepe', short: 'PhonePe', label: 'PhonePe', mark: 'पे', accent: '#c4b5fd', bg: 'rgba(139,92,246,0.14)', border: 'rgba(167,139,250,0.34)' },
@@ -676,15 +677,37 @@ export default function ScriptPage() {
     }
   }, [sessionId, doDownloadPy, doDownloadNotebook]);
 
-  // ── Download click handlers — check payment first ─────────────────────────
+  const claimFreeDownload = (type: DownloadType) => {
+    if (typeof window === 'undefined') return false;
+
+    try {
+      const raw = window.localStorage.getItem(FREE_DOWNLOADS_KEY);
+      const usage = raw ? JSON.parse(raw) as Record<string, number> : {};
+      const current = usage[type] ?? 0;
+
+      if (current >= 1) return false;
+
+      window.localStorage.setItem(
+        FREE_DOWNLOADS_KEY,
+        JSON.stringify({ ...usage, [type]: current + 1 }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // ── Download click handlers — first download free, then payment ───────────
   const handleDownloadPy = () => {
     if (paidTypes.has('py')) { doDownloadPy(); return; }
+    if (claimFreeDownload('py')) { doDownloadPy(); return; }
     setPayModal('py');
   };
 
   const handleDownloadNotebook = () => {
     if (dlNotebook) return;
     if (paidTypes.has('ipynb')) { doDownloadNotebook(); return; }
+    if (claimFreeDownload('ipynb')) { void doDownloadNotebook(); return; }
     setPayModal('ipynb');
   };
 
