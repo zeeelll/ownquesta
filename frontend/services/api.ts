@@ -133,6 +133,15 @@ export async function getAllActivities(limit?: number, skip?: number) {
   return api(`/api/admin/activities?${params.toString()}`);
 }
 
+export async function getAdminHelpTickets(limit?: number, status?: string, search?: string) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  if (status && status !== 'all') params.append('status', status);
+  if (search?.trim()) params.append('search', search.trim());
+  const query = params.toString();
+  return api(`/api/admin/help-tickets${query ? `?${query}` : ''}`);
+}
+
 // Admin project APIs
 export async function getAdminProjects(limit?: number, stage?: string, search?: string) {
   const params = new URLSearchParams();

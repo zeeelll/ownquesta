@@ -5,6 +5,7 @@ const requireAuth = require("../middleware/auth.middleware");
 const requireAdmin = require("../middleware/admin.middleware");
 const adminController = require("../controllers/admin.controller");
 const authController = require("../controllers/auth.controller");
+const helpController = require("../controllers/help.controller");
 
 router.use(requireAuth); // All admin routes require authentication
 router.use(requireAdmin); // All admin routes require admin role
@@ -20,6 +21,7 @@ router.get("/users/:id/projects", adminController.getUserProjects);
 
 // Activity routes
 router.get("/activities", adminController.getAllActivities);
+router.get("/help-tickets", helpController.getHelpTickets);
 
 // Project routes
 router.get("/projects", adminController.getAllProjects);

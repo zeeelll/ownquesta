@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminProjects, getAdminProjectStats } from "@/services/api";
+import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats } from "@/services/api";
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 import {
@@ -32,7 +32,8 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Info
+  Info,
+  MessageSquare
 } from 'lucide-react';
 
 interface User {
@@ -83,6 +84,28 @@ interface ProjectStats {
   byStage: Record<string, number>;
 }
 
+interface HelpTicket {
+  _id: string;
+  ticketId: string;
+  name: string;
+  email: string;
+  issueType: string;
+  pageArea: string;
+  severity: string;
+  status: string;
+  subject: string;
+  description: string;
+  stepsTried?: string;
+  createdAt: string;
+  proofFiles?: Array<{ name: string; size: number; type: string }>;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | string | null;
+}
+
 const formatProjectStage = (stage?: string) =>
   (stage || 'initialized')
     .replace(/_/g, ' ')
@@ -98,6 +121,19 @@ const projectStageBadgeClass = (stage?: string) => {
   return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
 };
 
+const helpStatusBadgeClass = (status?: string) => {
+  if (status === 'resolved') return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+  if (status === 'in_progress') return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+  return 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+};
+
+const helpSeverityBadgeClass = (severity?: string) => {
+  if (severity === 'urgent') return 'bg-red-500/15 text-red-300 border border-red-500/30';
+  if (severity === 'high') return 'bg-orange-500/15 text-orange-300 border border-orange-500/30';
+  if (severity === 'medium') return 'bg-blue-500/15 text-blue-300 border border-blue-500/30';
+  return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
+};
+
 const isProjectActivity = (action?: string) => (action || '').startsWith('project_');
 
 const matchesActivityFilter = (activity: any, filter: string) => {
@@ -109,6 +145,7 @@ const matchesActivityFilter = (activity: any, filter: string) => {
   if (filter === 'registration') return action === 'registration';
   if (filter === 'admin') return action.startsWith('admin_');
   if (filter === 'profile') return action === 'admin_update_profile' || action === 'update_profile';
+  if (filter === 'support') return action.includes('help');
   if (filter === 'upload') return action.includes('upload');
   if (filter === 'project') return isProjectActivity(action);
   if (filter === 'delete') return action.includes('delete');
@@ -130,6 +167,9 @@ const getActivityAppearance = (action?: string) => {
   }
   if (action === 'page_view') {
     return { Icon: Globe, iconClass: 'text-cyan-400', chipClass: 'action-chip-blue' };
+  }
+  if ((action || '').includes('help')) {
+    return { Icon: MessageSquare, iconClass: 'text-fuchsia-400', chipClass: 'action-chip-purple' };
   }
   if ((action || '').startsWith('password_') || (action || '').startsWith('two_factor')) {
     return { Icon: Shield, iconClass: 'text-amber-400', chipClass: 'action-chip-amber' };
@@ -175,9 +215,11 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [allActivities, setAllActivities] = useState<any[]>([]);
+  const [helpTickets, setHelpTickets] = useState<HelpTicket[]>([]);
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [projectStats, setProjectStats] = useState<ProjectStats>({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
   const [projectError, setProjectError] = useState('');
+  const [supportError, setSupportError] = useState('');
   const [showActivities, setShowActivities] = useState(false);
   const [activityView, setActivityView] = useState<'user' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState("");
@@ -188,7 +230,9 @@ export default function AdminPage() {
   const [systemStatus, setSystemStatus] = useState('online');
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [activitySearch, setActivitySearch] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'activities' | 'settings'>('dashboard');
+  const [helpSearch, setHelpSearch] = useState<string>('');
+  const [helpStatusFilter, setHelpStatusFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'activities' | 'support' | 'settings'>('dashboard');
   const router = useRouter();
 
   useEffect(() => {
@@ -220,6 +264,9 @@ export default function AdminPage() {
     if (activeTab === 'projects' && projects.length === 0) {
       handleLoadProjects();
     }
+    if (activeTab === 'support' && helpTickets.length === 0) {
+      handleLoadHelpTickets();
+    }
   }, [activeTab]);
 
   useEffect(() => {
@@ -233,6 +280,10 @@ export default function AdminPage() {
     if (activeTab !== 'activities') {
       setActivitySearch('');
       setActivityFilter('all');
+    }
+    if (activeTab !== 'support') {
+      setHelpSearch('');
+      setHelpStatusFilter('all');
     }
   }, [activeTab]);
 
@@ -269,6 +320,26 @@ export default function AdminPage() {
 
     const matchesStage = projectStageFilter === 'all' || project.stage === projectStageFilter;
     return matchesSearch && matchesStage;
+  });
+
+  const filteredHelpTickets = helpTickets.filter((ticket) => {
+    const linkedUser = ticket.userId && typeof ticket.userId === 'object' ? ticket.userId : null;
+    const query = helpSearch.trim().toLowerCase();
+
+    const matchesSearch = !query || [
+      ticket.ticketId,
+      ticket.name,
+      ticket.email,
+      ticket.subject,
+      ticket.description,
+      ticket.issueType,
+      ticket.pageArea,
+      linkedUser?.name,
+      linkedUser?.email,
+    ].some((value) => (value || '').toString().toLowerCase().includes(query));
+
+    const matchesStatus = helpStatusFilter === 'all' || ticket.status === helpStatusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   const refreshUsers = useCallback(async (showLoader = false) => {
@@ -331,10 +402,14 @@ export default function AdminPage() {
       }
 
       try {
-        const activityResponse = await getAllActivities(100);
+        const [activityResponse, helpResponse] = await Promise.all([
+          getAllActivities(100),
+          getAdminHelpTickets(100)
+        ]);
         setAllActivities(activityResponse.activities || []);
+        setHelpTickets(helpResponse.tickets || []);
       } catch (activityErr: any) {
-        console.warn('Unable to preload activity log:', activityErr?.message || activityErr);
+        console.warn('Unable to preload admin monitoring data:', activityErr?.message || activityErr);
       }
     } catch (err: any) {
       setError(err.message);
@@ -507,6 +582,20 @@ export default function AdminPage() {
     }
   };
 
+  const handleLoadHelpTickets = async () => {
+    setActionLoading('load-help-tickets');
+    setSupportError('');
+    try {
+      const response = await getAdminHelpTickets(150);
+      setHelpTickets(response.tickets || []);
+    } catch (err: any) {
+      setHelpTickets([]);
+      setSupportError(err.message || 'Failed to load help requests');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleMaintenanceMode = async () => {
     setActionLoading('maintenance-mode');
     try {
@@ -612,6 +701,7 @@ export default function AdminPage() {
               { key: 'users',     icon: Users,    label: 'User Management' },
               { key: 'projects',  icon: Monitor,  label: 'Projects' },
               { key: 'activities',icon: Activity,  label: 'Activity Log' },
+              { key: 'support',   icon: MessageSquare, label: 'Help Requests' },
               { key: 'settings',  icon: Settings,  label: 'Settings' },
             ] as const).map(({ key, icon: Icon, label }) => (
               <button
@@ -724,7 +814,7 @@ export default function AdminPage() {
                 <Activity className="h-5 w-5 mr-2 text-cyan-400" />
                 Quick Actions
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
                 <Button
                   onClick={() => setActiveTab('users')}
                   className="quick-action-btn quick-action-blue flex items-center justify-center space-x-2 h-12"
@@ -745,6 +835,13 @@ export default function AdminPage() {
                 >
                   <Activity className="h-4 w-4" />
                   <span>View Activities</span>
+                </Button>
+                <Button
+                  onClick={() => setActiveTab('support')}
+                  className="quick-action-btn quick-action-blue flex items-center justify-center space-x-2 h-12"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Help Issues</span>
                 </Button>
                 <Button
                   onClick={() => setShowCreateUser(true)}
@@ -1138,6 +1235,7 @@ export default function AdminPage() {
                   <option value="registration">Registration</option>
                   <option value="admin">Admin Actions</option>
                   <option value="profile">Profile Updates</option>
+                  <option value="support">Help Requests</option>
                   <option value="project">Project Activity</option>
                   <option value="navigation">Page Views</option>
                   <option value="security">Security Events</option>
@@ -1287,6 +1385,139 @@ export default function AdminPage() {
                 <Activity className="h-12 w-12 text-slate-700 mx-auto mb-4" />
                 <p className="text-slate-400 text-sm font-mono mb-1">No activities loaded</p>
                 <p className="text-slate-600 text-xs">Click "Load All Activities" to begin monitoring</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════
+            HELP REQUESTS TAB
+        ══════════════════════════════════════ */}
+        {activeTab === 'support' && (
+          <div className="space-y-6 fade-in">
+            <div className="panel-card p-6">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                <div>
+                  <h3 className="panel-title mb-1 flex items-center"><MessageSquare className="h-5 w-5 mr-2 text-fuchsia-400" />Help Requests</h3>
+                  <p className="text-slate-500 text-sm font-mono">User issues submitted from the Help page and stored in MongoDB</p>
+                </div>
+                <Button
+                  onClick={() => handleLoadHelpTickets()}
+                  className="quick-action-btn quick-action-blue flex items-center space-x-2"
+                  disabled={actionLoading === 'load-help-tickets'}
+                >
+                  {actionLoading === 'load-help-tickets'
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : <MessageSquare className="h-4 w-4" />}
+                  <span>Refresh Help Requests</span>
+                </Button>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative md:col-span-2">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search by ticket, user, email, subject, issue type..."
+                    value={helpSearch}
+                    onChange={(e) => setHelpSearch(e.target.value)}
+                    className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                  />
+                </div>
+                <select
+                  value={helpStatusFilter}
+                  onChange={(e) => setHelpStatusFilter(e.target.value)}
+                  className="search-input px-4 py-2.5 rounded-lg"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="open">Open</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            </div>
+
+            {supportError && (
+              <div className="panel-card p-4 border border-rose-500/20 bg-rose-500/10 text-rose-200 text-sm">
+                {supportError}
+              </div>
+            )}
+
+            {filteredHelpTickets.length > 0 ? (
+              <div className="panel-card overflow-hidden">
+                <div className="max-h-[620px] overflow-y-auto custom-scroll divide-y divide-slate-800/60">
+                  {filteredHelpTickets.map((ticket) => {
+                    const linkedUser = ticket.userId && typeof ticket.userId === 'object' ? ticket.userId : null;
+
+                    return (
+                      <div key={ticket._id} className="activity-row p-6 transition-colors">
+                        <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <span className="font-semibold text-white text-base">{ticket.subject}</span>
+                              <span className="action-chip action-chip-slate">{ticket.ticketId}</span>
+                              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${helpStatusBadgeClass(ticket.status)}`}>
+                                {(ticket.status || 'open').replace(/_/g, ' ').toUpperCase()}
+                              </span>
+                              <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${helpSeverityBadgeClass(ticket.severity)}`}>
+                                {(ticket.severity || 'medium').toUpperCase()}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500 font-mono mb-3">
+                              <span>{ticket.name} ({ticket.email})</span>
+                              <span>{ticket.issueType} • {ticket.pageArea}</span>
+                              <span>{new Date(ticket.createdAt).toLocaleString()}</span>
+                              {linkedUser && <span>Linked user: {linkedUser.name || linkedUser.email}</span>}
+                            </div>
+
+                            <p className="text-slate-300 text-sm leading-relaxed mb-3">{ticket.description}</p>
+
+                            {ticket.stepsTried && (
+                              <div className="metadata-box rounded-lg p-3 mb-3">
+                                <h5 className="text-xs font-mono text-slate-400 mb-1 uppercase tracking-wider">Steps Already Tried</h5>
+                                <p className="text-sm text-slate-300 leading-relaxed">{ticket.stepsTried}</p>
+                              </div>
+                            )}
+
+                            {ticket.proofFiles && ticket.proofFiles.length > 0 && (
+                              <div className="metadata-box rounded-lg p-3">
+                                <h5 className="text-xs font-mono text-slate-400 mb-2 uppercase tracking-wider">Proof Files</h5>
+                                <div className="flex flex-wrap gap-2">
+                                  {ticket.proofFiles.map((file) => (
+                                    <span key={`${ticket._id}-${file.name}-${file.size}`} className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-slate-300 font-mono">
+                                      {file.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="px-6 py-3 border-t border-slate-800/60 flex items-center justify-between">
+                  <span className="text-xs font-mono text-slate-500">
+                    Showing <span className="text-fuchsia-400">{filteredHelpTickets.length}</span> of <span className="text-slate-400">{helpTickets.length}</span> help requests
+                  </span>
+                  <Button
+                    onClick={() => handleLoadHelpTickets()}
+                    variant="outline"
+                    size="sm"
+                    className="btn-outline-custom text-xs"
+                  >
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="panel-card p-16 text-center">
+                <MessageSquare className="h-12 w-12 text-slate-700 mx-auto mb-4" />
+                <p className="text-slate-400 text-sm font-mono mb-1">No help requests found</p>
+                <p className="text-slate-600 text-xs">New issues submitted from the Help page will appear here.</p>
               </div>
             )}
           </div>
