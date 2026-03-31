@@ -45,6 +45,13 @@ type DownloadType = 'py' | 'ipynb';
 
 // ── Payment config — adjust price / label as needed ──────────────────────────
 const DOWNLOAD_PRICE = 2.99;
+const UPI_APP_OPTIONS = [
+  { key: 'gpay', short: 'GPay', label: 'Google Pay', mark: 'G', accent: '#7dd3fc', bg: 'rgba(14,165,233,0.14)', border: 'rgba(56,189,248,0.32)' },
+  { key: 'phonepe', short: 'PhonePe', label: 'PhonePe', mark: 'पे', accent: '#c4b5fd', bg: 'rgba(139,92,246,0.14)', border: 'rgba(167,139,250,0.34)' },
+  { key: 'paytm', short: 'Paytm', label: 'Paytm', mark: 'tm', accent: '#67e8f9', bg: 'rgba(6,182,212,0.14)', border: 'rgba(34,211,238,0.32)' },
+  { key: 'bhim', short: 'BHIM', label: 'BHIM UPI', mark: '₹', accent: '#fcd34d', bg: 'rgba(245,158,11,0.14)', border: 'rgba(251,191,36,0.32)' },
+] as const;
+type UpiAppKey = (typeof UPI_APP_OPTIONS)[number]['key'];
 
 // ── Payment Modal ─────────────────────────────────────────────────────────────
 function PaymentModal({
@@ -58,6 +65,7 @@ function PaymentModal({
 }) {
   const [step, setStep] = useState<'details' | 'processing' | 'success'>('details');
   const [paymentMethod, setPaymentMethod] = useState<'paypal' | 'card' | 'upi'>('paypal');
+  const [selectedUpiApp, setSelectedUpiApp] = useState<UpiAppKey | ''>('');
   const [cardNum, setCardNum] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
@@ -87,8 +95,11 @@ function PaymentModal({
       if (expiry.length < 5) e.expiry = 'Enter MM/YY';
       if (cvv.length < 3) e.cvv = 'Enter 3-digit CVV';
     }
-    if (paymentMethod === 'upi' && !/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
-      e.upi = 'Enter a valid UPI ID';
+    if (paymentMethod === 'upi') {
+      if (!selectedUpiApp) e.upiApp = 'Choose a UPI app first';
+      if (!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
+        e.upi = 'Enter a valid UPI ID';
+      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -109,6 +120,7 @@ function PaymentModal({
           name,
           email,
           upiId,
+          upiApp: selectedUpiApp || undefined,
           sessionId: '',
           product: downloadType === 'py' ? 'python-script' : 'jupyter-notebook',
           modelName: fileLabel,
@@ -121,7 +133,11 @@ function PaymentModal({
         throw new Error(data.error || 'Unable to start the payment.');
       }
 
-      setStatusNote(data.instructions || 'Checkout session created successfully.');
+      setStatusNote(
+        paymentMethod === 'upi'
+          ? `Payment request created. Complete it in ${UPI_APP_OPTIONS.find((app) => app.key === selectedUpiApp)?.short ?? 'your UPI app'}.`
+          : data.instructions || 'Checkout session created successfully.',
+      );
       setStep('processing');
       setProgress(8);
 
@@ -172,12 +188,15 @@ function PaymentModal({
   const fileLabel = downloadType === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
   const ownquestaUpiId = 'ownquesta@oksbi';
   const upiApproxAmount = Number((DOWNLOAD_PRICE * 83).toFixed(2));
+  const selectedUpiAppLabel = UPI_APP_OPTIONS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI';
   const accent = paymentMethod === 'paypal' ? '#38bdf8' : paymentMethod === 'upi' ? '#34d399' : '#a87edf';
   const payAction =
     paymentMethod === 'paypal'
       ? `Pay $${DOWNLOAD_PRICE} with PayPal`
       : paymentMethod === 'upi'
-        ? `Pay ₹${upiApproxAmount.toFixed(2)} with UPI`
+        ? selectedUpiApp
+          ? `Pay ₹${upiApproxAmount.toFixed(2)} with ${selectedUpiAppLabel}`
+          : `Select app & pay ₹${upiApproxAmount.toFixed(2)}`
         : `Pay $${DOWNLOAD_PRICE} by Card`;
 
   const handleCopyUpi = async () => {
@@ -295,12 +314,68 @@ function PaymentModal({
                   </>
                 ) : (
                   <>
-                    <Field label="UPI ID" error={errors.upi}>
+                    <Field label="1. Choose UPI App" error={errors.upiApp}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                        {UPI_APP_OPTIONS.map((app) => {
+                          const active = selectedUpiApp === app.key;
+                          return (
+                            <button
+                              key={app.key}
+                              type="button"
+                              onClick={() => {
+                                setSelectedUpiApp(app.key);
+                                setErrors((prev) => ({ ...prev, upiApp: '' }));
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                width: '100%',
+                                borderRadius: 12,
+                                padding: '10px 11px',
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                border: active ? '1px solid rgba(110,231,183,0.42)' : '1px solid rgba(255,255,255,0.08)',
+                                background: active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 34,
+                                  height: 34,
+                                  borderRadius: 10,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 13,
+                                  fontWeight: 800,
+                                  color: app.accent,
+                                  background: app.bg,
+                                  border: `1px solid ${app.border}`,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {app.mark}
+                              </span>
+                              <span style={{ minWidth: 0 }}>
+                                <span style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#f8fafc' }}>{app.short}</span>
+                                <span style={{ display: 'block', fontSize: 10, color: '#8ca3b8' }}>{app.label}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </Field>
+                    <Field label="2. Enter UPI ID" error={errors.upi}>
                       <input value={upiId} onChange={e => setUpiId(e.target.value.trim())} placeholder="yourname@okaxis" style={inputStyle(!!errors.upi)} />
                     </Field>
                     <div style={{ borderRadius: 12, padding: '12px 14px', border: '1px solid rgba(52,211,153,0.25)', background: 'rgba(16,185,129,0.08)', fontSize: 12, color: '#d1fae5', lineHeight: 1.5 }}>
                       <div style={{ fontWeight: 700, color: '#86efac', marginBottom: 6 }}>Pay to Ownquesta • {ownquestaUpiId}</div>
-                      <div>Supported on GPay, PhonePe, Paytm, and BHIM for quick one-tap confirmation. Approximate UPI amount: ₹{upiApproxAmount.toFixed(2)} based on ${DOWNLOAD_PRICE} USD.</div>
+                      <div>
+                        {selectedUpiApp
+                          ? `Continue with ${selectedUpiAppLabel}. Approximate UPI amount: ₹${upiApproxAmount.toFixed(2)} based on $${DOWNLOAD_PRICE} USD.`
+                          : `First select your UPI app, then enter your UPI ID. Approximate UPI amount: ₹${upiApproxAmount.toFixed(2)} based on $${DOWNLOAD_PRICE} USD.`}
+                      </div>
                       <button
                         type="button"
                         onClick={handleCopyUpi}
@@ -342,7 +417,7 @@ function PaymentModal({
               <div style={{ fontSize: 48, marginBottom: 16, display: 'inline-block', animation: 'pmSpin 1s linear infinite' }}>⚙️</div>
               <style>{`@keyframes pmSpin { to { transform: rotate(360deg); } }`}</style>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>
-                {paymentMethod === 'paypal' ? 'Connecting to PayPal…' : paymentMethod === 'upi' ? 'Confirming UPI Payment…' : 'Processing Card Payment…'}
+                {paymentMethod === 'paypal' ? 'Connecting to PayPal…' : paymentMethod === 'upi' ? `Confirming ${selectedUpiAppLabel} Payment…` : 'Processing Card Payment…'}
               </div>
               <div style={{ fontSize: 13, color: '#64748b' }}>{statusNote || 'Please wait, do not close this window'}</div>
               <div style={{ marginTop: 20, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>

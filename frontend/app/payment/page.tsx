@@ -9,9 +9,16 @@ const DEFAULT_PRICE = 4.99;
 const UPI_EXCHANGE_RATE = 83;
 const OWNQUESTA_UPI_ID = 'ownquesta@oksbi';
 const OWNQUESTA_UPI_NAME = 'Ownquesta';
+const UPI_APP_OPTIONS = [
+  { key: 'gpay', short: 'GPay', label: 'Google Pay', mark: 'G', accent: '#7dd3fc', bg: 'rgba(14,165,233,0.14)', border: 'rgba(56,189,248,0.32)' },
+  { key: 'phonepe', short: 'PhonePe', label: 'PhonePe', mark: 'पे', accent: '#c4b5fd', bg: 'rgba(139,92,246,0.14)', border: 'rgba(167,139,250,0.34)' },
+  { key: 'paytm', short: 'Paytm', label: 'Paytm', mark: 'tm', accent: '#67e8f9', bg: 'rgba(6,182,212,0.14)', border: 'rgba(34,211,238,0.32)' },
+  { key: 'bhim', short: 'BHIM', label: 'BHIM UPI', mark: '₹', accent: '#fcd34d', bg: 'rgba(245,158,11,0.14)', border: 'rgba(251,191,36,0.32)' },
+] as const;
 
 type CheckoutStep = 'details' | 'processing' | 'success';
 type PaymentMethod = 'paypal' | 'card' | 'upi';
+type UpiAppKey = (typeof UPI_APP_OPTIONS)[number]['key'];
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -22,6 +29,7 @@ export default function PaymentPage() {
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paypal');
+  const [selectedUpiApp, setSelectedUpiApp] = useState<UpiAppKey | ''>('');
   const [upiId, setUpiId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [progress, setProgress] = useState(0);
@@ -73,6 +81,11 @@ export default function PaymentPage() {
     return `upi://pay?${params.toString()}`;
   }, [orderId, upiApproxAmount]);
 
+  const selectedUpiAppLabel = useMemo(
+    () => UPI_APP_OPTIONS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI',
+    [selectedUpiApp],
+  );
+
   const handleCopyUpi = async () => {
     if (typeof window === 'undefined' || !window.navigator?.clipboard) return;
     await window.navigator.clipboard.writeText(OWNQUESTA_UPI_ID);
@@ -80,9 +93,9 @@ export default function PaymentPage() {
     window.setTimeout(() => setCopiedUpi(false), 1500);
   };
 
-  const handleOpenUpiApp = () => {
+  const handleOpenUpiApp = (paymentLink: string = upiPaymentLink) => {
     if (typeof window === 'undefined') return;
-    window.open(upiPaymentLink, '_self');
+    window.open(paymentLink, '_self');
   };
 
   const formatCardNumber = (value: string) =>
@@ -111,8 +124,11 @@ export default function PaymentPage() {
       if (cvv.length < 3) nextErrors.cvv = 'Enter a valid CVV.';
     }
 
-    if (paymentMethod === 'upi' && !/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
-      nextErrors.upiId = 'Enter a valid UPI ID.';
+    if (paymentMethod === 'upi') {
+      if (!selectedUpiApp) nextErrors.upiApp = 'Choose a UPI app first.';
+      if (!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
+        nextErrors.upiId = 'Enter a valid UPI ID.';
+      }
     }
 
     setErrors(nextErrors);
@@ -208,6 +224,7 @@ export default function PaymentPage() {
           name,
           email,
           upiId,
+          upiApp: selectedUpiApp || undefined,
           sessionId,
           product,
           modelName,
@@ -220,12 +237,16 @@ export default function PaymentPage() {
         throw new Error(data.error || 'Unable to start the checkout.');
       }
 
-      setStatusNote(data.instructions || 'Secure checkout created successfully.');
+      setStatusNote(
+        paymentMethod === 'upi'
+          ? `Payment request created. Complete it in ${selectedUpiAppLabel}.`
+          : data.instructions || 'Secure checkout created successfully.',
+      );
 
       if (paymentMethod === 'upi' && data.payment?.upiIntentUrl && typeof window !== 'undefined') {
         const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
         if (isMobileDevice) {
-          window.open(data.payment.upiIntentUrl, '_self');
+          handleOpenUpiApp(data.payment.upiIntentUrl);
         }
       }
 
@@ -796,7 +817,43 @@ export default function PaymentPage() {
                         />
                       </Field>
 
-                      <Field label="UPI ID" error={errors.upiId}>
+                      <Field label="1. Choose your UPI app" error={errors.upiApp}>
+                        <div className="grid grid-cols-2 gap-2">
+                          {UPI_APP_OPTIONS.map((app) => {
+                            const active = selectedUpiApp === app.key;
+                            return (
+                              <button
+                                key={app.key}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedUpiApp(app.key);
+                                  setErrors((prev) => ({ ...prev, upiApp: '' }));
+                                }}
+                                className="w-full rounded-2xl p-3 text-left transition"
+                                style={{
+                                  border: active ? '1px solid rgba(110,231,183,0.45)' : '1px solid rgba(255,255,255,0.08)',
+                                  background: active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black"
+                                    style={{ background: app.bg, color: app.accent, border: `1px solid ${app.border}` }}
+                                  >
+                                    {app.mark}
+                                  </span>
+                                  <span className="min-w-0">
+                                    <span className="block text-sm font-bold text-white">{app.short}</span>
+                                    <span className="block text-[11px] text-[#8ca6c3]">{app.label}</span>
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </Field>
+
+                      <Field label="2. Enter your UPI ID" error={errors.upiId}>
                         <input
                           value={upiId}
                           onChange={(e) => setUpiId(e.target.value.trim())}
@@ -811,7 +868,11 @@ export default function PaymentPage() {
                             <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-emerald-400 mb-2">Pay to Ownquesta UPI account</p>
                             <p className="text-sm text-white font-bold">{OWNQUESTA_UPI_NAME}</p>
                             <p className="text-xs text-[#bfe8d7] mt-1">UPI ID: <span className="font-semibold text-emerald-300">{OWNQUESTA_UPI_ID}</span></p>
-                            <p className="text-xs text-[#92b8a7] mt-1">Use any supported app below to pay approximately ₹{upiApproxAmount.toFixed(2)} based on ${price.toFixed(2)} USD.</p>
+                            <p className="text-xs text-[#92b8a7] mt-1">
+                              {selectedUpiApp
+                                ? `Pay from ${selectedUpiAppLabel} for approximately ₹${upiApproxAmount.toFixed(2)} based on $${price.toFixed(2)} USD.`
+                                : `First choose your UPI app, then enter your UPI ID to pay approximately ₹${upiApproxAmount.toFixed(2)}.`}
+                            </p>
                           </div>
                           <div className="flex gap-2 flex-wrap">
                             <button
@@ -823,18 +884,13 @@ export default function PaymentPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={handleOpenUpiApp}
-                              className="px-3 py-2 rounded-xl border border-sky-300/25 bg-sky-500/10 text-sky-200 text-xs font-bold"
+                              onClick={() => handleOpenUpiApp()}
+                              disabled={!selectedUpiApp}
+                              className="px-3 py-2 rounded-xl border border-sky-300/25 bg-sky-500/10 text-sky-200 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              Open UPI App
+                              {selectedUpiApp ? `Open ${selectedUpiAppLabel}` : 'Select app first'}
                             </button>
                           </div>
-                        </div>
-                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-emerald-400 mb-3">Supported UPI apps</p>
-                        <div className="upi-row">
-                          {['GPay', 'PhonePe', 'Paytm', 'BHIM'].map((app) => (
-                            <span key={app} className="upi-chip">{app}</span>
-                          ))}
                         </div>
                       </div>
                     </div>
@@ -877,7 +933,9 @@ export default function PaymentPage() {
                         ? `Pay $${price.toFixed(2)} with PayPal`
                         : paymentMethod === 'card'
                           ? `Pay $${price.toFixed(2)} by Card`
-                          : `Pay ₹${upiApproxAmount.toFixed(2)} with UPI`}
+                          : selectedUpiApp
+                            ? `Pay ₹${upiApproxAmount.toFixed(2)} with ${selectedUpiAppLabel}`
+                            : `Select app & pay ₹${upiApproxAmount.toFixed(2)}`}
                   </button>
 
                   {(errors.general || statusNote) && (
@@ -904,7 +962,7 @@ export default function PaymentPage() {
                       ? 'Connecting to PayPal…'
                       : paymentMethod === 'card'
                         ? 'Processing card payment…'
-                        : 'Confirming UPI payment…'}
+                        : `Confirming ${selectedUpiAppLabel} payment…`}
                   </h3>
                   <p className="text-sm text-[#5a718a] leading-relaxed max-w-[280px] mx-auto">
                     {statusNote || 'Please wait while we secure your order, unlock your exports, and prepare the automatic return to the Lab Playground.'}
