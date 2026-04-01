@@ -1538,7 +1538,12 @@ export default function MLTutorialPage() {
         </div>
       </nav>
 
-      <main style={{position:"relative",zIndex:1,maxWidth:900,margin:"0 auto",padding:"44px 20px 100px"}}>
+<main style={{
+  position:"relative",
+  zIndex:1,
+  padding:"44px 20px 100px",
+  width:"100%"
+}}>
         {!selected ? (
           <>
             <div className="rise d0" style={{marginBottom:44}}>
