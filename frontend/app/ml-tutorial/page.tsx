@@ -1336,39 +1336,274 @@ const SECTIONS = [
         ),
       },
       {
-        title:"Feature Engineering — Creating Better Inputs",
-        badge:"⚡ advanced",
-        badgeColor:"#fbbf24",
-        content:(
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
-              <strong style={{color:"var(--txt0)"}}>Feature Engineering is often more impactful than choosing a better algorithm.</strong> It means creating new, more useful columns from your existing data.
+        title:"Convolutional Neural Networks (CNNs) — For Images",
+        badge:"🖼️ computer vision",
+        badgeColor:"#60a5fa",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            Regular neural networks treat images as one long list of pixels. CNNs understand that images have <strong style={{color:"var(--txt0)"}}>structure</strong> — nearby pixels are related. They use "filters" that slide across the image, finding patterns like edges, shapes, textures.
+          </p>
+          <AnalogyBox emoji="🔍" title="Like scanning with a magnifying glass" text="You don't read a book one letter at a time. You scan with your eyes, recognizing words and patterns. CNNs scan images with filters, recognizing edges, then shapes, then objects — just like your visual cortex!"/>
+          <div style={{background:"rgba(0,0,0,0.22)",border:"1px solid var(--rim1)",borderRadius:14,padding:"16px 18px"}}>
+            <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fm)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:12}}>How a CNN sees an image</p>
+            <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(96,165,250,0.1)",border:"1px solid rgba(96,165,250,0.3)"}}>
+                <div style={{fontSize:20,textAlign:"center",marginBottom:6}}>🔍</div>
+                <div style={{fontSize:10,color:"#60a5fa",fontFamily:"var(--fm)",textAlign:"center"}}>Edge Detector</div>
+                <div style={{fontSize:8,color:"var(--txt2)",fontFamily:"var(--fb)",textAlign:"center",marginTop:4}}>Finds lines & edges</div>
+              </div>
+              <span style={{fontSize:16,color:"var(--txt2)"}}>→</span>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(167,139,250,0.1)",border:"1px solid rgba(167,139,250,0.3)"}}>
+                <div style={{fontSize:20,textAlign:"center",marginBottom:6}}>📐</div>
+                <div style={{fontSize:10,color:"#a78bfa",fontFamily:"var(--fm)",textAlign:"center"}}>Shape Finder</div>
+                <div style={{fontSize:8,color:"var(--txt2)",fontFamily:"var(--fb)",textAlign:"center",marginTop:4}}>Combines edges into shapes</div>
+              </div>
+              <span style={{fontSize:16,color:"var(--txt2)"}}>→</span>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(244,114,182,0.1)",border:"1px solid rgba(244,114,182,0.3)"}}>
+                <div style={{fontSize:20,textAlign:"center",marginBottom:6}}>🏠</div>
+                <div style={{fontSize:10,color:"#f472b6",fontFamily:"var(--fm)",textAlign:"center"}}>Object Recognizer</div>
+                <div style={{fontSize:8,color:"var(--txt2)",fontFamily:"var(--fb)",textAlign:"center",marginTop:4}}>Recognizes complete objects</div>
+              </div>
+            </div>
+          </div>
+          <div className="callout callout-green">
+            <strong style={{fontSize:12,color:"#34d399"}}>Why CNNs are amazing for images:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              They automatically learn features (no manual feature engineering needed). They handle translation (object can be anywhere). They work on any image size. Used in: self-driving cars, medical imaging, photo apps.
             </p>
-            <AnalogyBox emoji="🍳" title="Like preparing ingredients before cooking" text="A recipe with bad ingredients can't be saved by a good chef. But even a simple recipe becomes great with perfect ingredients. Feature engineering = transforming raw data into perfect ingredients for your model!"/>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[
-                {before:"Date: 2024-01-15",after:'Year: 2024, Month: 1, Day: 15, DayOfWeek: "Monday", IsWeekend: 0',why:"Models can't understand dates directly. Split them into numbers!",color:"#60a5fa"},
-                {before:"Temperature: 37.2°C",after:"IsFever: 1 (because > 37)",why:"Creating binary flags from thresholds can help the model a lot.",color:"#f472b6"},
-                {before:"Height: 170cm, Weight: 70kg",after:"BMI: 24.2 (= Weight ÷ Height²)",why:"Combined features often capture patterns that separate features miss.",color:"#34d399"},
-                {before:'City: "Mumbai"',after:"City_Mumbai: 1, City_Delhi: 0, City_Chennai: 0 (One-Hot Encoding)",why:"Models need numbers, not text. One-hot encoding converts categories to 0/1 columns.",color:"#fbbf24"},
-              ].map((ex,i)=>(
-                <div key={i} style={{padding:"12px 14px",borderRadius:12,background:`${ex.color}08`,border:`1px solid ${ex.color}20`}}>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-                    <div style={{padding:"6px 10px",borderRadius:8,background:"rgba(248,113,113,0.08)"}}>
-                      <div style={{fontSize:9,color:"#f87171",fontFamily:"var(--fm)",marginBottom:3}}>BEFORE</div>
-                      <code style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fm)"}}>{ex.before}</code>
-                    </div>
-                    <div style={{padding:"6px 10px",borderRadius:8,background:"rgba(52,211,153,0.08)"}}>
-                      <div style={{fontSize:9,color:"#34d399",fontFamily:"var(--fm)",marginBottom:3}}>AFTER</div>
-                      <code style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fm)",lineHeight:1.6}}>{ex.after}</code>
-                    </div>
-                  </div>
-                  <div style={{fontSize:10,color:ex.color,fontFamily:"var(--fb)",fontStyle:"italic"}}>Why: {ex.why}</div>
+          </div>
+        </div>),
+      },
+      {
+        title:"Recurrent Neural Networks (RNNs) — For Sequences",
+        badge:"🔄 time series",
+        badgeColor:"#f472b6",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            Regular neural networks assume all inputs are independent. RNNs remember what came before — perfect for <strong style={{color:"var(--txt0)"}}>sequences</strong> like text, time series, or music. Each step's output becomes input for the next step.
+          </p>
+          <AnalogyBox emoji="📖" title="Reading a sentence word by word" text="You don't understand each word in isolation. 'The cat sat on the...' — you remember 'cat' when you see 'sat', building understanding over time. RNNs do the same — they maintain a 'memory' of previous inputs."/>
+          <div style={{background:"rgba(0,0,0,0.22)",border:"1px solid var(--rim1)",borderRadius:14,padding:"16px 18px"}}>
+            <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fm)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:12}}>RNN processing a sequence</p>
+            <div style={{display:"flex",gap:8,alignItems:"center",overflowX:"auto",paddingBottom:8}}>
+              {["The","cat","sat","on","the","mat"].map((word,i)=>(
+                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,minWidth:60}}>
+                  <div style={{padding:"8px 10px",borderRadius:8,background:`rgba(244,114,182,${0.1 + i*0.05})`,border:"1px solid rgba(244,114,182,0.3)",fontSize:11,color:"var(--txt0)",fontFamily:"var(--fm)"}}>{word}</div>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:"#f472b6",opacity:0.7}}/>
+                  <div style={{fontSize:8,color:"var(--txt2)",fontFamily:"var(--fm)",textAlign:"center"}}>t={i+1}</div>
                 </div>
               ))}
             </div>
+            <div style={{marginTop:12,padding:"8px 12px",borderRadius:8,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+              <div style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)"}}>
+                <strong>Memory flows:</strong> Each step combines current input with previous memory. The network learns what to remember and what to forget.
+              </div>
+            </div>
           </div>
-        ),
+          <div className="callout callout-amber">
+            <strong style={{fontSize:12,color:"#fbbf24"}}>LSTM = Long Short-Term Memory:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              Basic RNNs forget quickly. LSTMs have "gates" that control what to keep in memory. They can remember patterns from 1000 steps ago! Used for: language translation, stock prediction, music generation.
+            </p>
+          </div>
+        </div>),
+      },
+      {
+        title:"Transformers & Attention — Modern AI Foundation",
+        badge:"⚡ attention mechanism",
+        badgeColor:"#34d399",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            Transformers revolutionized AI. Instead of processing sequences step-by-step like RNNs, they look at <strong style={{color:"var(--txt0)"}}>everything at once</strong> and learn which parts are most important to focus on (attention).
+          </p>
+          <AnalogyBox emoji="👀" title="Reading with perfect memory" text="When translating 'I saw a cat on the mat', you don't process word-by-word. You instantly see all words and focus on relationships: 'saw' connects to 'I' and 'cat', 'on' connects 'cat' and 'mat'. Attention lets the model do this instantly!"/>
+          <div style={{background:"rgba(0,0,0,0.22)",border:"1px solid var(--rim1)",borderRadius:14,padding:"16px 18px"}}>
+            <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fm)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:12}}>Attention in action</p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#34d399",fontFamily:"var(--fb)",marginBottom:8}}>Input Sentence</div>
+                <div style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fm)",lineHeight:1.6}}>
+                  "The cat sat on the mat"
+                </div>
+              </div>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.3)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#6366f1",fontFamily:"var(--fb)",marginBottom:8}}>Attention Weights</div>
+                <div style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fm)",lineHeight:1.6}}>
+                  cat↔sat: 0.9<br/>cat↔mat: 0.7<br/>on↔mat: 0.8
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="callout callout-blue">
+            <strong style={{fontSize:12,color:"#60a5fa"}}>Why transformers are game-changing:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              Parallel processing (much faster training). Long-range dependencies (remembers distant context). Foundation for: GPT, BERT, DALL-E, all modern AI. Attention is what lets AI understand context and relationships.
+            </p>
+          </div>
+        </div>),
+      },
+      {
+        title:"Generative Adversarial Networks (GANs) — Creating New Data",
+        badge:"🎨 generative AI",
+        badgeColor:"#a78bfa",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            GANs have two networks fighting each other: a <strong style={{color:"var(--txt0)"}}>Generator</strong> that creates fake data, and a <strong style={{color:"var(--txt0)"}}>Discriminator</strong> that tries to tell real from fake. They improve until the fake is indistinguishable from real!
+          </p>
+          <AnalogyBox emoji="🎭" title="Art forger vs art expert" text="A forger creates fake paintings. An expert tries to spot fakes. They both get better — forger makes more convincing fakes, expert gets better at detecting. Eventually, the forger creates masterpieces that fool everyone!"/>
+          <div style={{background:"rgba(0,0,0,0.22)",border:"1px solid var(--rim1)",borderRadius:14,padding:"16px 18px"}}>
+            <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fm)",letterSpacing:"0.06em",textTransform:"uppercase",marginBottom:12}}>The GAN training loop</p>
+            <div style={{display:"flex",gap:12,alignItems:"center",flexWrap:"wrap"}}>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",textAlign:"center"}}>
+                <div style={{fontSize:20,marginBottom:6}}>🎨</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#34d399",fontFamily:"var(--fb)"}}>Generator</div>
+                <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fb)",marginTop:4}}>Creates fake images</div>
+              </div>
+              <div style={{fontSize:16,color:"var(--txt1)"}}>⚔️</div>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",textAlign:"center"}}>
+                <div style={{fontSize:20,marginBottom:6}}>🔍</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#f87171",fontFamily:"var(--fb)"}}>Discriminator</div>
+                <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fb)",marginTop:4}}>Tells real from fake</div>
+              </div>
+              <div style={{fontSize:16,color:"var(--txt1)"}}>→</div>
+              <div style={{padding:"12px",borderRadius:10,background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.3)",textAlign:"center"}}>
+                <div style={{fontSize:20,marginBottom:6}}>✨</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fb)"}}>Result</div>
+                <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fb)",marginTop:4}}>Perfect fakes!</div>
+              </div>
+            </div>
+          </div>
+          <div className="callout callout-purple">
+            <strong style={{fontSize:12,color:"#a78bfa"}}>GAN applications:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              Deepfakes, photo enhancement, style transfer (turn photo into painting), drug discovery (generate new molecules), super-resolution (make blurry images sharp).
+            </p>
+          </div>
+        </div>),
+      },
+      {
+        title:"Transfer Learning — Reuse Pre-trained Models",
+        badge:"🔄 efficiency",
+        badgeColor:"#fbbf24",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            Training models from scratch takes huge datasets and weeks of computing. <strong style={{color:"var(--txt0)"}}>Transfer learning</strong> takes a model trained on millions of images (like ImageNet) and fine-tunes it for your specific task with just hundreds of examples.
+          </p>
+          <AnalogyBox emoji="📚" title="Learning from textbooks vs learning from scratch" text="Instead of learning every subject from basic principles, you read textbooks that contain distilled knowledge from experts. Transfer learning = using a 'textbook' of features learned from huge datasets, then adapting it to your specific problem."/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[
+              {title:"Without Transfer Learning",color:"#f87171",items:["Train from random weights","Need 100k+ images","Takes days/weeks","Expensive compute"]},
+              {title:"With Transfer Learning",color:"#34d399",items:["Start from pre-trained weights","Need 100-1000 images","Takes hours","Cheap & fast"]},
+            ].map((col,i)=>(
+              <div key={i} style={{padding:"12px 14px",borderRadius:12,background:`${col.color}08`,border:`1px solid ${col.color}20`}}>
+                <div style={{fontSize:11,fontWeight:700,color:col.color,fontFamily:"var(--fb)",marginBottom:8}}>{col.title}</div>
+                {col.items.map((item,j)=>(
+                  <div key={j} style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:4}}>• {item}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-green">
+            <strong style={{fontSize:12,color:"#34d399"}}>How to do transfer learning:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              Freeze early layers (they have general features like edges). Train only the last few layers on your data. This adapts the model to your specific task while keeping the powerful general features.
+            </p>
+          </div>
+        </div>),
+      },
+      {
+        title:"Model Interpretability — Understanding Predictions",
+        badge:"🔍 explainability",
+        badgeColor:"#2dd4bf",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            Neural networks are "black boxes" — they make great predictions but you don't know why. <strong style={{color:"var(--txt0)"}}>Interpretability techniques</strong> help explain what the model is looking at and why it makes certain decisions.
+          </p>
+          <AnalogyBox emoji="🕵️" title="Getting inside the model's head" text="Your doctor says 'you have a cold'. You want to know WHY — what symptoms led to that diagnosis? Interpretability tools show you which pixels or features the model focused on for its prediction."/>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {name:"SHAP Values",color:"#60a5fa",desc:"Shows how much each feature contributes to the prediction. Like: 'Age +15 years increased risk by 20%'"},
+              {name:"LIME",color:"#f472b6",desc:"Creates simple explanations for complex models. Explains individual predictions."},
+              {name:"Feature Importance",color:"#34d399",desc:"Ranks which features the model considers most important overall."},
+              {name:"Saliency Maps",color:"#fbbf24",desc:"For images: highlights which pixels were most important for the classification."},
+            ].map((tool,i)=>(
+              <div key={i} style={{padding:"10px 12px",borderRadius:10,background:`${tool.color}08`,border:`1px solid ${tool.color}22`}}>
+                <div style={{fontSize:11,fontWeight:700,color:tool.color,fontFamily:"var(--fb)",marginBottom:4}}>{tool.name}</div>
+                <div style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6}}>{tool.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-blue">
+            <strong style={{fontSize:12,color:"#60a5fa"}}>Why interpretability matters:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              Trust (doctors won't use AI they can't understand), debugging (find why model fails), fairness (detect bias), regulation (GDPR requires explanations).
+            </p>
+          </div>
+        </div>),
+      },
+      {
+        title:"Ethics in Machine Learning",
+        badge:"⚖️ responsible AI",
+        badgeColor:"#6366f1",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            ML can be incredibly powerful, but it can also cause harm if not used responsibly. <strong style={{color:"var(--txt0)"}}>AI Ethics</strong> is about ensuring ML benefits everyone and doesn't create unfairness or harm.
+          </p>
+          <AnalogyBox emoji="⚖️" title="AI as a superpower" text="Superpowers are amazing, but they can be dangerous if misused. Spider-Man's webs can save lives or cause accidents. ML is a superpower — we need ethical guidelines to ensure it's used for good, not harm."/>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {[
+              {issue:"Bias & Fairness",emoji:"⚖️",color:"#f87171",desc:"Models can inherit biases from training data. A resume screener might unfairly reject women if trained on mostly male hires.",fix:"Audit datasets for bias, use fairness-aware algorithms, test on diverse groups."},
+              {issue:"Privacy",emoji:"🔒",color:"#fbbf24",desc:"ML often needs personal data. But collecting too much can violate privacy.",fix:"Use federated learning (train on device without sending data), differential privacy (add noise to protect individuals)."},
+              {issue:"Transparency",emoji:"👀",color:"#34d399",desc:"Black box models make decisions we can't explain. This is problematic in healthcare or criminal justice.",fix:"Use interpretable models when possible, develop explainability tools."},
+              {issue:"Job Displacement",emoji:"👷",color:"#a78bfa",desc:"Automation can eliminate jobs. Self-driving trucks could displace millions of drivers.",fix:"Reskill workers, create new job types, implement transition policies."},
+              {issue:"Misinformation",emoji:"📰",color:"#f472b6",desc:"Deepfakes and AI-generated content can spread false information at scale.",fix:"Watermark AI content, develop detection tools, educate about AI capabilities."},
+            ].map((eth,i)=>(
+              <div key={i} style={{padding:"12px 14px",borderRadius:12,background:`${eth.color}08`,border:`1px solid ${eth.color}22`}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <span style={{fontSize:18}}>{eth.emoji}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:eth.color,fontFamily:"var(--fb)"}}>{eth.issue}</span>
+                </div>
+                <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginBottom:6}}>{eth.desc}</p>
+                <div style={{fontSize:11,color:eth.color,fontFamily:"var(--fb)",fontStyle:"italic"}}>Solution: {eth.fix}</div>
+              </div>
+            ))}
+          </div>
+        </div>),
+      },
+      {
+        title:"MLOps — ML in Production",
+        badge:"🔧 engineering",
+        badgeColor:"#2dd4bf",
+        content:(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+            <strong style={{color:"var(--txt0)"}}>MLOps</strong> (Machine Learning Operations) is like DevOps but for ML models. It handles the entire ML lifecycle: from development to deployment to monitoring in production.
+          </p>
+          <AnalogyBox emoji="🏭" title="ML factory assembly line" text="Building one model is like making one car by hand. MLOps is setting up a factory that can build, test, and deploy new models automatically. It ensures quality, reliability, and speed at scale."/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[
+              {phase:"Development",color:"#60a5fa",items:["Version control for data & code","Automated testing","Experiment tracking","Model registry"]},
+              {phase:"Deployment",color:"#f472b6",items:["CI/CD pipelines","Model serving (APIs)","A/B testing","Rollback strategies"]},
+              {phase:"Monitoring",color:"#34d399",items:["Performance metrics","Data drift detection","Model retraining","Alerting systems"]},
+              {phase:"Governance",color:"#fbbf24",items:["Model documentation","Audit trails","Compliance","Security"]},
+            ].map((p,i)=>(
+              <div key={i} style={{padding:"12px 14px",borderRadius:12,background:`${p.color}08`,border:`1px solid ${p.color}20`}}>
+                <div style={{fontSize:11,fontWeight:700,color:p.color,fontFamily:"var(--fb)",marginBottom:8}}>{p.phase}</div>
+                {p.items.map((item,j)=>(
+                  <div key={j} style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:4}}>• {item}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="callout callout-green">
+            <strong style={{fontSize:12,color:"#34d399"}}>Popular MLOps tools:</strong>
+            <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+              <strong>MLflow:</strong> Experiment tracking & model registry<br/>
+              <strong>Kubeflow:</strong> ML pipelines on Kubernetes<br/>
+              <strong>DVC:</strong> Data version control<br/>
+              <strong>Weights & Biases:</strong> Experiment tracking & visualization
+            </p>
+          </div>
+        </div>),
       },
     ],
   },
@@ -1499,12 +1734,12 @@ function Accordion({topic,isOpen,onToggle,color}:any) {
 export default function MLTutorialPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<string|null>(null);
-  const [open, setOpen] = useState<Set<number>>(new Set([0]));
+  const [open, setOpen] = useState<Set<number>>(new Set(Array.from({length: SECTIONS.reduce((a,s)=>a+s.topics.length,0)}, (_,i)=>i))); // All open by default
 
   const section = selected ? SECTIONS.find(s=>s.id===selected) : null;
   const idx = SECTIONS.findIndex(s=>s.id===selected);
 
-  const goTo = (id:string) => { setSelected(id); setOpen(new Set([0])); window.scrollTo({top:0,behavior:"smooth"}); };
+  const goTo = (id:string) => { setSelected(id); setOpen(new Set(Array.from({length: SECTIONS.find(s=>s.id===id)?.topics.length || 0}, (_,i)=>i))); window.scrollTo({top:0,behavior:"smooth"}); };
   const toggle = (i:number) => setOpen(p=>{ const n=new Set(p); n.has(i)?n.delete(i):n.add(i); return n; });
 
   return (
@@ -1530,7 +1765,7 @@ export default function MLTutorialPage() {
           <span style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",padding:"2px 7px",borderRadius:100,background:"rgba(255,255,255,0.04)",border:"1px solid var(--rim1)"}}>beginner friendly</span>
         </div>
         <div style={{display:"flex",gap:7,alignItems:"center"}}>
-          {selected&&<button onClick={()=>{setSelected(null);setOpen(new Set([0]))}} className="nav-pill">
+          {selected&&<button onClick={()=>{setSelected(null);setOpen(new Set(Array.from({length: SECTIONS.reduce((a,s)=>a+s.topics.length,0)}, (_,i)=>i))); window.scrollTo({top:0,behavior:"smooth"});}} className="nav-pill">
             <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
             All Topics
           </button>}
@@ -1540,96 +1775,92 @@ export default function MLTutorialPage() {
 
       <main style={{position:"relative",zIndex:1,padding:"44px 20px 100px",width:"100%"}}>
         {!selected ? (
-          <>
-            <div className="rise d0" style={{marginBottom:44}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <span style={{width:6,height:6,borderRadius:"50%",background:"#a78bfa",boxShadow:"0 0 10px rgba(167,139,250,0.7)",display:"inline-block",animation:"pulse-dot 2s ease infinite"}}/>
-                <span style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"var(--txt2)"}}>Complete guide · Basic to Advanced</span>
+          <div style={{display:'grid',gridTemplateColumns:'250px 1fr',gap:18,alignItems:'start'}}>
+            <aside style={{position:'sticky',top:78,background:'rgba(4,7,14,0.85)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'12px 10px',height:'fit-content',maxHeight:'80vh',overflowY:'auto'}}>
+              <div style={{fontFamily:'var(--fd)',fontSize:12,fontWeight:700,color:'var(--txt0)',marginBottom:10}}>Sections</div>
+              {SECTIONS.map((s)=>(
+                <button key={s.id} onClick={()=>goTo(s.id)} style={{display:'block',width:'100%',textAlign:'left',padding:'8px 10px',borderRadius:8,border:'none',background:selected===s.id ? 'rgba(99,102,241,0.2)' : 'transparent',color:selected===s.id ? '#fff' : 'var(--txt1)',cursor:'pointer',marginBottom:4,fontFamily:'var(--fb)',fontSize:11}}>
+                  {s.icon} {s.title}
+                </button>
+              ))}
+            </aside>
+            <div>
+              <div className="rise d0" style={{marginBottom:44}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:"#a78bfa",boxShadow:"0 0 10px rgba(167,139,250,0.7)",display:"inline-block",animation:"pulse-dot 2s ease infinite"}}/>
+                  <span style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"var(--txt2)"}}>Complete guide · Basic to Advanced</span>
+                </div>
+                <h1 style={{fontFamily:"var(--fd)",fontSize:clamp(28,5,40),fontWeight:800,letterSpacing:"-0.04em",lineHeight:1.1,color:"var(--txt0)",marginBottom:12}}>
+                  Machine Learning<br/>
+                  <span style={{background:"linear-gradient(120deg,#818cf8 0%,#c084fc 40%,#f472b6 80%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Explained Simply</span>
+                </h1>
+                <p style={{fontFamily:"var(--fb)",fontSize:14,color:"var(--txt2)",lineHeight:1.8,maxWidth:480,marginBottom:20}}>
+                  Every concept explained like you're in 5th grade — with interactive diagrams, simple analogies, and no confusing jargon. From what ML is, all the way to deploying models.
+                </p>
+                <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                  {[{icon:"🎯",label:"Simple English"},{icon:"📊",label:"Live Diagrams"},{icon:"🧠",label:"Quick Quizzes"},{icon:"🧮",label:"Math Explained"}].map(b=>(
+                    <div key={b.label} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:100,background:"rgba(255,255,255,0.04)",border:"1px solid var(--rim1)",fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)"}}>
+                      <span style={{fontSize:12}}>{b.icon}</span>{b.label}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h1 style={{fontFamily:"var(--fd)",fontSize:clamp(28,5,40),fontWeight:800,letterSpacing:"-0.04em",lineHeight:1.1,color:"var(--txt0)",marginBottom:12}}>
-                Machine Learning<br/>
-                <span style={{background:"linear-gradient(120deg,#818cf8 0%,#c084fc 40%,#f472b6 80%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Explained Simply</span>
-              </h1>
-              <p style={{fontFamily:"var(--fb)",fontSize:14,color:"var(--txt2)",lineHeight:1.8,maxWidth:480,marginBottom:20}}>
-                Every concept explained like you're in 5th grade — with interactive diagrams, simple analogies, and no confusing jargon. From what ML is, all the way to deploying models.
-              </p>
-              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-                {[{icon:"🎯",label:"Simple English"},{icon:"📊",label:"Live Diagrams"},{icon:"🧠",label:"Quick Quizzes"},{icon:"🧮",label:"Math Explained"}].map(b=>(
-                  <div key={b.label} style={{display:"flex",alignItems:"center",gap:6,padding:"6px 12px",borderRadius:100,background:"rgba(255,255,255,0.04)",border:"1px solid var(--rim1)",fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)"}}>
-                    <span style={{fontSize:12}}>{b.icon}</span>{b.label}
-                  </div>
+              <div className="sec-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
+                {SECTIONS.map((s,i)=>(
+                  <SectionCard key={s.id} section={s} onClick={()=>goTo(s.id)} delay={i*65}/>
                 ))}
               </div>
             </div>
-            <div className="sec-grid" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:12}}>
-              {SECTIONS.map((s,i)=>(
-                <SectionCard key={s.id} section={s} onClick={()=>goTo(s.id)} delay={i*65}/>
-              ))}
-            </div>
-          </>
+          </div>
         ) : (
-          <>
-            {/* section header */}
-            <div className="rise d0" style={{marginBottom:28}}>
-              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-                <div style={{width:52,height:52,borderRadius:15,flexShrink:0,background:`linear-gradient(140deg,${section?.color}16,${section?.color}04)`,border:`1px solid ${section?.color}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,boxShadow:`0 0 20px ${section?.color}14`}}>{section?.icon}</div>
-                <div>
-                  <h1 style={{fontFamily:"var(--fd)",fontSize:26,fontWeight:800,color:"var(--txt0)",letterSpacing:"-0.03em",lineHeight:1.1}}>{section?.title}</h1>
-                  <p style={{fontFamily:"var(--fb)",fontSize:11,color:"var(--txt2)",marginTop:3}}>{section?.tagline}</p>
+          <div style={{display: 'grid', gridTemplateColumns: '250px 1fr', gap: 18, alignItems: 'start', padding: 20}}>
+            <aside style={{position:'sticky',top:78,background:'rgba(4,7,14,0.85)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'12px 10px',height:'fit-content',maxHeight:'80vh',overflowY:'auto'}}>
+              <div style={{fontFamily:'var(--fd)',fontSize:12,fontWeight:700,color:'var(--txt0)',marginBottom:10}}>Sections</div>
+              {SECTIONS.map((s)=>(
+                <button key={s.id} onClick={()=>goTo(s.id)} style={{display:'block',width:'100%',textAlign:'left',padding:'8px 10px',borderRadius:8,border:'none',background:selected===s.id ? 'rgba(99,102,241,0.2)' : 'transparent',color:selected===s.id ? '#fff' : 'var(--txt1)',cursor:'pointer',marginBottom:4,fontFamily:'var(--fb)',fontSize:11}}>
+                  {s.icon} {s.title}
+                </button>
+              ))}
+            </aside>
+            <div>
+              <h2 style={{fontFamily:'var(--fd)',fontSize:20,color:'var(--txt0)',marginBottom:10}}>{section?.title}</h2>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {section?.topics.map((t,i)=>(
+                  <Accordion key={i} topic={t} isOpen={open.has(i)} onToggle={()=>toggle(i)} color={section?.color} />
+                ))}
+              </div>
+              {/* progress dots */}
+              <div style={{display:"flex",gap:5,marginBottom:24}}>
+                {SECTIONS.map((_,i)=>(
+                  <div key={i} onClick={()=>goTo(SECTIONS[i].id)} style={{width:i===idx?18:6,height:6,borderRadius:100,background:i===idx?"#6366f1":i<idx?"rgba(99,102,241,0.35)":"rgba(255,255,255,0.06)",transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",cursor:"pointer"}}/>
+                ))}
+              </div>
+              {/* CTA */}
+              <div className="rise d2" style={{marginTop:48,padding:"26px 28px",borderRadius:"var(--r-xl)",background:"linear-gradient(145deg,rgba(99,102,241,0.09),rgba(167,139,250,0.05))",border:"1px solid rgba(99,102,241,0.18)"}}>
+                <div style={{fontSize:18,marginBottom:8}}>🎉</div>
+                <h3 style={{fontFamily:"var(--fd)",fontSize:17,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>
+                  {idx===SECTIONS.length-1?"You've completed the full guide! 🏆":"Ready to try it yourself?"}
+                </h3>
+                <p style={{fontFamily:"var(--fb)",fontSize:13,color:"var(--txt1)",lineHeight:1.75,marginBottom:18}}>
+                  {idx===SECTIONS.length-1
+                    ?"You now know ML from basics to deployment! Go build something amazing — upload a dataset to the dashboard and create your first real ML model."
+                    :"Upload any dataset to the dashboard and see all these concepts in action — data cleaning, model training, evaluation — all automatically!"}
+                </p>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                  <button onClick={()=>router.push("/dashboard")} style={{display:"inline-flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#4f46e5,#6366f1,#818cf8)",color:"#fff",border:"none",cursor:"pointer",fontFamily:"var(--fb)",fontWeight:700,borderRadius:11,padding:"10px 20px",fontSize:12,boxShadow:"0 4px 18px rgba(99,102,241,0.3)",transition:"all 0.2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(99,102,241,0.45)"}}
+                    onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 4px 18px rgba(99,102,241,0.3)"}}>
+                    🚀 Start a project
+                  </button>
+                  {idx<SECTIONS.length-1&&<button onClick={()=>goTo(SECTIONS[idx+1].id)} style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.05)",color:"var(--txt0)",border:"1px solid var(--rim2)",cursor:"pointer",fontFamily:"var(--fb)",fontWeight:600,borderRadius:11,padding:"10px 18px",fontSize:12,transition:"all 0.2s"}}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.09)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}>
+                    Next: {SECTIONS[idx+1].title} →
+                  </button>}
                 </div>
               </div>
-              {/* prev/next */}
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {idx>0&&<button onClick={()=>goTo(SECTIONS[idx-1].id)} className="nav-pill">
-                  <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-                  {SECTIONS[idx-1].title}
-                </button>}
-                {idx<SECTIONS.length-1&&<button onClick={()=>goTo(SECTIONS[idx+1].id)} className="nav-pill">
-                  {SECTIONS[idx+1].title}
-                  <svg width="8" height="8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </button>}
-              </div>
-              <div style={{height:2,borderRadius:100,background:`linear-gradient(90deg,${section?.color}70,${section?.color}18,transparent)`,width:"30%",marginTop:12}}/>
             </div>
-
-            {/* progress dots */}
-            <div style={{display:"flex",gap:5,marginBottom:24}}>
-              {SECTIONS.map((_,i)=>(
-                <div key={i} onClick={()=>goTo(SECTIONS[i].id)} style={{width:i===idx?18:6,height:6,borderRadius:100,background:i===idx?"#6366f1":i<idx?"rgba(99,102,241,0.35)":"rgba(255,255,255,0.06)",transition:"all 0.3s cubic-bezier(0.34,1.56,0.64,1)",cursor:"pointer"}}/>
-              ))}
-            </div>
-
-            <div className="rise d1">
-              {section?.topics.map((t,i)=>(
-                <Accordion key={i} topic={t} isOpen={open.has(i)} onToggle={()=>toggle(i)} color={section.color}/>
-              ))}
-            </div>
-
-            {/* CTA */}
-            <div className="rise d2" style={{marginTop:48,padding:"26px 28px",borderRadius:"var(--r-xl)",background:"linear-gradient(145deg,rgba(99,102,241,0.09),rgba(167,139,250,0.05))",border:"1px solid rgba(99,102,241,0.18)"}}>
-              <div style={{fontSize:18,marginBottom:8}}>🎉</div>
-              <h3 style={{fontFamily:"var(--fd)",fontSize:17,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>
-                {idx===SECTIONS.length-1?"You've completed the full guide! 🏆":"Ready to try it yourself?"}
-              </h3>
-              <p style={{fontFamily:"var(--fb)",fontSize:13,color:"var(--txt1)",lineHeight:1.75,marginBottom:18}}>
-                {idx===SECTIONS.length-1
-                  ?"You now know ML from basics to deployment! Go build something amazing — upload a dataset to the dashboard and create your first real ML model."
-                  :"Upload any dataset to the dashboard and see all these concepts in action — data cleaning, model training, evaluation — all automatically!"}
-              </p>
-              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                <button onClick={()=>router.push("/dashboard")} style={{display:"inline-flex",alignItems:"center",gap:7,background:"linear-gradient(135deg,#4f46e5,#6366f1,#818cf8)",color:"#fff",border:"none",cursor:"pointer",fontFamily:"var(--fb)",fontWeight:700,borderRadius:11,padding:"10px 20px",fontSize:12,boxShadow:"0 4px 18px rgba(99,102,241,0.3)",transition:"all 0.2s"}}
-                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 10px 28px rgba(99,102,241,0.45)"}}
-                  onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 4px 18px rgba(99,102,241,0.3)"}}>
-                  🚀 Start a project
-                </button>
-                {idx<SECTIONS.length-1&&<button onClick={()=>goTo(SECTIONS[idx+1].id)} style={{display:"inline-flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.05)",color:"var(--txt0)",border:"1px solid var(--rim2)",cursor:"pointer",fontFamily:"var(--fb)",fontWeight:600,borderRadius:11,padding:"10px 18px",fontSize:12,transition:"all 0.2s"}}
-                  onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.09)"}
-                  onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.05)"}>
-                  Next: {SECTIONS[idx+1].title} →
-                </button>}
-              </div>
-            </div>
-          </>
+          </div>
         )}
       </main>
     </div>

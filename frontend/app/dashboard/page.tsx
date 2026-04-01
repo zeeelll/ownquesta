@@ -1337,8 +1337,33 @@ export default function DashboardPage() {
         position:"relative", zIndex:1,
         maxWidth:1100, margin:"0 auto",
         padding:"48px 24px 96px",
-        display:"flex", flexDirection:"column", gap:40,
+        display: 'grid', gridTemplateColumns: '250px 1fr', gap: 18, alignItems: 'start',
       }}>
+        {/* Sidebar */}
+        <aside style={{
+          position: 'sticky', top: 78, background: 'rgba(4,7,14,0.85)',
+          border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14,
+          padding: '12px 10px', height: 'fit-content', maxHeight: '80vh', overflowY: 'auto'
+        }}>
+          <div style={{fontFamily: 'var(--fd)', fontSize: 12, fontWeight: 700, color: 'var(--txt0)', marginBottom: 10}}>Dashboard</div>
+          {[
+            { id: 'overview', label: 'Overview', icon: '📊' },
+            { id: 'projects', label: 'Projects', icon: '📁' },
+            { id: 'activity', label: 'Activity', icon: '📈' },
+          ].map((item) => (
+            <button key={item.id} style={{
+              display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px',
+              borderRadius: 8, border: 'none', background: 'transparent',
+              color: 'var(--txt1)', cursor: 'pointer', marginBottom: 4,
+              fontFamily: 'var(--fb)', fontSize: 11
+            }}>
+              {item.icon} {item.label}
+            </button>
+          ))}
+        </aside>
+
+        {/* Main Content */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
 
         {/* ── Page header ── */}
         <div className="page-head rise d0" style={{
@@ -1647,6 +1672,7 @@ export default function DashboardPage() {
             </div>
           </section>
         )}
+        </div>
       </main>
 
       {deleteTarget && (
