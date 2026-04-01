@@ -1255,7 +1255,7 @@ const SECTIONS = [
             <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
               Regularization is like adding a <strong style={{color:"var(--txt0)"}}>penalty</strong> to a model that becomes too complex. If the model tries to memorize every training example, we punish it — making it prefer simpler, more general solutions.
             </p>
-            <AnalogyBox emoji="⚖️" title="The complexity tax" text='Imagine a student who memorizes every exact question from past exams. They do great on exams they\'ve seen but fail on new questions. Regularization is like telling the student: "You\'ll lose points for memorizing specific answers. You must understand the concepts generally!"'/>
+            <AnalogyBox emoji="⚖️" title="The complexity tax" text='Imagine a student who memorizes every exact question from past exams. They do great on exams they have seen but fail on new questions. Regularization is like telling the student: "You will lose points for memorizing specific answers. You must understand the concepts generally!"'/>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[
                 {
