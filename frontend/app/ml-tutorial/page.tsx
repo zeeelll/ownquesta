@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
 const STYLES = `
@@ -1735,11 +1735,42 @@ export default function MLTutorialPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<string|null>(null);
   const [open, setOpen] = useState<Set<number>>(new Set(Array.from({length: SECTIONS.reduce((a,s)=>a+s.topics.length,0)}, (_,i)=>i))); // All open by default
+  const [sectionSearch, setSectionSearch] = useState("");
+  const [topicSearch, setTopicSearch] = useState("");
+
+  const filteredSections = useMemo(() => {
+    const term = sectionSearch.trim().toLowerCase();
+    if (!term) return SECTIONS;
+    return SECTIONS.filter(sec =>
+      sec.title.toLowerCase().includes(term)
+      || sec.tagline.toLowerCase().includes(term)
+      || sec.topics.some(top =>
+        top.title.toLowerCase().includes(term)
+        || (top.badge || "").toLowerCase().includes(term)
+      )
+    );
+  }, [sectionSearch]);
 
   const section = selected ? SECTIONS.find(s=>s.id===selected) : null;
   const idx = SECTIONS.findIndex(s=>s.id===selected);
 
-  const goTo = (id:string) => { setSelected(id); setOpen(new Set(Array.from({length: SECTIONS.find(s=>s.id===id)?.topics.length || 0}, (_,i)=>i))); window.scrollTo({top:0,behavior:"smooth"}); };
+  const selectedTopics = useMemo(() => {
+    if (!section) return [];
+    const term = topicSearch.trim().toLowerCase();
+    if (!term) return section.topics;
+    return section.topics.filter(top =>
+      top.title.toLowerCase().includes(term)
+      || top.tagline?.toLowerCase().includes(term)
+      || top.badge?.toLowerCase().includes(term)
+    );
+  }, [section, topicSearch]);
+
+  const goTo = (id:string) => {
+    setSelected(id);
+    setOpen(new Set(Array.from({length: SECTIONS.find(s=>s.id===id)?.topics.length || 0}, (_,i)=>i)));
+    setTopicSearch("");
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
   const toggle = (i:number) => setOpen(p=>{ const n=new Set(p); n.has(i)?n.delete(i):n.add(i); return n; });
 
   return (
@@ -1777,8 +1808,11 @@ export default function MLTutorialPage() {
         {!selected ? (
           <div style={{display:'grid',gridTemplateColumns:'250px 1fr',gap:18,alignItems:'start'}}>
             <aside style={{position:'sticky',top:78,background:'rgba(4,7,14,0.85)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:14,padding:'12px 10px',height:'fit-content',maxHeight:'80vh',overflowY:'auto'}}>
-              <div style={{fontFamily:'var(--fd)',fontSize:12,fontWeight:700,color:'var(--txt0)',marginBottom:10}}>Sections</div>
-              {SECTIONS.map((s)=>(
+              <div style={{fontFamily:'var(--fd)',fontSize:12,fontWeight:700,color:'var(--txt0)',marginBottom:8}}>Sections</div>
+              <input value={sectionSearch} onChange={e=>setSectionSearch(e.target.value)} placeholder="Search sections..." style={{width:'100%',padding:'7px 10px',marginBottom:10,borderRadius:8,border:'1px solid var(--rim1)',background:'rgba(255,255,255,0.03)',color:'var(--txt0)',fontFamily:'var(--fb)',fontSize:11}} aria-label="Search sections" />
+              {filteredSections.length === 0 ? (
+                <div style={{fontFamily:'var(--fb)',fontSize:11,color:'var(--txt2)',padding:'8px',borderRadius:8,background:'rgba(255,255,255,0.03)'}}>No sections match "{sectionSearch}"</div>
+              ) : filteredSections.map((s)=>(
                 <button key={s.id} onClick={()=>goTo(s.id)} style={{display:'block',width:'100%',textAlign:'left',padding:'8px 10px',borderRadius:8,border:'none',background:selected===s.id ? 'rgba(99,102,241,0.2)' : 'transparent',color:selected===s.id ? '#fff' : 'var(--txt1)',cursor:'pointer',marginBottom:4,fontFamily:'var(--fb)',fontSize:11}}>
                   {s.icon} {s.title}
                 </button>
