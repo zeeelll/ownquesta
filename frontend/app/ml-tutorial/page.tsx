@@ -609,10 +609,10 @@ function MathExplainer({title,formula,parts}:{title:string;formula:string;parts:
 }
 
 // ─── ANALOGY BOX ──────────────────────────────────────────────────────────
-function AnalogyBox({emoji,title,text}:{emoji:string;title:string;text:string}) {
+function AnalogyBox({icon,title,text}:{icon:string;title:string;text:string}) {
   return (
     <div style={{display:"flex",gap:12,padding:"12px 16px",borderRadius:12,background:"rgba(251,191,36,0.07)",border:"1px solid rgba(251,191,36,0.2)",margin:"12px 0"}}>
-      <span style={{fontSize:24,flexShrink:0}}>{emoji}</span>
+      <span style={{fontSize:24,flexShrink:0}}>{icon}</span>
       <div>
         <div style={{fontFamily:"var(--fb)",fontSize:12,fontWeight:700,color:"#fbbf24",marginBottom:4}}>{title}</div>
         <div style={{fontFamily:"var(--fb)",fontSize:12,color:"var(--txt1)",lineHeight:1.7}}>{text}</div>
@@ -621,15 +621,256 @@ function AnalogyBox({emoji,title,text}:{emoji:string;title:string;text:string}) 
   );
 }
 
+const ICONS = {
+  robot: "⦿",
+  star: "★",
+  check: "✓",
+  cross: "✕",
+  bulb: "✦",
+  spark: "✨",
+  focus: "⊕",
+  model: "⊗",
+  home: "⌂",
+  chart: "▤",
+  data: "⧉",
+  data2: "▣",
+  checkCircle: "☑",
+  error: "⚠",
+  success: "✔",
+  train: "⟟",
+  rate: "⎺",
+  clock: "⌛",
+  goal: "⟀",
+  run: "⏩",
+  survey: "☒",
+  memory: "\u29b7",
+};
+
 // ─── ALL SECTIONS DATA ─────────────────────────────────────────────────────
-const SECTIONS = [
+const SECTIONS: MLSection[] = [
   {
-    id:"what-is-ml", icon:"🤖", title:"What is Machine Learning?", color:"#60a5fa",
-    tagline:"Start here — the big picture",
+    id:"introduction-ml", icon:ICONS.robot, title:"1. Introduction to Machine Learning", color:"#60a5fa",
+    tagline:"The foundation and fundamentals",
     topics:[
       {
+        title:"What is Machine Learning?",
+        badge:`${ICONS.star} foundation`,
+        badgeColor:"#60a5fa",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine Learning is a subset of Artificial Intelligence that enables computers to learn and make decisions from data <strong style={{color:"var(--txt0)"}}>without being explicitly programmed</strong> for every scenario.
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#6366f1",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Arthur Samuel (1959) — Pioneer Definition</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "Machine Learning is the field of study that gives computers the ability to learn without being explicitly programmed."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  Samuel created the first self-learning checkers program, demonstrating that computers could improve through experience.
+                </p>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Tom Mitchell (1997) — Technical Definition</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  This formal definition emphasizes measurable improvement through experience — the core of all ML.
+                </p>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#34d399",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Modern Understanding</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,marginBottom:6}}>
+                  Machine Learning is the science of getting computers to act without being explicitly programmed by teaching them to recognize patterns in data and make predictions or decisions.
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  Today, ML encompasses algorithms that can learn from and make predictions on data, continuously improving their performance.
+                </p>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              {[
+                {icon:ICONS.data, title:"Data-Driven", desc:"Learns from examples rather than rules"},
+                {icon:ICONS.check, title:"Adaptive", desc:"Improves performance over time"},
+                {icon:ICONS.focus, title:"Pattern Recognition", desc:"Finds hidden relationships in data"},
+                {icon:ICONS.model, title:"Predictive", desc:"Makes informed predictions/decisions"},
+                {icon:ICONS.bulb, title:"Automated", desc:"Reduces need for manual programming"},
+                {icon:ICONS.run, title:"Scalable", desc:"Handles large, complex datasets"}
+              ].map((item,i)=>(
+                <div key={i} style={{padding:"12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)",textAlign:"center"}}>
+                  <div style={{fontSize:16,marginBottom:6}}>{item.icon}</div>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:4}}>{item.title}</div>
+                  <div style={{fontSize:10,color:"var(--txt2)",lineHeight:1.4}}>{item.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            <AnalogyBox icon={ICONS.robot} title="Teaching a Child vs Programming a Computer" text="Traditional programming: You write exact instructions like 'if rain > 0, take umbrella'. Machine Learning: You show thousands of weather examples, and the computer learns when to take an umbrella by finding patterns in the data."/>
+
+            <Quiz q="What is the key difference between traditional programming and machine learning?" options={["ML uses more memory","ML learns patterns from data instead of following explicit rules","ML is slower","ML requires more code"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Types of Machine Learning",
+        badge:`${ICONS.chart} classifications`,
+        badgeColor:"#f472b6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine Learning is broadly classified into three main types based on how the algorithm learns and what kind of data it uses.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
+              {[
+                {
+                  type:"Supervised Learning",
+                  icon:ICONS.goal,
+                  color:"#6366f1",
+                  description:"Learning with labeled data — the algorithm learns from examples where both input and correct output are provided.",
+                  examples:["Email spam detection","House price prediction","Medical diagnosis"],
+                  analogy:"Learning with a teacher who provides correct answers",
+                  when:"When you have historical data with known outcomes"
+                },
+                {
+                  type:"Unsupervised Learning",
+                  icon:ICONS.focus,
+                  color:"#34d399",
+                  description:"Learning without labeled data — the algorithm finds hidden patterns and structures in data on its own.",
+                  examples:["Customer segmentation","Anomaly detection","Topic modeling"],
+                  analogy:"Exploring a new city without a map, finding patterns yourself",
+                  when:"When you want to discover hidden structures in data"
+                },
+                {
+                  type:"Reinforcement Learning",
+                  icon:ICONS.run,
+                  color:"#f59e0b",
+                  description:"Learning through trial and error — the algorithm learns by interacting with an environment and receiving rewards/penalties.",
+                  examples:["Game playing (Chess, Go)","Robot navigation","Recommendation systems"],
+                  analogy:"Training a dog with treats and corrections",
+                  when:"When you need sequential decision-making in dynamic environments"
+                }
+              ].map((ml_type,i)=>(
+                <div key={i} style={{padding:"20px",borderRadius:14,background:`${ml_type.color}08`,border:`1px solid ${ml_type.color}25`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+                    <span style={{fontSize:24}}>{ml_type.icon}</span>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:700,color:ml_type.color,fontFamily:"var(--fd)"}}>{ml_type.type}</div>
+                      <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginTop:2}}>Use when: {ml_type.when}</div>
+                    </div>
+                  </div>
+
+                  <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:12}}>{ml_type.description}</p>
+
+                  <div style={{marginBottom:10}}>
+                    <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.05em"}}>Examples</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                      {ml_type.examples.map((ex,j)=>(
+                        <span key={j} style={{fontSize:9,color:ml_type.color,fontFamily:"var(--fm)",background:`${ml_type.color}15`,padding:"2px 6px",borderRadius:4}}>{ex}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{padding:"8px 10px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <span style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)"}}>🍬 Analogy: </span>
+                    <span style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fb)"}}>{ml_type.analogy}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#60a5fa"}}>Semi-Supervised & Self-Supervised Learning:</strong>
+              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+                <strong>Semi-supervised:</strong> Mix of labeled and unlabeled data. Uses small labeled dataset to guide learning on large unlabeled dataset.<br/>
+                <strong>Self-supervised:</strong> Creates its own labels from the data structure (e.g., predicting missing parts of images).
+              </p>
+            </div>
+
+            <Quiz q="Which type of ML would you use to group customers by shopping behavior without knowing the groups in advance?" options={["Supervised Learning","Unsupervised Learning","Reinforcement Learning","Semi-supervised Learning"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Why Machine Learning Matters",
+        badge:`${ICONS.bulb} impact`,
+        badgeColor:"#fbbf24",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine Learning is transforming industries and solving problems that were previously impossible or impractical to solve with traditional programming.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  title:"Handles Complexity",
+                  icon:ICONS.model,
+                  desc:"Traditional programming requires explicit rules for every scenario. ML finds patterns in complex, high-dimensional data automatically.",
+                  example:"Recognizing faces in photos — millions of possible variations vs. simple if-then rules"
+                },
+                {
+                  title:"Scales with Data",
+                  icon:ICONS.data,
+                  desc:"Performance improves with more data. Traditional systems become more complex and error-prone as requirements grow.",
+                  example:"Spam filters that learn from millions of emails vs. manually maintained rule lists"
+                },
+                {
+                  title:"Adapts to Change",
+                  icon:ICONS.check,
+                  desc:"ML models can adapt to new patterns without reprogramming. Traditional systems require manual updates.",
+                  example:"Fraud detection that learns new fraud patterns vs. static rule-based systems"
+                },
+                {
+                  title:"Discovers Insights",
+                  icon:ICONS.focus,
+                  desc:"Finds hidden relationships and patterns humans might miss in large datasets.",
+                  example:"Medical research discovering unexpected correlations between symptoms and diseases"
+                },
+                {
+                  title:"Automates Decisions",
+                  icon:ICONS.run,
+                  desc:"Makes consistent, data-driven decisions at scale, reducing human error and bias.",
+                  example:"Credit scoring that evaluates thousands of applications consistently"
+                },
+                {
+                  title:"Personalizes Experience",
+                  icon:ICONS.star,
+                  desc:"Learns individual preferences to provide personalized recommendations and experiences.",
+                  example:"Streaming services learning your taste to recommend perfect movies"
+                }
+              ].map((benefit,i)=>(
+                <div key={i} style={{padding:"14px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                    <span style={{fontSize:16}}>{benefit.icon}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:"var(--txt0)",fontFamily:"var(--fb)"}}>{benefit.title}</span>
+                  </div>
+                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:8}}>{benefit.desc}</p>
+                  <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",fontStyle:"italic"}}>{benefit.example}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="callout callout-green">
+              <strong style={{fontSize:12,color:"#34d399"}}>Real-World Impact:</strong>
+              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+                ML powers self-driving cars, medical diagnosis, financial trading, content recommendation, language translation, and countless other applications that improve our daily lives and drive economic growth.
+              </p>
+            </div>
+          </div>
+        ),
+      }
+    ],
+  },
+      {
         title:"Machine Learning in Simple Words",
-        badge:"🌟 start here",
+        badge:`${ICONS.star} start here`,
         badgeColor:"#60a5fa",
         content:(
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -639,9 +880,92 @@ const SECTIONS = [
             <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
               <strong style={{color:"var(--txt0)"}}>Machine Learning is different.</strong> Instead of telling the computer the rules, you show it <em>thousands of examples</em>, and it <strong style={{color:"#60a5fa"}}>figures out the rules by itself!</strong>
             </p>
-            <AnalogyBox emoji="👶" title="Think of it like teaching a baby" text='You do not teach a baby grammar rules. You just say "ball" 500 times, and they learn what "ball" means. Machine learning works the same way — lots of examples → the computer learns the pattern.'/>
+            <AnalogyBox icon={ICONS.robot} title="Think of it like teaching a baby" text='You do not teach a baby grammar rules. You just say "ball" 500 times, and they learn what "ball" means. Machine learning works the same way — lots of examples → the computer learns the pattern.'/>
             <BrainLearningDiagram/>
             <Quiz q="In Machine Learning, how does a computer learn?" options={["You write all the rules manually","You show it examples and it finds patterns","You program every possible answer","You connect it to the internet"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"What is Machine Learning? — Complete Definitions",
+        badge:`${ICONS.bulb} definitions`,
+        badgeColor:"#f472b6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine Learning has been defined in many ways by different experts. Here are the most important definitions that capture its essence:
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#6366f1",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Arthur Samuel (1959) — Pioneer Definition</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "Machine Learning is the field of study that gives computers the ability to learn without being explicitly programmed."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  This was the first formal definition. Samuel created the first self-learning checkers program in 1959.
+                </p>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Tom Mitchell (1997) — Technical Definition</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  This is the most widely accepted technical definition. It emphasizes measurable improvement through experience.
+                </p>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#34d399",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Andrew Ng — Practical Definition</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "Machine Learning is the science of getting computers to act without being explicitly programmed."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  Stanford professor and Coursera founder. Focuses on the practical outcome: computers acting intelligently without explicit programming.
+                </p>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Ian Goodfellow — Deep Learning Perspective</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,fontStyle:"italic",marginBottom:6}}>
+                  "Machine Learning is a set of methods that can automatically detect patterns in data, and then use the uncovered patterns to predict future data, or to perform other kinds of decision making under uncertainty."
+                </p>
+                <p style={{fontSize:11,color:"var(--txt2)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  Author of "Deep Learning" textbook. Emphasizes pattern detection and decision-making under uncertainty.
+                </p>
+              </div>
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#60a5fa"}}>Key Characteristics of Machine Learning:</strong>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:8}}>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>📊 Data-Driven</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Learns from data rather than explicit rules</p>
+                </div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>🎯 Task-Specific</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Improves at specific tasks through practice</p>
+                </div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>🔄 Iterative</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Gets better over time with more data</p>
+                </div>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>🧠 Pattern Recognition</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Finds hidden patterns humans might miss</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-green">
+              <strong style={{fontSize:12,color:"#34d399"}}>Why Machine Learning Matters:</strong>
+              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+                Traditional programming requires humans to understand and code every possible scenario. Machine Learning enables computers to handle complex, unpredictable situations by learning from examples — just like humans do. This makes it possible to solve problems that would be impossible to program manually.
+              </p>
+            </div>
           </div>
         ),
       },
@@ -729,72 +1053,726 @@ const SECTIONS = [
           </div>
         ),
       },
-    ],
-  },
   {
-    id:"data", icon:"📊", title:"Data — The Fuel of ML", color:"#34d399",
-    tagline:"Understand your data first",
+    id:"data-importance", icon:ICONS.data, title:"2. Importance of Data in ML", color:"#34d399",
+    tagline:"Data is the foundation of everything",
     topics:[
       {
-        title:"What is Data in ML?",
-        badge:"📚 basics",
+        title:"Data as the Fuel of Machine Learning",
+        badge:`${ICONS.data} foundation`,
         badgeColor:"#34d399",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              "Garbage in, garbage out" — this principle is especially true in machine learning. The quality and quantity of your data directly determines the performance and reliability of your models.
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#34d399",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Data Quality Dimensions</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10}}>
+                  {[
+                    {name:"Completeness", desc:"No missing values", icon:"✓", color:"#60a5fa"},
+                    {name:"Accuracy", desc:"Correct values", icon:"🎯", color:"#34d399"},
+                    {name:"Consistency", desc:"Same format", icon:"🔄", color:"#fbbf24"},
+                    {name:"Timeliness", desc:"Up-to-date data", icon:"⏰", color:"#f472b6"}
+                  ].map((dim,i)=>(
+                    <div key={i} style={{textAlign:"center",padding:"12px",borderRadius:8,background:`${dim.color}08`,border:`1px solid ${dim.color}25`}}>
+                      <div style={{fontSize:16,marginBottom:4}}>{dim.icon}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:dim.color,marginBottom:2}}>{dim.name}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{dim.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Data Quantity Matters</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <div style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#60a5fa",marginBottom:4}}>Small Dataset (&le; 1K samples)</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.5}}>Risk of overfitting, limited generalization, may not capture all patterns</p>
+                    </div>
+                    <div style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#34d399",marginBottom:4}}>Large Dataset (&ge; 100K samples)</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.5}}>Better generalization, can train complex models, more robust predictions</p>
+                    </div>
+                  </div>
+                  <div style={{padding:"8px 12px",borderRadius:6,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.3)"}}>
+                    <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:2}}>📈 General Rule:</div>
+                    <div style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)"}}>More data generally leads to better models, but diminishing returns apply</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  title:"Training Data",
+                  desc:"Used to teach the model patterns and relationships",
+                  importance:"Foundation of learning",
+                  risk:"Poor training data = poor model"
+                },
+                {
+                  title:"Validation Data",
+                  desc:"Used to tune hyperparameters and prevent overfitting",
+                  importance:"Model optimization",
+                  risk:"Data leakage reduces validity"
+                },
+                {
+                  title:"Test Data",
+                  desc:"Final unbiased evaluation of model performance",
+                  importance:"True performance measure",
+                  risk:"Contamination invalidates results"
+                },
+                {
+                  title:"Real-world Data",
+                  desc:"Data the model will encounter in production",
+                  importance:"Practical applicability",
+                  risk:"Distribution shift causes failures"
+                }
+              ].map((data_type,i)=>(
+                <div key={i} style={{padding:"14px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>{data_type.title}</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:6}}>{data_type.desc}</p>
+                  <div style={{fontSize:10,color:"#34d399",fontFamily:"var(--fm)",marginBottom:2}}>✓ {data_type.importance}</div>
+                  <div style={{fontSize:10,color:"#f87171",fontFamily:"var(--fm)"}}>⚠ {data_type.risk}</div>
+                </div>
+              ))}
+            </div>
+
+            <AnalogyBox icon={ICONS.data} title="Data is Like Food for the Brain" text="Just as our brains need quality nutrition to function properly, ML models need quality data to learn effectively. Poor data leads to poor learning, just like junk food leads to poor health."/>
+
+            <Quiz q="What happens if you train an ML model on poor quality data?" options={["The model becomes faster","The model learns incorrect patterns","The model ignores the data","The model becomes more accurate"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Data Collection and Sources",
+        badge:`${ICONS.chart} acquisition`,
+        badgeColor:"#f472b6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Collecting the right data is crucial for building effective ML models. The data must be relevant, representative, and collected ethically.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  type:"Primary Data Collection",
+                  methods:["Surveys & Questionnaires","Sensors & IoT Devices","Web Scraping","User Interactions","Experiments"],
+                  pros:"Customized to your needs, fresh data",
+                  cons:"Time-consuming, expensive",
+                  examples:"Customer feedback forms, website analytics"
+                },
+                {
+                  type:"Secondary Data Sources",
+                  methods:["Public Datasets (Kaggle, UCI)","Government Databases","Research Papers","Commercial APIs","Existing Company Data"],
+                  pros:"Readily available, cost-effective",
+                  cons:"May not fit exact needs, quality varies",
+                  examples:"ImageNet, census data, financial records"
+                },
+                {
+                  type:"Synthetic Data Generation",
+                  methods:["Data Augmentation","Generative Models (GANs)","Simulation","Bootstrapping"],
+                  pros:"Infinite supply, privacy-safe",
+                  cons:"May not capture real-world complexity",
+                  examples:"Rotated images, generated text, simulated physics"
+                },
+                {
+                  type:"Data Partnerships",
+                  methods:["Industry Consortia","Academic Collaborations","Crowdsourcing","Third-party Vendors"],
+                  pros:"Access to specialized data",
+                  cons:"Cost, data sharing agreements",
+                  examples:"Medical research collaborations, satellite imagery"
+                }
+              ].map((source,i)=>(
+                <div key={i} style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>{source.type}</div>
+
+                  <div style={{marginBottom:8}}>
+                    <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:4,textTransform:"uppercase"}}>Methods</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                      {source.methods.map((method,j)=>(
+                        <span key={j} style={{fontSize:9,color:"#60a5fa",fontFamily:"var(--fm)",background:"rgba(96,165,250,0.1)",padding:"2px 6px",borderRadius:4}}>{method}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                    <div>
+                      <div style={{fontSize:10,color:"#34d399",fontFamily:"var(--fm)",marginBottom:2}}>✓ Pros</div>
+                      <div style={{fontSize:9,color:"var(--txt1)"}}>{source.pros}</div>
+                    </div>
+                    <div>
+                      <div style={{fontSize:10,color:"#f87171",fontFamily:"var(--fm)",marginBottom:2}}>⚠ Cons</div>
+                      <div style={{fontSize:9,color:"var(--txt1)"}}>{source.cons}</div>
+                    </div>
+                  </div>
+
+                  <div style={{marginTop:8,fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",fontStyle:"italic"}}>Example: {source.examples}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="callout callout-red">
+              <strong style={{fontSize:12,color:"#f87171"}}>⚠️ Ethical Data Collection:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{fontSize:11,color:"var(--txt1)",marginBottom:4}}>Always consider:</div>
+                <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                  <div style={{fontSize:10,color:"var(--txt1)"}}>• <strong>Privacy:</strong> Obtain consent, anonymize data</div>
+                  <div style={{fontSize:10,color:"var(--txt1)"}}>• <strong>Bias:</strong> Ensure representative sampling</div>
+                  <div style={{fontSize:10,color:"var(--txt1)"}}>• <strong>Legal:</strong> Comply with GDPR, CCPA, etc.</div>
+                  <div style={{fontSize:10,color:"var(--txt1)"}}>• <strong>Quality:</strong> Validate data accuracy and relevance</div>
+                </div>
+              </div>
+            </div>
+
+            <Quiz q="Which data collection method is best when you need customized data for your specific problem?" options={["Public datasets","Web scraping","Primary data collection","Synthetic generation"]} correct={2}/>
+          </div>
+        ),
+      },
+      {
+        title:"Data Preprocessing Fundamentals",
+        badge:`${ICONS.check} preparation`,
+        badgeColor:"#fbbf24",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Raw data is rarely ready for machine learning. Data preprocessing transforms raw data into a format that algorithms can effectively learn from.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              {[
+                {
+                  step:"Data Cleaning",
+                  icon:ICONS.check,
+                  description:"Handle missing values, remove duplicates, fix errors",
+                  techniques:["Mean/median imputation","Drop missing data","Outlier removal"],
+                  importance:"Prevents model confusion from bad data"
+                },
+                {
+                  step:"Data Integration",
+                  icon:ICONS.data,
+                  description:"Combine data from multiple sources",
+                  techniques:["Schema matching","Entity resolution","Data fusion"],
+                  importance:"Creates comprehensive dataset"
+                },
+                {
+                  step:"Data Transformation",
+                  icon:ICONS.run,
+                  description:"Convert data to suitable format",
+                  techniques:["Normalization","Scaling","Log transformation"],
+                  importance:"Ensures fair feature contribution"
+                },
+                {
+                  step:"Data Reduction",
+                  icon:ICONS.focus,
+                  description:"Reduce data size while preserving information",
+                  techniques:["Feature selection","Dimensionality reduction","Sampling"],
+                  importance:"Improves computational efficiency"
+                },
+                {
+                  step:"Data Discretization",
+                  icon:ICONS.chart,
+                  description:"Convert continuous to categorical data",
+                  techniques:["Binning","Histogram analysis","Clustering"],
+                  importance:"Simplifies complex relationships"
+                },
+                {
+                  step:"Quality Assessment",
+                  icon:ICONS.star,
+                  description:"Validate data quality and readiness",
+                  techniques:["Statistical summaries","Visualization","Cross-validation"],
+                  importance:"Ensures reliable model training"
+                }
+              ].map((step,i)=>(
+                <div key={i} style={{padding:"14px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                    <span style={{fontSize:16}}>{step.icon}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{step.step}</span>
+                  </div>
+                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:6}}>{step.description}</p>
+                  <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:4}}>Techniques:</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                    {step.techniques.map((tech,j)=>(
+                      <span key={j} style={{fontSize:8,color:"#60a5fa",background:"rgba(96,165,250,0.1)",padding:"1px 4px",borderRadius:3}}>{tech}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#60a5fa"}}>Preprocessing Best Practices:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Automate when possible:</strong> Create reproducible pipelines</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Document decisions:</strong> Track why you made each choice</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Validate impact:</strong> Test how preprocessing affects model performance</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Handle outliers carefully:</strong> Don't remove without domain knowledge</div>
+                </div>
+              </div>
+            </div>
+
+            <Quiz q="What is the main purpose of data preprocessing?" options={["Make data look pretty","Transform raw data into format suitable for ML algorithms","Reduce data size","Add more features"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"What is Data in ML? — Complete Understanding",
+        badge:`${ICONS.data} fundamentals`,
+        badgeColor:"#34d399",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              In Machine Learning, <strong style={{color:"var(--txt0)"}}>data is everything</strong>. Without good data, even the best algorithms fail. Let's understand data from every angle:
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#34d399",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Data as a Table</div>
+                <p style={{fontSize:13,color:"var(--txt0)",fontFamily:"var(--fb)",lineHeight:1.7,marginBottom:10}}>
+                  Think of data as an Excel spreadsheet or database table. Each row is one <span className="word-box">observation</span> (also called <span className="word-box">sample</span>, <span className="word-box">instance</span>, or <span className="word-box">record</span>). Each column is one <span className="word-box">feature</span> (also called <span className="word-box">attribute</span>, <span className="word-box">variable</span>, or <span className="word-box">field</span>).
+                </p>
+                <div style={{overflowX:"auto",marginTop:12}}>
+                  <table style={{width:"100%",borderCollapse:"separate",borderSpacing:"3px",fontFamily:"var(--fm)",fontSize:11,minWidth:400}}>
+                    <thead>
+                      <tr>
+                        {["Age","Salary ($)","Experience (yrs)","Education","Got Promoted? ← TARGET"].map((h,i)=>(
+                          <td key={i} style={{padding:"8px 12px",borderRadius:6,background:i===4?"rgba(99,102,241,0.2)":"rgba(255,255,255,0.07)",color:i===4?"#a5b4fc":"var(--txt1)",fontWeight:700,fontSize:10,textAlign:"center"}}>{h}</td>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        [25,50000,2,"Bachelor's","YES"],
+                        [32,75000,6,"Master's","YES"],
+                        [45,60000,15,"PhD","NO"],
+                        [28,45000,1,"High School","NO"],
+                        [38,90000,10,"Bachelor's","YES"]
+                      ].map((row,i)=>(
+                        <tr key={i}>
+                          {row.map((cell,j)=>(
+                            <td key={j} style={{padding:"7px 12px",borderRadius:5,background:j===4?"rgba(99,102,241,0.1)":"rgba(255,255,255,0.03)",color:j===4?"#818cf8":"var(--txt1)",textAlign:"center",fontSize:10}}>{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Key Data Terminology</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  {[
+                    {term:"Feature (X)",color:"#60a5fa",def:"Input variables used to make predictions (Age, Salary, Experience, Education)",examples:"Independent variables"},
+                    {term:"Target/Label (Y)",color:"#a5b4fc",def:"The answer we want to predict (Got Promoted?)",examples:"Dependent variable"},
+                    {term:"Sample/Instance",color:"#34d399",def:"One complete row of data (one person's information)",examples:"Observation, record, data point"},
+                    {term:"Dataset",color:"#f472b6",def:"The entire collection of samples",examples:"Training data, test data"},
+                    {term:"Feature Vector",color:"#fbbf24",def:"All feature values for one sample as a mathematical vector",examples:"[25, 50000, 2, 'Bachelor's']"},
+                    {term:"Feature Space",color:"#a78bfa",def:"The n-dimensional space where features exist",examples:"2D space for 2 features, 100D for 100 features"},
+                  ].map((d,i)=>(
+                    <div key={i} style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                      <code style={{fontSize:11,color:d.color,fontFamily:"var(--fm)",fontWeight:700,display:"block",marginBottom:4}}>{d.term}</code>
+                      <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:3}}>{d.def}</p>
+                      <span style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>Examples: {d.examples}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Types of Data in ML</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  {[
+                    {type:"Structured Data",color:"#60a5fa",desc:"Organized in tables with clear rows/columns",examples:"Excel files, SQL databases, CSV files"},
+                    {type:"Unstructured Data",color:"#34d399",desc:"No predefined structure",examples:"Images, text, audio, video"},
+                    {type:"Semi-structured",color:"#fbbf24",desc:"Some structure but not fully tabular",examples:"JSON, XML, HTML"},
+                    {type:"Time Series",color:"#a78bfa",desc:"Data points collected over time",examples:"Stock prices, weather data, sensor readings"},
+                    {type:"Categorical",color:"#f472b6",desc:"Discrete categories or labels",examples:"Colors, countries, product types"},
+                    {type:"Numerical",color:"#a5b4fc",desc:"Measurable quantities",examples:"Age, price, temperature, counts"},
+                  ].map((d,i)=>(
+                    <div key={i} style={{padding:"12px 14px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                      <div style={{fontSize:12,fontWeight:700,color:d.color,marginBottom:4}}>{d.type}</div>
+                      <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:4}}>{d.desc}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>Examples: {d.examples}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  title:"Training Data",
+                  desc:"Used to teach the model patterns and relationships",
+                  importance:"Foundation of learning",
+                  risk:"Poor training data = poor model"
+                },
+                {
+                  title:"Validation Data",
+                  desc:"Used to tune hyperparameters and prevent overfitting",
+                  importance:"Model optimization",
+                  risk:"Data leakage reduces validity"
+                },
+                {
+                  title:"Test Data",
+                  desc:"Final unbiased evaluation of model performance",
+                  importance:"True performance measure",
+                  risk:"Contamination invalidates results"
+                },
+                {
+                  title:"Real-world Data",
+                  desc:"Data the model will encounter in production",
+                  importance:"Practical applicability",
+                  risk:"Distribution shift causes failures"
+                }
+              ].map((data_type,i)=>(
+                <div key={i} style={{padding:"14px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>{data_type.title}</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:6}}>{data_type.desc}</p>
+                  <div style={{fontSize:10,color:"#34d399",fontFamily:"var(--fm)",marginBottom:2}}>✓ {data_type.importance}</div>
+                  <div style={{fontSize:10,color:"#f87171",fontFamily:"var(--fm)"}}>⚠ {data_type.risk}</div>
+                </div>
+              ))}
+            </div>
+
+            <AnalogyBox icon={ICONS.data} title="Data is Like Food for the Brain" text="Just as our brains need quality nutrition to function properly, ML models need quality data to learn effectively. Poor data leads to poor learning, just like junk food leads to poor health."/>
+
+            <Quiz q="What happens if you train an ML model on poor quality data?" options={["The model becomes faster","The model learns incorrect patterns","The model ignores the data","The model becomes more accurate"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Cleaning Data — Fixing the Mess",
+        badge:"🧹 practical",
+        badgeColor:"#fbbf24",
         content:(
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
-              In ML, <strong style={{color:"var(--txt0)"}}>data is a table</strong> — just like an Excel spreadsheet. Each row is one example (called a <span className="word-box">sample</span> or <span className="word-box">record</span>). Each column is one piece of information (called a <span className="word-box">feature</span>).
+              Real-world data is <strong style={{color:"var(--txt0)"}}>messy</strong>. Missing values, wrong numbers, duplicates. A model trained on bad data gives bad results. <em>"Garbage in, garbage out."</em>
             </p>
-            <div style={{overflowX:"auto"}}>
-              <table style={{width:"100%",borderCollapse:"separate",borderSpacing:"3px",fontFamily:"var(--fm)",fontSize:11}}>
-                <thead>
-                  <tr>
-                    {["Age","Salary ($)","Experience (yrs)","Got promoted? ← TARGET"].map((h,i)=>(
-                      <td key={i} style={{padding:"7px 10px",borderRadius:6,background:i===3?"rgba(99,102,241,0.2)":"rgba(255,255,255,0.07)",color:i===3?"#a5b4fc":"var(--txt1)",fontWeight:700,fontSize:10,textAlign:"center"}}>{h}</td>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[[25,50000,2,"YES"],[32,75000,6,"YES"],[45,60000,15,"NO"],[28,45000,1,"NO"],[38,90000,10,"YES"]].map((row,i)=>(
-                    <tr key={i}>
-                      {row.map((cell,j)=>(
-                        <td key={j} style={{padding:"6px 10px",borderRadius:5,background:j===3?"rgba(99,102,241,0.1)":"rgba(255,255,255,0.03)",color:j===3?"#818cf8":"var(--txt1)",textAlign:"center"}}>{cell}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {[
-                {term:"Feature",color:"#60a5fa",def:"An input column (Age, Salary, Experience). These are the clues."},
-                {term:"Target / Label",color:"#a5b4fc",def:"The answer column (Got promoted?). This is what we want to predict."},
-                {term:"Row / Sample",color:"#34d399",def:"One complete example — one person's data in this case."},
-                {term:"Dataset",color:"#fbbf24",def:"The whole table — all your examples combined."},
-              ].map((d,i)=>(
-                <div key={i} style={{padding:"10px 12px",borderRadius:10,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
-                  <code style={{fontSize:11,color:d.color,fontFamily:"var(--fm)",fontWeight:700}}>{d.term}</code>
-                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginTop:5}}>{d.def}</p>
+                {problem:"Missing Values",emoji:"🕳️",color:"#f87171",example:'Age: 25, Salary: ???',fix:"Fill with the average (mean), or the most common value, or just delete the row.",why:"Computers can't do math with empty boxes."},
+                {problem:"Outliers",emoji:"📏",color:"#fbbf24",example:"Salaries: 50k, 60k, 55k, 999999k ← very weird!",fix:"Remove it or cap it at a reasonable max value.",why:"One crazy value can throw off the whole model."},
+                {problem:"Duplicate Rows",emoji:"👯",color:"#a78bfa",example:"Same person appears 3 times in the data",fix:"Keep only one copy — delete the rest.",why:"Duplicates make the model think that example is more important."},
+                {problem:"Wrong Data Types",emoji:"🔢",color:"#60a5fa",example:'Gender: "Male", "male", "M", "MALE" — all the same!',fix:'Standardize: make all the same → "male"',why:"Computer thinks these are 4 different values."},
+              ].map((p,i)=>(
+                <div key={i} style={{padding:"12px 14px",borderRadius:12,background:`${p.color}08`,border:`1px solid ${p.color}22`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                    <span style={{fontSize:18}}>{p.emoji}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:p.color,fontFamily:"var(--fb)"}}>{p.problem}</span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                    <div style={{padding:"6px 10px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:3}}>EXAMPLE</div>
+                      <code style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fm)"}}>{p.example}</code>
+                    </div>
+                    <div style={{padding:"6px 10px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:3}}>FIX</div>
+                      <span style={{fontSize:11,color:"var(--txt0)",fontFamily:"var(--fb)"}}>{p.fix}</span>
+                    </div>
+                  </div>
+                  <div style={{marginTop:8,fontSize:10,color:"var(--txt2)",fontFamily:"var(--fb)",fontStyle:"italic"}}>Why it matters: {p.why}</div>
                 </div>
               ))}
             </div>
           </div>
         ),
+      }
+    ],
+  },
+  {
+    id:"statistics", icon:ICONS.chart, title:"4. Statistics for ML", color:"#8b5cf6",
+    tagline:"The mathematical foundation of machine learning",
+    topics:[
+      {
+        title:"Descriptive Statistics",
+        badge:`${ICONS.chart} describe`,
+        badgeColor:"#8b5cf6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Descriptive statistics help us understand and summarize our data before building models. They provide the first insights into data distribution, central tendency, and variability.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Measures of Central Tendency</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Mean (Average)",
+                      formula:"μ = Σxᵢ/n",
+                      description:"Sum of all values divided by count",
+                      use:"Overall central value, sensitive to outliers",
+                      example:"[1,2,3,4,5] → mean = 3",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Median",
+                      formula:"Middle value when sorted",
+                      description:"50th percentile, middle value",
+                      use:"Central value, robust to outliers",
+                      example:"[1,2,3,4,5] → median = 3",
+                      icon:"⚖️"
+                    },
+                    {
+                      name:"Mode",
+                      formula:"Most frequent value",
+                      description:"Value that appears most often",
+                      use:"Categorical data, peak identification",
+                      example:"[1,2,2,3,3,3] → mode = 3",
+                      icon:"🎯"
+                    }
+                  ].map((measure,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{measure.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{measure.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{measure.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{measure.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {measure.use}<br/>
+                        <strong>Example:</strong> {measure.example}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Measures of Variability</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Range",
+                      formula:"max - min",
+                      description:"Difference between highest and lowest values",
+                      use:"Simple spread measure, sensitive to outliers",
+                      example:"[1,2,3,4,5] → range = 4",
+                      icon:"📏"
+                    },
+                    {
+                      name:"Variance (σ²)",
+                      formula:"σ² = Σ(xᵢ-μ)²/n",
+                      description:"Average of squared differences from mean",
+                      use:"Spread measure, foundation for other statistics",
+                      example:"[1,2,3,4,5] → variance ≈ 2.0",
+                      icon:"📈"
+                    },
+                    {
+                      name:"Standard Deviation (σ)",
+                      formula:"σ = √σ²",
+                      description:"Square root of variance, same units as data",
+                      use:"Common spread measure, normal distribution",
+                      example:"[1,2,3,4,5] → std ≈ 1.41",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Interquartile Range (IQR)",
+                      formula:"Q3 - Q1",
+                      description:"Range of middle 50% of data",
+                      use:"Robust spread measure, outlier detection",
+                      example:"[1,2,3,4,5] → IQR = 2",
+                      icon:"📦"
+                    }
+                  ].map((measure,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{measure.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{measure.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{measure.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{measure.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {measure.use}<br/>
+                        <strong>Example:</strong> {measure.example}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Types of Data in ML</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  {[
+                    {type:"Structured Data",color:"#60a5fa",desc:"Organized in tables with clear rows/columns",examples:"Excel files, SQL databases, CSV files"},
+                    {type:"Unstructured Data",color:"#34d399",desc:"No predefined structure",examples:"Images, text, audio, video"},
+                    {type:"Semi-structured",color:"#fbbf24",desc:"Some structure but not fully tabular",examples:"JSON, XML, HTML"},
+                    {type:"Time Series",color:"#a78bfa",desc:"Data points collected over time",examples:"Stock prices, weather data, sensor readings"},
+                    {type:"Categorical",color:"#f472b6",desc:"Discrete categories or labels",examples:"Colors, countries, product types"},
+                    {type:"Numerical",color:"#a5b4fc",desc:"Measurable quantities",examples:"Age, price, temperature, counts"},
+                  ].map((t,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:10,background:`${t.color}08`,border:`1px solid ${t.color}22`}}>
+                      <div style={{fontSize:11,fontWeight:700,color:t.color,fontFamily:"var(--fb)",marginBottom:4}}>{t.type}</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:4}}>{t.desc}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>{t.examples}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#60a5fa"}}>Data Quality Dimensions:</strong>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:8}}>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:14,color:"#60a5fa",marginBottom:4}}>📊</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Completeness</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>No missing values</div>
+                </div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:14,color:"#34d399",marginBottom:4}}>✅</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Accuracy</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>Correct values</div>
+                </div>
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontSize:14,color:"#fbbf24",marginBottom:4}}>🔄</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Consistency</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>Same format</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ),
       },
       {
-        title:"Train, Validation, and Test Split",
-        badge:"🔑 important",
+        title:"Data Splitting — Train, Validation, Test Sets",
+        badge:`${ICONS.train} critical concept`,
         badgeColor:"#f472b6",
         content:(
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
-              You can't use <em>all</em> your data for training. How would you know if the model works on <strong style={{color:"var(--txt0)"}}>data it has never seen before?</strong> You need to save some for testing!
+              You can't use <em>all</em> your data for training. How would you know if your model works on <strong style={{color:"var(--txt0)"}}>data it has never seen before?</strong> You need separate datasets for training, validation, and final testing.
             </p>
-            <AnalogyBox emoji="📝" title="Think of it like school exams" text="You study from textbooks (training set). You do practice problems (validation set). Then you sit the final exam using questions you've never seen before (test set). If you only practiced with the same questions as the exam, you'd just memorize — not learn!"/>
-            <TrainTestDiagram/>
-            <div className="callout callout-red">
-              <strong style={{fontSize:12,color:"#f87171"}}>⚠️ Golden Rule:</strong>
-              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>NEVER look at the test set until the very end. If you tune your model based on test results, you're "leaking" information — like getting the exam answers in advance. Your test score won't be honest anymore!</p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(99,102,241,0.08)",border:"1px solid rgba(99,102,241,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#6366f1",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>The Three Sacred Datasets</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                  {[
+                    {
+                      name:"Training Set",
+                      icon:ICONS.train,
+                      color:"#60a5fa",
+                      percentage:"60-80%",
+                      purpose:"Model learns patterns from this data",
+                      analogy:"Textbook you study from",
+                      access:"Model sees this during training"
+                    },
+                    {
+                      name:"Validation Set",
+                      icon:ICONS.check,
+                      color:"#fbbf24",
+                      percentage:"10-20%",
+                      purpose:"Tune hyperparameters and check overfitting",
+                      analogy:"Practice exam to improve",
+                      access:"Model sees this during development"
+                    },
+                    {
+                      name:"Test Set",
+                      icon:ICONS.goal,
+                      color:"#f87171",
+                      percentage:"10-20%",
+                      purpose:"Final unbiased evaluation",
+                      analogy:"Real exam you take once",
+                      access:"Model NEVER sees this until the end"
+                    }
+                  ].map((set,i)=>(
+                    <div key={i} style={{padding:"14px",borderRadius:10,background:`${set.color}08`,border:`1px solid ${set.color}25`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                        <span style={{fontSize:16}}>{set.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:set.color,fontFamily:"var(--fb)"}}>{set.name}</div>
+                          <div style={{fontSize:10,color:set.color,fontFamily:"var(--fm)"}}>{set.percentage}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:6}}>{set.purpose}</p>
+                      <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fb)",fontStyle:"italic"}}>{set.analogy}</div>
+                      <div style={{fontSize:9,color:set.color,fontFamily:"var(--fm)",marginTop:4,fontWeight:600}}>{set.access}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Why Three Sets? The Complete Picture</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                    <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#60a5fa",marginBottom:6}}>Training Set Only</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.5}}>Model memorizes training data perfectly but fails on new data. This is called <span className="word-box">overfitting</span>.</p>
+                    </div>
+                    <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"#34d399",marginBottom:6}}>Training + Validation</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.5}}>Good for development, but validation scores are optimistic since you tune based on them.</p>
+                    </div>
+                  </div>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(99,102,241,0.1)",border:"1px solid rgba(99,102,241,0.3)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#6366f1",marginBottom:6}}>Training + Validation + Test</div>
+                    <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.5}}>Test set gives unbiased final score. This is the only honest way to evaluate your model!</p>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <AnalogyBox icon={ICONS.data} title="Think of it like school exams" text="You study from textbooks (training set). You do practice problems (validation set). Then you sit the final exam using questions you've never seen before (test set). If you only practiced with the same questions as the exam, you'd just memorize — not learn!"/>
+            <TrainTestDiagram/>
+
+            <div className="callout callout-red">
+              <strong style={{fontSize:12,color:"#f87171"}}>⚠️ The Golden Rules of Data Splitting:</strong>
+              <div style={{marginTop:8}}>
+                <div style={{display:"flex",gap:8,marginBottom:6}}>
+                  <span style={{color:"#f87171",fontSize:12}}>1.</span>
+                  <span style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Never look at test set during development. It's your final exam!</span>
+                </div>
+                <div style={{display:"flex",gap:8,marginBottom:6}}>
+                  <span style={{color:"#f87171",fontSize:12}}>2.</span>
+                  <span style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Split data randomly to avoid bias. Don't put all easy examples in training!</span>
+                </div>
+                <div style={{display:"flex",gap:8,marginBottom:6}}>
+                  <span style={{color:"#f87171",fontSize:12}}>3.</span>
+                  <span style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Keep class proportions the same in each split (stratified sampling).</span>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <span style={{color:"#f87171",fontSize:12}}>4.</span>
+                  <span style={{fontSize:11,color:"var(--txt1)",lineHeight:1.6}}>Test set should represent real-world data your model will encounter.</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-green">
+              <strong style={{fontSize:12,color:"#34d399"}}>Common Splitting Ratios:</strong>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:8}}>
+                <div style={{textAlign:"center",padding:"8px",borderRadius:6,background:"rgba(255,255,255,0.03)"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)"}}>60/20/20</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>Standard split</div>
+                </div>
+                <div style={{textAlign:"center",padding:"8px",borderRadius:6,background:"rgba(255,255,255,0.03)"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)"}}>70/15/15</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>More training data</div>
+                </div>
+                <div style={{textAlign:"center",padding:"8px",borderRadius:6,background:"rgba(255,255,255,0.03)"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)"}}>80/10/10</div>
+                  <div style={{fontSize:9,color:"var(--txt2)"}}>Small datasets</div>
+                </div>
+              </div>
+            </div>
+
             <Quiz q="Why do we keep a separate test set?" options={["To save memory","To test the model on data it has never seen before","Because it's too much data to train on","To make training faster"]} correct={1}/>
           </div>
         ),
@@ -836,13 +1814,725 @@ const SECTIONS = [
             </div>
           </div>
         ),
-      },
+      }
     ],
   },
   {
-    id:"algorithms", icon:"🧠", title:"Algorithms Explained Simply", color:"#a78bfa",
-    tagline:"The tools that make predictions",
+    id:"statistics", icon:ICONS.chart, title:"4. Statistics for ML", color:"#8b5cf6",
+    tagline:"The mathematical foundation of machine learning",
     topics:[
+      {
+        title:"Descriptive Statistics",
+        badge:`${ICONS.chart} describe`,
+        badgeColor:"#8b5cf6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Descriptive statistics help us understand and summarize our data before building models. They provide the first insights into data distribution, central tendency, and variability.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Measures of Central Tendency</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Mean (Average)",
+                      formula:"μ = Σxᵢ/n",
+                      description:"Sum of all values divided by count",
+                      use:"Overall central value, sensitive to outliers",
+                      example:"[1,2,3,4,5] → mean = 3",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Median",
+                      formula:"Middle value when sorted",
+                      description:"50th percentile, middle value",
+                      use:"Central value, robust to outliers",
+                      example:"[1,2,3,4,5] → median = 3",
+                      icon:"⚖️"
+                    },
+                    {
+                      name:"Mode",
+                      formula:"Most frequent value",
+                      description:"Value that appears most often",
+                      use:"Categorical data, peak identification",
+                      example:"[1,2,2,3,3,3] → mode = 3",
+                      icon:"🎯"
+                    }
+                  ].map((measure,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{measure.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{measure.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{measure.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{measure.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {measure.use}<br/>
+                        <strong>Example:</strong> {measure.example}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Measures of Variability</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Range",
+                      formula:"max - min",
+                      description:"Difference between highest and lowest values",
+                      use:"Simple spread measure, sensitive to outliers",
+                      example:"[1,2,3,4,5] → range = 4",
+                      icon:"📏"
+                    },
+                    {
+                      name:"Variance (σ²)",
+                      formula:"σ² = Σ(xᵢ-μ)²/n",
+                      description:"Average of squared differences from mean",
+                      use:"Spread measure, foundation for other statistics",
+                      example:"[1,2,3,4,5] → variance ≈ 2.0",
+                      icon:"📈"
+                    },
+                    {
+                      name:"Standard Deviation (σ)",
+                      formula:"σ = √σ²",
+                      description:"Square root of variance, same units as data",
+                      use:"Common spread measure, normal distribution",
+                      example:"[1,2,3,4,5] → std ≈ 1.41",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Interquartile Range (IQR)",
+                      formula:"Q3 - Q1",
+                      description:"Range of middle 50% of data",
+                      use:"Robust spread measure, outlier detection",
+                      example:"[1,2,3,4,5] → IQR = 2",
+                      icon:"📦"
+                    }
+                  ].map((measure,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{measure.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{measure.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{measure.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{measure.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {measure.use}<br/>
+                        <strong>Example:</strong> {measure.example}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Data Distribution Shapes</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:8}}>
+                {[
+                  {name:"Normal", shape:"Bell curve", mean_median:"Equal", skewness:"0", example:"Heights, IQ scores"},
+                  {name:"Skewed Right", shape:"Long right tail", mean_median:"Mean &gt; Median", skewness:"&gt;0", example:"Income, city populations"},
+                  {name:"Skewed Left", shape:"Long left tail", mean_median:"Mean &lt; Median", skewness:"&lt;0", example:"Age at retirement"},
+                  {name:"Uniform", shape:"Flat", mean_median:"Equal", skewness:"0", example:"Random number generation"},
+                  {name:"Bimodal", shape:"Two peaks", mean_median:"Varies", skewness:"Varies", example:"Height by gender"}
+                ].map((dist,i)=>(
+                  <div key={i} style={{padding:"10px",borderRadius:8,background:"rgba(0,0,0,0.2)",textAlign:"center"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:4}}>{dist.name}</div>
+                    <div style={{fontSize:9,color:"var(--txt2)",marginBottom:2}}>{dist.shape}</div>
+                    <div style={{fontSize:8,color:"#fbbf24",marginBottom:1}}>{dist.mean_median}</div>
+                    <div style={{fontSize:8,color:"var(--txt2)",marginBottom:2}}>Skew: {dist.skewness}</div>
+                    <div style={{fontSize:7,color:"var(--txt3)",lineHeight:1.1}}>{dist.example}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.chart} title="Statistics Like Photography" text="Descriptive statistics are like taking a photo of your data — they capture the current state, show what's typical, and reveal how spread out the values are, just like a photo shows a moment in time."/>
+
+            <Quiz q="Which measure is most affected by outliers?" options={["Median","Mean","Mode","Interquartile Range"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Inferential Statistics",
+        badge:`${ICONS.predict} infer`,
+        badgeColor:"#ec4899",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Inferential statistics allow us to make predictions and draw conclusions about populations from sample data, forming the basis for hypothesis testing and confidence intervals.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Hypothesis Testing Framework</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>Step 1: State Hypotheses</div>
+                    <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4}}>
+                      <strong>H₀ (Null):</strong> No effect or difference exists<br/>
+                      <strong>H₁ (Alternative):</strong> Effect or difference exists
+                    </div>
+                  </div>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>Step 2: Choose Significance Level (α)</div>
+                    <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4}}>
+                      Common values: 0.05, 0.01, 0.10<br/>
+                      <strong>α = P(Type I error)</strong> = P(rejecting H₀ when true)
+                    </div>
+                  </div>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>Step 3: Calculate Test Statistic</div>
+                    <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4}}>
+                      Compare sample statistic to null hypothesis<br/>
+                      Examples: t-statistic, z-statistic, F-statistic
+                    </div>
+                  </div>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>Step 4: Find p-value</div>
+                    <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4}}>
+                      Probability of observing data (or more extreme)<br/>
+                      assuming H₀ is true
+                    </div>
+                  </div>
+                  <div style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>Step 5: Make Decision</div>
+                    <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4}}>
+                      If p-value &lt; α: Reject H₀<br/>
+                      If p-value &ge; α: Fail to reject H₀
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Common Statistical Tests</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {
+                      test:"One-sample t-test",
+                      purpose:"Compare sample mean to known value",
+                      assumptions:"Normal distribution, independent observations",
+                      example:"Is average height different from 170cm?"
+                    },
+                    {
+                      test:"Two-sample t-test",
+                      purpose:"Compare means of two groups",
+                      assumptions:"Normal distribution, equal variances, independence",
+                      example:"Do men and women have different average heights?"
+                    },
+                    {
+                      test:"Paired t-test",
+                      purpose:"Compare means of related samples",
+                      assumptions:"Normal differences, random sampling",
+                      example:"Before/after treatment effect on same patients"
+                    },
+                    {
+                      test:"Chi-square test",
+                      purpose:"Test independence of categorical variables",
+                      assumptions:"Expected frequencies ≥ 5, random sampling",
+                      example:"Is there relationship between gender and preference?"
+                    },
+                    {
+                      test:"ANOVA (F-test)",
+                      purpose:"Compare means across multiple groups",
+                      assumptions:"Normal distribution, equal variances, independence",
+                      example:"Do different diets affect weight loss differently?"
+                    },
+                    {
+                      test:"Correlation test",
+                      purpose:"Test linear relationship strength",
+                      assumptions:"Linear relationship, homoscedasticity",
+                      example:"How strongly related are height and weight?"
+                    }
+                  ].map((test,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:2}}>{test.test}</div>
+                      <div style={{fontSize:9,color:"var(--txt1)",lineHeight:1.3,marginBottom:3}}>{test.purpose}</div>
+                      <div style={{fontSize:8,color:"var(--txt2)",marginBottom:2}}>
+                        <strong>Assumptions:</strong> {test.assumptions}
+                      </div>
+                      <div style={{fontSize:8,color:"#ec4899",fontStyle:"italic"}}>{test.example}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-red">
+              <strong style={{fontSize:12,color:"#f87171"}}>⚠️ p-value Misconceptions:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Not probability H₀ is true:</strong> p-value is probability of data given H₀</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Not effect size:</strong> Small p-value doesn't mean large effect</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Not replication probability:</strong> p-value doesn't predict future results</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Arbitrary threshold:</strong> 0.05 is conventional, not magical</div>
+                </div>
+              </div>
+            </div>
+
+            <Quiz q="What does a p-value of 0.03 mean?" options={["3% chance null hypothesis is true","3% chance of making Type I error","Probability of data if null is true","3% chance results will replicate"]} correct={2}/>
+          </div>
+        ),
+      },
+      {
+        title:"Probability Distributions",
+        badge:`${ICONS.distribution} probability`,
+        badgeColor:"#06b6d4",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Probability distributions describe how data is spread across different values. Understanding these distributions is crucial for selecting appropriate ML algorithms and interpreting results.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#06b6d4",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Discrete Distributions</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {
+                      name:"Bernoulli",
+                      pmf:"P(X=1)=p, P(X=0)=1-p",
+                      mean:"p",
+                      variance:"p(1-p)",
+                      example:"Coin flip, yes/no question",
+                      icon:"🪙"
+                    },
+                    {
+                      name:"Binomial",
+                      pmf:"C(n,k) pᵏ (1-p)ⁿ⁻ᵏ",
+                      mean:"np",
+                      variance:"np(1-p)",
+                      example:"Number of successes in n trials",
+                      icon:"🎲"
+                    },
+                    {
+                      name:"Poisson",
+                      pmf:"e⁻λ λᵏ/k!",
+                      mean:"λ",
+                      variance:"λ",
+                      example:"Number of events in time interval",
+                      icon:"⚡"
+                    }
+                  ].map((dist,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{dist.icon}</span>
+                        <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{dist.name}</div>
+                      </div>
+                      <div style={{fontSize:9,color:"var(--txt1)",marginBottom:4}}>
+                        <strong>PMF:</strong> {dist.pmf}
+                      </div>
+                      <div style={{fontSize:9,color:"var(--txt1)",marginBottom:4}}>
+                        <strong>Mean:</strong> {dist.mean} | <strong>Variance:</strong> {dist.variance}
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)",fontStyle:"italic"}}>{dist.example}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(6,182,212,0.08)",border:"1px solid rgba(6,182,212,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#06b6d4",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Continuous Distributions</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {
+                      name:"Normal (Gaussian)",
+                      pdf:"(1/√(2πσ²)) e^(-(x-μ)²/(2σ²))",
+                      mean:"μ",
+                      variance:"σ²",
+                      example:"Heights, measurement errors",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Uniform",
+                      pdf:"1/(b-a) for a &le; x &le; b",
+                      mean:"(a+b)/2",
+                      variance:"(b-a)²/12",
+                      example:"Random number generation",
+                      icon:"📏"
+                    },
+                    {
+                      name:"Exponential",
+                      pdf:"λ e^(-λx)",
+                      mean:"1/λ",
+                      variance:"1/λ²",
+                      example:"Time between events",
+                      icon:"⏱️"
+                    },
+                    {
+                      name:"Beta",
+                      pdf:"Complex (conjugate to binomial)",
+                      mean:"α/(α+β)",
+                      variance:"αβ/((α+β)²(α+β+1))",
+                      example:"Probabilities, proportions",
+                      icon:"🎯"
+                    }
+                  ].map((dist,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{dist.icon}</span>
+                        <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{dist.name}</div>
+                      </div>
+                      <div style={{fontSize:9,color:"var(--txt1)",marginBottom:4}}>
+                        <strong>PDF:</strong> {dist.pdf}
+                      </div>
+                      <div style={{fontSize:9,color:"var(--txt1)",marginBottom:4}}>
+                        <strong>Mean:</strong> {dist.mean} | <strong>Variance:</strong> {dist.variance}
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)",fontStyle:"italic"}}>{dist.example}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(34,197,94,0.08)",border:"1px solid rgba(34,197,94,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#22c55e",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Central Limit Theorem</div>
+              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:8}}>
+                The Central Limit Theorem states that the sampling distribution of the sample mean approaches a normal distribution as the sample size increases, regardless of the population's distribution.
+              </p>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                <div style={{padding:"8px",borderRadius:6,background:"rgba(0,0,0,0.2)",textAlign:"center"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Sample Size</div>
+                  <div style={{fontSize:12,color:"#22c55e"}}>n ≥ 30</div>
+                  <div style={{fontSize:8,color:"var(--txt2)"}}>For most distributions</div>
+                </div>
+                <div style={{padding:"8px",borderRadius:6,background:"rgba(0,0,0,0.2)",textAlign:"center"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Sample Mean</div>
+                  <div style={{fontSize:12,color:"#22c55e"}}>μₓ̄ = μ</div>
+                  <div style={{fontSize:8,color:"var(--txt2)"}}>Same as population mean</div>
+                </div>
+                <div style={{padding:"8px",borderRadius:6,background:"rgba(0,0,0,0.2)",textAlign:"center"}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>Standard Error</div>
+                  <div style={{fontSize:12,color:"#22c55e"}}>σₓ̄ = σ/√n</div>
+                  <div style={{fontSize:8,color:"var(--txt2)"}}>Decreases with sample size</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.distribution} title="Distributions Like Musical Instruments" text="Different probability distributions are like different musical instruments — each has its own characteristic 'sound' or shape, and you choose the right one based on the type of data you're working with, just as a musician chooses the right instrument for the melody."/>
+
+            <Quiz q="According to the Central Limit Theorem, what happens to sample means as sample size increases?" options={["They become more variable","They approach a normal distribution","They become more skewed","They stay the same"]} correct={1}/>
+          </div>
+        ),
+      }
+    ],
+  },
+  {
+    id:"ml-process", icon:ICONS.run, title:"3. ML Process on Data", color:"#f59e0b",
+    tagline:"The complete machine learning workflow",
+    topics:[
+      {
+        title:"The Machine Learning Pipeline",
+        badge:`${ICONS.run} workflow`,
+        badgeColor:"#f59e0b",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine learning follows a systematic process that transforms raw data into predictive models. This pipeline ensures reproducible, reliable results.
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Complete ML Pipeline</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:8}}>
+                  {[
+                    {step:"1", name:"Problem Definition", icon:"🎯", desc:"Define objective clearly"},
+                    {step:"2", name:"Data Collection", icon:"📊", desc:"Gather relevant data"},
+                    {step:"3", name:"Data Exploration", icon:"🔍", desc:"Understand data structure"},
+                    {step:"4", name:"Data Preprocessing", icon:"🧹", desc:"Clean and prepare data"},
+                    {step:"5", name:"Feature Engineering", icon:"⚙️", desc:"Create meaningful features"},
+                    {step:"6", name:"Model Selection", icon:"🤖", desc:"Choose appropriate algorithm"},
+                    {step:"7", name:"Model Training", icon:"🏋️", desc:"Train on prepared data"},
+                    {step:"8", name:"Model Evaluation", icon:"📏", desc:"Assess performance"},
+                    {step:"9", name:"Model Tuning", icon:"🔧", desc:"Optimize hyperparameters"},
+                    {step:"10", name:"Model Deployment", icon:"🚀", desc:"Deploy to production"},
+                    {step:"11", name:"Monitoring", icon:"📊", desc:"Track performance over time"},
+                    {step:"12", name:"Maintenance", icon:"🔄", desc:"Update and retrain as needed"}
+                  ].map((step,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:8,background:"rgba(0,0,0,0.2)",textAlign:"center",border:"1px solid rgba(245,158,11,0.1)"}}>
+                      <div style={{fontSize:8,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:2}}>{step.step}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)",marginBottom:2}}>{step.name}</div>
+                      <div style={{fontSize:14,marginBottom:4}}>{step.icon}</div>
+                      <div style={{fontSize:8,color:"var(--txt2)",lineHeight:1.2}}>{step.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  phase:"Planning Phase",
+                  steps:["Problem Definition","Data Collection","Data Exploration"],
+                  focus:"Understanding and preparation",
+                  output:"Clear objectives and clean dataset"
+                },
+                {
+                  phase:"Development Phase",
+                  steps:["Preprocessing","Feature Engineering","Model Selection","Training"],
+                  focus:"Building the solution",
+                  output:"Trained model ready for evaluation"
+                },
+                {
+                  phase:"Validation Phase",
+                  steps:["Model Evaluation","Hyperparameter Tuning","Cross-validation"],
+                  focus:"Ensuring quality and reliability",
+                  output:"Optimized, validated model"
+                },
+                {
+                  phase:"Deployment Phase",
+                  steps:["Model Deployment","Monitoring","Maintenance"],
+                  focus:"Production and ongoing improvement",
+                  output:"Live system with continuous learning"
+                }
+              ].map((phase,i)=>(
+                <div key={i} style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>{phase.phase}</div>
+                  <div style={{marginBottom:8}}>
+                    <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginBottom:4}}>Steps:</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:2}}>
+                      {phase.steps.map((step,j)=>(
+                        <div key={j} style={{fontSize:10,color:"var(--txt1)"}}>• {step}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{fontSize:10,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:4}}>Focus: {phase.focus}</div>
+                  <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>Output: {phase.output}</div>
+                </div>
+              ))}
+            </div>
+
+            <AnalogyBox icon={ICONS.run} title="ML Pipeline is Like Cooking" text="Just as cooking requires gathering ingredients, preparing them, cooking with the right technique, and serving the final dish, ML requires systematic steps from raw data to deployed model."/>
+
+            <Quiz q="Which phase of the ML pipeline focuses on ensuring the model works well on unseen data?" options={["Planning Phase","Development Phase","Validation Phase","Deployment Phase"]} correct={2}/>
+          </div>
+        ),
+      },
+      {
+        title:"Data Splitting Strategy",
+        badge:`${ICONS.train} splitting`,
+        badgeColor:"#f472b6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Proper data splitting is crucial to prevent data leakage and ensure your model can generalize to new, unseen data.
+            </p>
+
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(244,114,182,0.08)",border:"1px solid rgba(244,114,182,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f472b6",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>The Three Sacred Datasets</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                  {[
+                    {
+                      name:"Training Set",
+                      percentage:"60-80%",
+                      purpose:"Model learns patterns from this data",
+                      access:"Model sees this during training",
+                      icon:ICONS.train,
+                      color:"#60a5fa"
+                    },
+                    {
+                      name:"Validation Set",
+                      percentage:"10-20%",
+                      purpose:"Tune hyperparameters and check overfitting",
+                      access:"Model sees this during development",
+                      icon:ICONS.check,
+                      color:"#fbbf24"
+                    },
+                    {
+                      name:"Test Set",
+                      percentage:"10-20%",
+                      purpose:"Final unbiased evaluation",
+                      access:"Model NEVER sees this until end",
+                      icon:ICONS.goal,
+                      color:"#f87171"
+                    }
+                  ].map((set,i)=>(
+                    <div key={i} style={{padding:"14px",borderRadius:10,background:`${set.color}08`,border:`1px solid ${set.color}25`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                        <span style={{fontSize:16}}>{set.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:set.color}}>{set.name}</div>
+                          <div style={{fontSize:10,color:set.color,fontFamily:"var(--fm)"}}>{set.percentage}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:11,color:"var(--txt1)",lineHeight:1.5,marginBottom:6}}>{set.purpose}</p>
+                      <div style={{fontSize:9,color:set.color,fontFamily:"var(--fm)",fontWeight:600}}>{set.access}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(251,191,36,0.08)",border:"1px solid rgba(251,191,36,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#fbbf24",fontFamily:"var(--fm)",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Common Splitting Techniques</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                  {[
+                    {
+                      method:"Random Split",
+                      description:"Randomly assign samples to train/validation/test",
+                      pros:"Simple, fast",
+                      cons:"May not preserve class distribution",
+                      use:"When classes are balanced"
+                    },
+                    {
+                      method:"Stratified Split",
+                      description:"Maintain class proportions in each split",
+                      pros:"Preserves class balance",
+                      cons:"Slightly more complex",
+                      use:"When dealing with imbalanced classes"
+                    },
+                    {
+                      method:"Time-based Split",
+                      description:"Split based on time (earlier for train, later for test)",
+                      pros:"Realistic evaluation",
+                      cons:"May have temporal bias",
+                      use:"Time series, trending data"
+                    },
+                    {
+                      method:"Group-based Split",
+                      description:"Keep related samples together (e.g., same patient)",
+                      pros:"Prevents data leakage",
+                      cons:"Requires domain knowledge",
+                      use:"Medical, user behavior data"
+                    }
+                  ].map((method,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:4}}>{method.method}</div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:6}}>{method.description}</p>
+                      <div style={{display:"flex",gap:8}}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:8,color:"#34d399",marginBottom:2}}>✓ Pros</div>
+                          <div style={{fontSize:8,color:"var(--txt1)"}}>{method.pros}</div>
+                        </div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:8,color:"#f87171",marginBottom:2}}>⚠ Cons</div>
+                          <div style={{fontSize:8,color:"var(--txt1)"}}>{method.cons}</div>
+                        </div>
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)",marginTop:4,fontStyle:"italic"}}>Use: {method.use}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-red">
+              <strong style={{fontSize:12,color:"#f87171"}}>🚨 Data Leakage — The Silent Killer:</strong>
+              <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.7,marginTop:4}}>
+                Data leakage occurs when information from outside the training set "leaks" into the model, making it perform unrealistically well on test data but fail in production. Common causes: using future data to predict past events, including target-related features in training, improper cross-validation.
+              </p>
+            </div>
+
+            <Quiz q="What is data leakage?" options={["When data gets lost","When test data influences training","When model performs too well","When data is corrupted"]} correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Cross-Validation Techniques",
+        badge:`${ICONS.check} validation`,
+        badgeColor:"#34d399",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Cross-validation provides a more reliable estimate of model performance by testing on multiple data splits, reducing the risk of overfitting to a particular train-test split.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              {[
+                {
+                  method:"K-Fold Cross-Validation",
+                  description:"Split data into K equal parts. Train on K-1 parts, test on remaining part. Repeat K times.",
+                  advantages:["Uses all data for training and testing","Reduces overfitting risk","Provides confidence intervals"],
+                  disadvantages:["Computationally expensive","Requires careful stratification"],
+                  best_for:"Most ML problems with sufficient data",
+                  k_value:"Typically K=5 or K=10"
+                },
+                {
+                  method:"Stratified K-Fold",
+                  description:"K-Fold with class proportion preservation in each fold",
+                  advantages:["Maintains class balance","Better for imbalanced datasets"],
+                  disadvantages:["Slower than regular K-Fold","Requires classification task"],
+                  best_for:"Classification with imbalanced classes",
+                  k_value:"K=5 or K=10"
+                },
+                {
+                  method:"Leave-One-Out (LOO)",
+                  description:"Use single sample for testing, rest for training. Repeat for each sample.",
+                  advantages:["Uses maximum training data","Unbiased estimate"],
+                  disadvantages:["Very computationally expensive","High variance"],
+                  best_for:"Small datasets (< 1000 samples)",
+                  k_value:"K = number of samples"
+                },
+                {
+                  method:"Time Series Split",
+                  description:"Respect temporal order — train on past, test on future",
+                  advantages:["Realistic evaluation","Prevents data leakage"],
+                  disadvantages:["Limited training data","Cannot shuffle"],
+                  best_for:"Time series forecasting",
+                  k_value:"Varies by time periods"
+                }
+              ].map((cv,i)=>(
+                <div key={i} style={{padding:"16px",borderRadius:12,background:"rgba(255,255,255,0.03)",border:"1px solid var(--rim1)"}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>{cv.method}</div>
+                  <p style={{fontSize:11,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.5,marginBottom:8}}>{cv.description}</p>
+
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:9,color:"#34d399",fontFamily:"var(--fm)",marginBottom:2}}>✓ Advantages</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                        {cv.advantages.map((adv,j)=>(
+                          <div key={j} style={{fontSize:8,color:"var(--txt1)"}}>• {adv}</div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{fontSize:9,color:"#f87171",fontFamily:"var(--fm)",marginBottom:2}}>⚠ Disadvantages</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                        {cv.disadvantages.map((dis,j)=>(
+                          <div key={j} style={{fontSize:8,color:"var(--txt1)"}}>• {dis}</div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                    <strong>Best for:</strong> {cv.best_for}<br/>
+                    <strong>K value:</strong> {cv.k_value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#60a5fa"}}>Cross-Validation Best Practices:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Always stratify:</strong> Preserve class distributions</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Shuffle wisely:</strong> Randomize but respect temporal order for time series</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Report mean ± std:</strong> Show confidence in your results</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Nested CV for tuning:</strong> Separate hyperparameter tuning from final evaluation</div>
+                </div>
+              </div>
+            </div>
+
+            <Quiz q="Why is cross-validation better than a single train-test split?" options={["It's faster","It uses more data","It provides more reliable performance estimates","It requires less data"]} correct={2}/>
+          </div>
+        ),
+      }
+    ],
+  },
       {
         title:"Linear Regression — Predict Numbers",
         badge:"📈 algorithm",
@@ -1605,6 +3295,1068 @@ const SECTIONS = [
             </p>
           </div>
         </div>),
+      },
+    ],
+  },
+  {
+    id:"encoding", icon:"🔧", title:"Encoding & Feature Engineering", color:"#f59e0b",
+    tagline:"Transform raw data into ML-ready features",
+    topics:[
+      {
+        title:"Categorical Encoding — Converting Text to Numbers",
+        badge:`${ICONS.code} preprocessing`,
+        badgeColor:"#f59e0b",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              ML algorithms need numbers, but real data has text categories like "Red", "Blue", "Green" or "Bachelor's", "Master's", "PhD". <strong style={{color:"var(--txt0)"}}>Encoding</strong> converts these to numbers while preserving meaning.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Label Encoding</div>
+                <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:12}}>
+                  Assigns each category a number: Red=0, Blue=1, Green=2. Simple but implies order where none exists.
+                </p>
+                <div style={{overflowX:"auto",marginTop:12}}>
+                  <table style={{width:"100%",borderCollapse:"separate",borderSpacing:"3px",fontFamily:"var(--fm)",fontSize:10,minWidth:200}}>
+                    <thead>
+                      <tr>
+                        {["Color","Encoded"].map((h,i)=>(
+                          <td key={i} style={{padding:"6px 8px",borderRadius:4,background:"rgba(255,255,255,0.07)",color:"var(--txt1)",fontWeight:700,textAlign:"center"}}>{h}</td>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ["Red",0],
+                        ["Blue",1],
+                        ["Green",2]
+                      ].map((row,i)=>(
+                        <tr key={i}>
+                          {row.map((cell,j)=>(
+                            <td key={j} style={{padding:"5px 8px",borderRadius:3,background:"rgba(255,255,255,0.03)",color:"var(--txt1)",textAlign:"center"}}>{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginTop:8}}>
+                  <strong>Problem:</strong> Algorithm thinks Green (2) > Blue (1) > Red (0)
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>One-Hot Encoding</div>
+                <p style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6,marginBottom:12}}>
+                  Creates binary columns for each category. No false ordering, but increases dimensionality.
+                </p>
+                <div style={{overflowX:"auto",marginTop:12}}>
+                  <table style={{width:"100%",borderCollapse:"separate",borderSpacing:"2px",fontFamily:"var(--fm)",fontSize:9,minWidth:250}}>
+                    <thead>
+                      <tr>
+                        {["Color","Red","Blue","Green"].map((h,i)=>(
+                          <td key={i} style={{padding:"4px 6px",borderRadius:3,background:"rgba(255,255,255,0.07)",color:"var(--txt1)",fontWeight:700,textAlign:"center"}}>{h}</td>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ["Red",1,0,0],
+                        ["Blue",0,1,0],
+                        ["Green",0,0,1]
+                      ].map((row,i)=>(
+                        <tr key={i}>
+                          {row.map((cell,j)=>(
+                            <td key={j} style={{padding:"4px 6px",borderRadius:2,background:"rgba(255,255,255,0.03)",color:"var(--txt1)",textAlign:"center"}}>{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{fontSize:10,color:"var(--txt2)",fontFamily:"var(--fm)",marginTop:8}}>
+                  <strong>Advantage:</strong> No ordering assumption, each category independent
+                </div>
+              </div>
+            </div>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Advanced Encoding Techniques</div>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {[
+                  {
+                    name:"Target Encoding",
+                    description:"Replace category with average target value for that category",
+                    example:"'Bachelor's' → 0.75 (75% of Bachelor's get promoted)",
+                    use:"When categories have strong relationship with target",
+                    icon:"🎯"
+                  },
+                  {
+                    name:"Frequency Encoding",
+                    description:"Replace category with how often it appears in data",
+                    example:"'Rare category' → 0.02 (appears in 2% of data)",
+                    use:"When category frequency is informative",
+                    icon:"📊"
+                  },
+                  {
+                    name:"Binary Encoding",
+                    description:"Convert category to binary, then split into separate columns",
+                    example:"Category 5 → 101 → columns: [1,0,1]",
+                    use:"Memory efficient alternative to one-hot",
+                    icon:"🔢"
+                  }
+                ].map((enc,i)=>(
+                  <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(245,158,11,0.1)"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                      <span style={{fontSize:16}}>{enc.icon}</span>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{enc.name}</div>
+                      </div>
+                    </div>
+                    <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{enc.description}</p>
+                    <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                      <strong>Example:</strong> {enc.example}<br/>
+                      <strong>Use:</strong> {enc.use}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.code} title="Like Translating Languages" text="Label encoding is like assigning numbers to words in a dictionary. One-hot encoding is like creating a separate flag for each word. Target encoding is like using the meaning/context of words to represent them."/>
+
+            <Quiz q="When should you use one-hot encoding instead of label encoding?" options={["When categories have natural order","When categories are nominal (no order)","When you have many categories","When memory is limited"] correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Feature Engineering — Creating Better Features",
+        badge:`${ICONS.lightbulb} creativity`,
+        badgeColor:"#f59e0b",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Raw data is rarely perfect for ML. <strong style={{color:"var(--txt0)"}}>Feature engineering</strong> creates new features that better represent the underlying patterns, often making the difference between a good and great model.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Numerical Features</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {name:"Log Transform",desc:"log(x+1) for skewed data",why:"Makes exponential relationships linear"},
+                    {name:"Standardization",desc:"(x - mean) / std",why:"Centers data, handles different scales"},
+                    {name:"Binning",desc:"Group continuous values into categories",why:"Captures non-linear patterns"},
+                    {name:"Polynomial Features",desc:"x², x³, xy combinations",why:"Captures complex relationships"}
+                  ].map((feat,i)=>(
+                    <div key={i} style={{padding:"8px 10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:2}}>{feat.name}</div>
+                      <div style={{fontSize:9,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:2}}>{feat.desc}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{feat.why}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Categorical Features</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {name:"Grouping",desc:"Combine rare categories",why:"Reduces noise, prevents overfitting"},
+                    {name:"Ordinal Encoding",desc:"Low=1, Medium=2, High=3",why:"Preserves order information"},
+                    {name:"Count Encoding",desc:"Replace with frequency counts",why:"Captures popularity/rarity"},
+                    {name:"Interaction Features",desc:"Combine categories: 'Young+Urban'",why:"Captures combined effects"}
+                  ].map((feat,i)=>(
+                    <div key={i} style={{padding:"8px 10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:2}}>{feat.name}</div>
+                      <div style={{fontSize:9,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:2}}>{feat.desc}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{feat.why}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#f59e0b",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Domain-Specific Features</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+                {[
+                  {domain:"Finance",features:["Debt-to-Income Ratio","Payment History Score","Credit Utilization"],icon:"💰"},
+                  {domain:"E-commerce",features:["Purchase Frequency","Cart Abandonment Rate","Product Similarity Score"],icon:"🛒"},
+                  {domain:"Healthcare",features:["BMI Categories","Age Groups","Symptom Combinations"],icon:"🏥"},
+                  {domain:"Marketing",features:["Customer Lifetime Value","Engagement Score","Channel Preferences"],icon:"📢"},
+                  {domain:"Real Estate",features:["Price per Square Foot","Location Score","Property Age Groups"],icon:"🏠"},
+                  {domain:"Transportation",features:["Speed Categories","Route Efficiency","Time of Day Groups"],icon:"🚗"}
+                ].map((dom,i)=>(
+                  <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(245,158,11,0.1)",textAlign:"center"}}>
+                    <div style={{fontSize:16,marginBottom:6}}>{dom.icon}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:6}}>{dom.domain}</div>
+                    <div style={{fontSize:9,color:"var(--txt2)",lineHeight:1.3}}>
+                      {dom.features.map((f,j)=><div key={j}>• {f}</div>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="callout callout-amber">
+              <strong style={{fontSize:12,color:"#f59e0b"}}>Feature Engineering Best Practices:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Understand your domain:</strong> Talk to experts to find meaningful features</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Iterate and test:</strong> Create features, train model, measure improvement</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Handle missing data:</strong> Don't just drop — impute or create "missing" indicators</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Feature selection:</strong> Remove redundant features to prevent overfitting</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.lightbulb} title="Like Cooking Ingredients" text="Raw ingredients (data) need preparation to become delicious. Chopping, mixing, seasoning — that's feature engineering. A great chef knows how to combine ingredients creatively to make something amazing."/>
+
+            <Quiz q="What is the main goal of feature engineering?" options={["Make data look pretty","Create features that help algorithms learn patterns better","Reduce file size","Add more data points"] correct={1}/>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id:"modeling", icon:"🤖", title:"Modeling Algorithms", color:"#10b981",
+    tagline:"The algorithms that power machine learning",
+    topics:[
+      {
+        title:"Supervised Learning Algorithms",
+        badge:`${ICONS.goal} prediction`,
+        badgeColor:"#10b981",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Supervised learning algorithms learn from labeled data to make predictions. They find patterns in input-output pairs and use those patterns to predict outputs for new inputs.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#10b981",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Regression Algorithms</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Linear Regression",
+                      description:"Fits a straight line to predict continuous values",
+                      formula:"y = mx + b",
+                      use:"Predicting prices, scores, measurements",
+                      icon:"📈",
+                      pros:"Simple, interpretable, fast",
+                      cons:"Assumes linear relationship"
+                    },
+                    {
+                      name:"Polynomial Regression",
+                      description:"Fits curved lines using polynomial terms",
+                      formula:"y = a + bx + cx² + dx³",
+                      use:"Non-linear relationships",
+                      icon:"📊",
+                      pros:"Handles curves",
+                      cons:"Can overfit easily"
+                    },
+                    {
+                      name:"Ridge Regression",
+                      description:"Linear regression with L2 regularization",
+                      formula:"min Σ(yᵢ - ŷᵢ)² + λΣwⱼ²",
+                      use:"Prevent overfitting, handle multicollinearity",
+                      icon:"🛡️",
+                      pros:"Reduces overfitting",
+                      cons:"Less interpretable"
+                    },
+                    {
+                      name:"Lasso Regression",
+                      description:"Linear regression with L1 regularization",
+                      formula:"min Σ(yᵢ - ŷᵢ)² + λΣ|wⱼ|",
+                      use:"Feature selection, sparse models",
+                      icon:"🎯",
+                      pros:"Automatic feature selection",
+                      cons:"Can be unstable"
+                    }
+                  ].map((alg,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(16,185,129,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{alg.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{alg.name}</div>
+                          <div style={{fontSize:10,color:"#10b981",fontFamily:"var(--fm)"}}>{alg.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{alg.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {alg.use}<br/>
+                        <strong>Pros:</strong> {alg.pros}<br/>
+                        <strong>Cons:</strong> {alg.cons}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#10b981",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Classification Algorithms</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Logistic Regression",
+                      description:"Predicts probability of binary outcomes",
+                      formula:"P(y=1) = 1/(1+e^(-z))",
+                      use:"Binary classification, probability estimates",
+                      icon:"📊",
+                      pros:"Interpretable, outputs probabilities",
+                      cons:"Assumes linear decision boundary"
+                    },
+                    {
+                      name:"Decision Trees",
+                      description:"Tree-like model of decisions and outcomes",
+                      formula:"Series of if-then-else rules",
+                      use:"Classification and regression, interpretable models",
+                      icon:"🌳",
+                      pros:"Easy to understand, handles mixed data",
+                      cons:"Can overfit, unstable"
+                    },
+                    {
+                      name:"Random Forest",
+                      description:"Ensemble of many decision trees",
+                      formula:"Average of many tree predictions",
+                      use:"High accuracy, handles missing data",
+                      icon:"🌲",
+                      pros:"Accurate, robust to overfitting",
+                      cons:"Less interpretable, slower"
+                    },
+                    {
+                      name:"Support Vector Machines",
+                      description:"Finds optimal hyperplane for separation",
+                      formula:"max margin classifier",
+                      use:"High-dimensional data, non-linear classification",
+                      icon:"📏",
+                      pros:"Effective in high dimensions",
+                      cons:"Slow on large datasets"
+                    }
+                  ].map((alg,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(16,185,129,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{alg.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{alg.name}</div>
+                          <div style={{fontSize:10,color:"#10b981",fontFamily:"var(--fm)"}}>{alg.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{alg.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {alg.use}<br/>
+                        <strong>Pros:</strong> {alg.pros}<br/>
+                        <strong>Cons:</strong> {alg.cons}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-green">
+              <strong style={{fontSize:12,color:"#10b981"}}>Algorithm Selection Guide:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Start simple:</strong> Linear/Logistic regression as baseline</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Tree-based for tabular data:</strong> Random Forest, XGBoost</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Neural networks for:</strong> Images, text, complex patterns</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>SVM for:</strong> Small datasets, text classification</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.robot} title="Like Learning Different Skills" text="Linear regression is like learning basic arithmetic. Decision trees are like following flowcharts. Neural networks are like learning complex strategies through experience. Each algorithm has its strengths for different types of problems."/>
+
+            <Quiz q="Which algorithm is best for interpretable models that can handle both numerical and categorical data?" options={["Neural Networks","Support Vector Machines","Decision Trees","Linear Regression"] correct={2}/>
+          </div>
+        ),
+      },
+      {
+        title:"Unsupervised Learning Algorithms",
+        badge:`${ICONS.focus} patterns`,
+        badgeColor:"#10b981",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Unsupervised learning finds hidden patterns in data without labeled examples. These algorithms discover structure, groupings, and relationships on their own.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#10b981",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Clustering Algorithms</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"K-Means Clustering",
+                      description:"Partitions data into k clusters by minimizing distance to centroids",
+                      formula:"min Σ Σ ||xᵢ - μⱼ||²",
+                      use:"Customer segmentation, image compression",
+                      icon:"🎯",
+                      pros:"Simple, scalable, fast",
+                      cons:"Needs k specified, sensitive to initialization"
+                    },
+                    {
+                      name:"Hierarchical Clustering",
+                      description:"Builds tree of clusters by successively merging or splitting",
+                      formula:"Agglomerative/Divisive approaches",
+                      use:"Taxonomy creation, understanding data structure",
+                      icon:"🌳",
+                      pros:"No need to specify k, creates hierarchy",
+                      cons:"Slow on large datasets, can't undo merges"
+                    },
+                    {
+                      name:"DBSCAN",
+                      description:"Density-based clustering that finds arbitrary shaped clusters",
+                      formula:"Core points, reachable points, outliers",
+                      use:"Spatial data, anomaly detection",
+                      icon:"🔍",
+                      pros:"Finds arbitrary shapes, handles noise",
+                      cons:"Struggles with varying densities"
+                    },
+                    {
+                      name:"Gaussian Mixture Models",
+                      description:"Probabilistic model assuming data from mixture of Gaussians",
+                      formula:"P(x) = Σ πₖ N(x|μₖ,Σₖ)",
+                      use:"Soft clustering, density estimation",
+                      icon:"📊",
+                      pros:"Soft assignments, probabilistic",
+                      cons:"Assumes Gaussian distributions"
+                    }
+                  ].map((alg,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(16,185,129,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{alg.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{alg.name}</div>
+                          <div style={{fontSize:10,color:"#10b981",fontFamily:"var(--fm)"}}>{alg.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{alg.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {alg.use}<br/>
+                        <strong>Pros:</strong> {alg.pros}<br/>
+                        <strong>Cons:</strong> {alg.cons}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#10b981",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Dimensionality Reduction</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Principal Component Analysis (PCA)",
+                      description:"Finds directions of maximum variance in data",
+                      formula:"Eigenvalue decomposition of covariance matrix",
+                      use:"Data visualization, noise reduction, feature extraction",
+                      icon:"📉",
+                      pros:"Unsupervised, preserves variance",
+                      cons:"Linear method, hard to interpret"
+                    },
+                    {
+                      name:"t-SNE",
+                      description:"Non-linear dimensionality reduction for visualization",
+                      formula:"Minimizes KL divergence between distributions",
+                      use:"High-dimensional data visualization",
+                      icon:"🎨",
+                      pros:"Preserves local structure, great for viz",
+                      cons:"Slow, stochastic, not for production"
+                    },
+                    {
+                      name:"Autoencoders",
+                      description:"Neural networks that learn efficient data representations",
+                      formula:"Encoder → Bottleneck → Decoder",
+                      use:"Feature learning, denoising, generation",
+                      icon:"🧠",
+                      pros:"Non-linear, learns features automatically",
+                      cons:"Requires lots of data, complex"
+                    },
+                    {
+                      name:"UMAP",
+                      description:"Uniform Manifold Approximation and Projection",
+                      formula:"Topological data analysis approach",
+                      use:"Fast dimensionality reduction, preserves structure",
+                      icon:"🗺️",
+                      pros:"Fast, preserves global structure",
+                      cons:"Newer method, less proven"
+                    }
+                  ].map((alg,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(16,185,129,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{alg.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{alg.name}</div>
+                          <div style={{fontSize:10,color:"#10b981",fontFamily:"var(--fm)"}}>{alg.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{alg.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {alg.use}<br/>
+                        <strong>Pros:</strong> {alg.pros}<br/>
+                        <strong>Cons:</strong> {alg.cons}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-blue">
+              <strong style={{fontSize:12,color:"#10b981"}}>Unsupervised Learning Applications:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Customer segmentation:</strong> Group customers by behavior</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Anomaly detection:</strong> Find unusual patterns</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Recommendation systems:</strong> Find similar items/users</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Data compression:</strong> Reduce dimensionality</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.focus} title="Like Exploring Unknown Territory" text="Supervised learning is like following a map with marked destinations. Unsupervised learning is like exploring a new land without a map, discovering rivers, mountains, and natural boundaries on your own."/>
+
+            <Quiz q="Which clustering algorithm can find clusters of arbitrary shapes and handle noise?" options={["K-Means","Hierarchical Clustering","DBSCAN","Gaussian Mixture Models"] correct={2}/>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id:"evaluation", icon:"📊", title:"Model Evaluation", color:"#8b5cf6",
+    tagline:"Measuring how well your model performs",
+    topics:[
+      {
+        title:"Evaluating Classification Models",
+        badge:`${ICONS.check} metrics`,
+        badgeColor:"#8b5cf6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Model evaluation tells you how well your model performs. Different metrics matter for different problems — accuracy alone is often misleading, especially with imbalanced data.
+            </p>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Confusion Matrix — The Foundation</div>
+              <div style={{display:"grid",gridTemplateColumns:"200px 1fr",gap:16,alignItems:"center"}}>
+                <div style={{background:"rgba(0,0,0,0.2)",borderRadius:8,padding:"16px",textAlign:"center"}}>
+                  <div style={{fontSize:14,fontWeight:700,color:"var(--txt0)",marginBottom:8}}>Predicted</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:2}}>
+                    <div style={{padding:"8px",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.3)",borderRadius:4}}>
+                      <div style={{fontSize:10,color:"#22c55e",fontWeight:700}}>TP</div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>True Positive</div>
+                    </div>
+                    <div style={{padding:"8px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:4}}>
+                      <div style={{fontSize:10,color:"#ef4444",fontWeight:700}}>FP</div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>False Positive</div>
+                    </div>
+                    <div style={{padding:"8px",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:4}}>
+                      <div style={{fontSize:10,color:"#ef4444",fontWeight:700}}>FN</div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>False Negative</div>
+                    </div>
+                    <div style={{padding:"8px",background:"rgba(34,197,94,0.1)",border:"1px solid rgba(34,197,94,0.3)",borderRadius:4}}>
+                      <div style={{fontSize:10,color:"#22c55e",fontWeight:700}}>TN</div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>True Negative</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:10,color:"var(--txt2)",marginTop:8,textTransform:"uppercase",letterSpacing:"0.05em"}}>Actual</div>
+                </div>
+                <div style={{fontSize:12,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.6}}>
+                  <strong>TP (True Positive):</strong> Correctly predicted positive cases<br/>
+                  <strong>FP (False Positive):</strong> Incorrectly predicted positive (Type I error)<br/>
+                  <strong>FN (False Negative):</strong> Incorrectly predicted negative (Type II error)<br/>
+                  <strong>TN (True Negative):</strong> Correctly predicted negative cases
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Key Classification Metrics</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {metric:"Accuracy",formula:"(TP+TN) / Total",desc:"What % of ALL predictions were right?",when:"Balanced classes, equal cost of errors"},
+                    {metric:"Precision",formula:"TP / (TP+FP)",desc:'When I said "YES", how often was I right?',when:"False positives are costly"},
+                    {metric:"Recall",formula:"TP / (TP+FN)",desc:"Of all real YES cases, how many did I catch?",when:"False negatives are costly"},
+                    {metric:"F1 Score",formula:"2×P×R / (P+R)",desc:"Balance of precision and recall",when:"Imbalanced data, need single metric"},
+                    {metric:"AUC-ROC",formula:"Area under ROC curve",desc:"How well model ranks positive cases higher",when:"Ranking/ranking quality matters"}
+                  ].map((m,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:2}}>{m.metric}</div>
+                      <code style={{fontSize:9,color:"#8b5cf6",fontFamily:"var(--fm)",display:"block",marginBottom:3}}>{m.formula}</code>
+                      <div style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:2}}>{m.desc}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}><strong>When to use:</strong> {m.when}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Real-World Examples</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {scenario:"Medical Diagnosis",important:"Recall (catch all sick patients)",why:"Missing sick patient is dangerous"},
+                    {scenario:"Spam Detection",important:"Precision (don't delete good emails)",why:"False positive frustrates users"},
+                    {scenario:"Fraud Detection",important:"Precision + Recall balance",why:"Both false positives and negatives costly"},
+                    {scenario:"Weather Prediction",important:"Accuracy (general correctness)",why:"Costs of errors are similar"}
+                  ].map((ex,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:3}}>{ex.scenario}</div>
+                      <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:2}}>{ex.important}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{ex.why}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-purple">
+              <strong style={{fontSize:12,color:"#8b5cf6"}}>Evaluation Best Practices:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Never evaluate on training data:</strong> Always use separate test set</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Use cross-validation:</strong> More reliable than single train/test split</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Choose metrics based on business impact:</strong> Not just accuracy</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Consider baseline:</strong> Compare to simple rules or random guessing</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.check} title="Like Grading a Test" text="Accuracy is like counting correct answers. Precision is like checking if you only marked correct answers. Recall is like checking if you found all correct answers. F1 is the overall grade considering both."/>
+
+            <Quiz q="When should you prefer recall over precision?" options={["When false positives are expensive","When false negatives are expensive","When you have balanced data","When accuracy is most important"] correct={1}/>
+          </div>
+        ),
+      },
+      {
+        title:"Evaluating Regression Models",
+        badge:`${ICONS.chart} errors`,
+        badgeColor:"#8b5cf6",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Regression evaluation measures how close your predictions are to the actual values. Different metrics emphasize different aspects of prediction quality.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Error-Based Metrics</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"Mean Absolute Error (MAE)",
+                      formula:"MAE = (1/n) Σ |yᵢ - ŷᵢ|",
+                      description:"Average absolute difference between predicted and actual",
+                      use:"Easy to interpret, robust to outliers",
+                      example:"Predictions: [100, 200, 300] Actual: [110, 190, 310] → MAE = 10",
+                      icon:"📏"
+                    },
+                    {
+                      name:"Mean Squared Error (MSE)",
+                      formula:"MSE = (1/n) Σ (yᵢ - ŷᵢ)²",
+                      description:"Average of squared differences",
+                      use:"Penalizes large errors more, mathematical properties",
+                      example:"Same data → MSE = 100",
+                      icon:"📐"
+                    },
+                    {
+                      name:"Root Mean Squared Error (RMSE)",
+                      formula:"RMSE = √MSE",
+                      description:"Square root of MSE, same units as target",
+                      use:"Most common metric, interpretable units",
+                      example:"Same data → RMSE ≈ 10",
+                      icon:"📊"
+                    },
+                    {
+                      name:"Mean Absolute Percentage Error (MAPE)",
+                      formula:"MAPE = (100/n) Σ |(yᵢ - ŷᵢ)/yᵢ|",
+                      description:"Average percentage error",
+                      use:"Relative error, compare across different scales",
+                      example:"Same data → MAPE ≈ 4.3%",
+                      icon:"📈"
+                    }
+                  ].map((metric,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{metric.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{metric.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{metric.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{metric.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {metric.use}<br/>
+                        <strong>Example:</strong> {metric.example}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#8b5cf6",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Relative Metrics</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      name:"R² Score (Coefficient of Determination)",
+                      formula:"R² = 1 - (SS_res / SS_tot)",
+                      description:"Proportion of variance explained by model",
+                      use:"How much better than mean prediction",
+                      interpretation:"0.8 means 80% of variation explained",
+                      icon:"🎯"
+                    },
+                    {
+                      name:"Adjusted R²",
+                      formula:"R²_adj = 1 - ((1-R²)(n-1))/(n-p-1)",
+                      description:"R² adjusted for number of features",
+                      use:"Comparing models with different features",
+                      interpretation:"Penalizes adding useless features",
+                      icon:"⚖️"
+                    },
+                    {
+                      name:"Explained Variance Score",
+                      formula:"1 - (Var(y - ŷ) / Var(y))",
+                      description:"How much variance is explained",
+                      use:"Similar to R² but can be negative",
+                      interpretation:"Negative means worse than mean",
+                      icon:"📊"
+                    }
+                  ].map((metric,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(139,92,246,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{metric.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{metric.name}</div>
+                          <div style={{fontSize:10,color:"#8b5cf6",fontFamily:"var(--fm)"}}>{metric.formula}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{metric.description}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)"}}>
+                        <strong>Use:</strong> {metric.use}<br/>
+                        <strong>Interpretation:</strong> {metric.interpretation}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-amber">
+              <strong style={{fontSize:12,color:"#f59e0b"}}>Choosing the Right Metric:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Use MAE when:</strong> All errors are equally important, outliers present</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Use RMSE when:</strong> Large errors are particularly bad, normal distribution</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Use MAPE when:</strong> Comparing models on different scales</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Use R² when:</strong> Explaining variance is the goal</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.chart} title="Like Measuring Distance" text="MAE is like measuring straight-line distance. MSE is like measuring squared distance (punishes long detours more). RMSE brings it back to normal units. R² tells you what percentage of the journey you explained correctly."/>
+
+            <Quiz q="Which metric gives the error in the same units as the target variable?" options={["MAE","MSE","RMSE","R²"] correct={2}/>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id:"applications", icon:"🌟", title:"Applications & Future", color:"#ec4899",
+    tagline:"ML in the real world and what's next",
+    topics:[
+      {
+        title:"ML in Industry — Real-World Applications",
+        badge:`${ICONS.run} impact`,
+        badgeColor:"#ec4899",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              Machine Learning is transforming every industry. From healthcare to finance to transportation, ML algorithms are solving real problems and creating new opportunities.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Healthcare & Medicine</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {app:"Disease Diagnosis",tech:"CNNs for medical imaging",impact:"Early detection of cancer, COVID-19",icon:"🏥"},
+                    {app:"Drug Discovery",tech:"Molecular property prediction",impact:"Faster drug development, personalized medicine",icon:"💊"},
+                    {app:"Health Monitoring",tech:"Time series analysis",impact:"Predictive healthcare, wearable devices",icon:"📱"},
+                    {app:"Medical Research",tech:"Pattern recognition in genomics",impact:"Understanding diseases at molecular level",icon:"🧬"}
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                        <span style={{fontSize:14}}>{item.icon}</span>
+                        <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)"}}>{item.app}</div>
+                      </div>
+                      <div style={{fontSize:9,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:2}}>{item.tech}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{item.impact}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Finance & Banking</div>
+                <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                  {[
+                    {app:"Fraud Detection",tech:"Anomaly detection algorithms",impact:"Prevent billions in fraudulent transactions",icon:"💳"},
+                    {app:"Credit Scoring",tech:"Ensemble methods, feature engineering",impact:"Fairer lending decisions, risk assessment",icon:"📊"},
+                    {app:"Algorithmic Trading",tech:"Time series forecasting",impact:"Automated trading, market prediction",icon:"📈"},
+                    {app:"Insurance Pricing",tech:"Risk modeling, customer segmentation",impact:"Personalized premiums, claims prediction",icon:"🛡️"}
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"10px",borderRadius:6,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                        <span style={{fontSize:14}}>{item.icon}</span>
+                        <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)"}}>{item.app}</div>
+                      </div>
+                      <div style={{fontSize:9,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:2}}>{item.tech}</div>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}>{item.impact}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Transportation</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {[
+                    {app:"Self-Driving Cars",tech:"Computer vision, reinforcement learning",icon:"🚗"},
+                    {app:"Route Optimization",tech:"Graph algorithms, real-time prediction",icon:"🛣️"},
+                    {app:"Traffic Prediction",tech:"Time series, spatial analysis",icon:"🚦"}
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"8px",borderRadius:4,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
+                        <span style={{fontSize:12}}>{item.icon}</span>
+                        <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>{item.app}</div>
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>{item.tech}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Entertainment</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {[
+                    {app:"Recommendation Systems",tech:"Collaborative filtering, content-based",icon:"🎬"},
+                    {app:"Content Generation",tech:"GANs, transformers",icon:"🎨"},
+                    {app:"Personalization",tech:"User behavior analysis",icon:"🎯"}
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"8px",borderRadius:4,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
+                        <span style={{fontSize:12}}>{item.icon}</span>
+                        <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>{item.app}</div>
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>{item.tech}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Manufacturing</div>
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {[
+                    {app:"Quality Control",tech:"Computer vision, anomaly detection",icon:"🏭"},
+                    {app:"Predictive Maintenance",tech:"Time series, sensor data",icon:"🔧"},
+                    {app:"Supply Chain",tech:"Demand forecasting, optimization",icon:"📦"}
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"8px",borderRadius:4,background:"rgba(0,0,0,0.2)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:2}}>
+                        <span style={{fontSize:12}}>{item.icon}</span>
+                        <div style={{fontSize:10,fontWeight:700,color:"var(--txt0)"}}>{item.app}</div>
+                      </div>
+                      <div style={{fontSize:8,color:"var(--txt2)"}}>{item.tech}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="callout callout-pink">
+              <strong style={{fontSize:12,color:"#ec4899"}}>ML Success Stories:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Netflix:</strong> ML recommendations increased engagement by 25%</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Google Translate:</strong> Neural networks improved accuracy by 60%</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>PayPal:</strong> ML fraud detection saves $700M annually</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Tesla:</strong> Autopilot uses ML for self-driving capabilities</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.run} title="Like Electricity in the Industrial Revolution" text="Just as electricity transformed factories, transportation, and communication in the 20th century, ML is transforming industries today. It's not just automation — it's intelligent automation that learns and improves."/>
+
+            <Quiz q="Which industry was NOT mentioned as using ML for quality control?" options={["Healthcare","Manufacturing","Finance","Transportation"] correct={2}/>
+          </div>
+        ),
+      },
+      {
+        title:"The Future of Machine Learning",
+        badge:`${ICONS.bulb} trends`,
+        badgeColor:"#ec4899",
+        content:(
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <p style={{fontSize:13,color:"var(--txt1)",fontFamily:"var(--fb)",lineHeight:1.85}}>
+              ML is evolving rapidly. New architectures, better algorithms, and novel applications are emerging. Understanding these trends helps you stay ahead in this fast-moving field.
+            </p>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Emerging Technologies</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      tech:"Large Language Models (LLMs)",
+                      desc:"GPT, BERT, and similar models that understand and generate human-like text",
+                      impact:"Revolutionizing chatbots, content creation, code generation",
+                      timeline:"Now → 2025",
+                      icon:"💬"
+                    },
+                    {
+                      tech:"Multimodal Learning",
+                      desc:"Models that process text, images, audio, and video together",
+                      impact:"More comprehensive AI understanding, better context awareness",
+                      timeline:"2024 → 2026",
+                      icon:"🎭"
+                    },
+                    {
+                      tech:"Federated Learning",
+                      desc:"Training models across decentralized devices without sharing data",
+                      impact:"Privacy-preserving ML, edge computing, IoT applications",
+                      timeline:"2023 → 2027",
+                      icon:"🔒"
+                    },
+                    {
+                      tech:"AutoML & Neural Architecture Search",
+                      desc:"AI that automatically designs and optimizes ML models",
+                      impact:"Democratizing ML, faster model development",
+                      timeline:"Now → 2025",
+                      icon:"🤖"
+                    },
+                    {
+                      tech:"Quantum Machine Learning",
+                      desc:"Using quantum computers for faster ML computations",
+                      impact:"Solving currently intractable problems",
+                      timeline:"2025 → 2030",
+                      icon:"⚛️"
+                    }
+                  ].map((tech,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(236,72,153,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{tech.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{tech.tech}</div>
+                          <div style={{fontSize:9,color:"#ec4899",fontFamily:"var(--fm)"}}>{tech.timeline}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{tech.desc}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}><strong>Impact:</strong> {tech.impact}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+                <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Challenges & Opportunities</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  {[
+                    {
+                      challenge:"Data Privacy & Ethics",
+                      desc:"Balancing innovation with privacy rights and ethical considerations",
+                      opportunity:"Privacy-preserving techniques, ethical AI frameworks",
+                      icon:"🛡️"
+                    },
+                    {
+                      challenge:"Model Interpretability",
+                      desc:"Understanding why complex models make certain decisions",
+                      opportunity:"Explainable AI (XAI), model debugging tools",
+                      icon:"🔍"
+                    },
+                    {
+                      challenge:"Energy Efficiency",
+                      desc:"Large models require significant computational resources",
+                      opportunity:"Model compression, efficient architectures, edge computing",
+                      icon:"⚡"
+                    },
+                    {
+                      challenge:"Bias & Fairness",
+                      desc:"Models can inherit and amplify societal biases",
+                      opportunity:"Fairness-aware algorithms, diverse training data",
+                      icon:"⚖️"
+                    },
+                    {
+                      challenge:"Skill Gap",
+                      desc:"Demand for ML expertise exceeds supply",
+                      opportunity:"Better education, AutoML tools, citizen data science",
+                      icon:"📚"
+                    }
+                  ].map((item,i)=>(
+                    <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(236,72,153,0.1)"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                        <span style={{fontSize:16}}>{item.icon}</span>
+                        <div>
+                          <div style={{fontSize:12,fontWeight:700,color:"var(--txt0)"}}>{item.challenge}</div>
+                        </div>
+                      </div>
+                      <p style={{fontSize:10,color:"var(--txt1)",lineHeight:1.4,marginBottom:4}}>{item.desc}</p>
+                      <div style={{fontSize:9,color:"var(--txt2)"}}><strong>Opportunity:</strong> {item.opportunity}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{padding:"16px",borderRadius:12,background:"rgba(236,72,153,0.08)",border:"1px solid rgba(236,72,153,0.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Career Opportunities in ML</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+                {[
+                  {role:"ML Engineer",skills:"Python, TensorFlow/PyTorch, MLOps",salary:"$120k-200k",icon:"👨‍💻"},
+                  {role:"Data Scientist",skills:"Statistics, Python/R, visualization",salary:"$100k-180k",icon:"📊"},
+                  {role:"ML Researcher",skills:"Mathematics, research, publications",salary:"$130k-250k",icon:"🔬"},
+                  {role:"AI Ethics Officer",skills:"Ethics, policy, social science",salary:"$90k-150k",icon:"⚖️"},
+                  {role:"MLOps Engineer",skills:"DevOps, cloud, automation",salary:"$110k-190k",icon:"☁️"},
+                  {role:"AI Product Manager",skills:"Product management, ML basics",salary:"$130k-220k",icon:"📱"}
+                ].map((career,i)=>(
+                  <div key={i} style={{padding:"12px",borderRadius:8,background:"rgba(0,0,0,0.2)",border:"1px solid rgba(236,72,153,0.1)",textAlign:"center"}}>
+                    <div style={{fontSize:16,marginBottom:6}}>{career.icon}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"var(--txt0)",marginBottom:4}}>{career.role}</div>
+                    <div style={{fontSize:9,color:"#ec4899",fontFamily:"var(--fm)",marginBottom:3}}>{career.salary}</div>
+                    <div style={{fontSize:8,color:"var(--txt2)",lineHeight:1.2}}>{career.skills}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="callout callout-purple">
+              <strong style={{fontSize:12,color:"#8b5cf6"}}>Getting Started in ML:</strong>
+              <div style={{marginTop:6}}>
+                <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Learn fundamentals:</strong> Statistics, linear algebra, Python programming</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Practice projects:</strong> Kaggle competitions, personal projects</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Build portfolio:</strong> GitHub projects, blog posts, certifications</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Stay current:</strong> Follow research papers, attend conferences</div>
+                  <div style={{fontSize:11,color:"var(--txt1)"}}>• <strong>Network:</strong> Join ML communities, contribute to open source</div>
+                </div>
+              </div>
+            </div>
+
+            <AnalogyBox icon={ICONS.bulb} title="Like the Internet in the 1990s" text="We're in the early days of ML, similar to the internet boom of the 1990s. The field is growing exponentially, new applications are discovered daily, and the skills you learn now will be valuable for decades to come."/>
+
+            <Quiz q="Which emerging technology focuses on training models without sharing private data?" options={["Large Language Models","Federated Learning","Quantum ML","AutoML"] correct={1}/>
+          </div>
+        ),
       },
     ],
   },
