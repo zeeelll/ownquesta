@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Logo from "../components/Logo";
 
 const STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
@@ -1760,7 +1761,6 @@ export default function MLTutorialPage() {
     if (!term) return section.topics;
     return section.topics.filter(top =>
       top.title.toLowerCase().includes(term)
-      || top.tagline?.toLowerCase().includes(term)
       || top.badge?.toLowerCase().includes(term)
     );
   }, [section, topicSearch]);
@@ -1789,11 +1789,8 @@ export default function MLTutorialPage() {
       <nav style={{position:"sticky",top:0,zIndex:30,height:54,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 22px",borderBottom:"1px solid var(--rim0)",background:"rgba(4,7,14,0.9)",backdropFilter:"blur(28px)"}}>
         <div style={{position:"absolute",bottom:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(99,102,241,0.18),transparent)"}}/>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <div style={{width:26,height:26,borderRadius:7,background:"linear-gradient(135deg,#6366f1,#a78bfa)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{fontSize:13}}>🧠</span>
-          </div>
-          <span style={{fontFamily:"var(--fd)",fontSize:13,fontWeight:700,color:"var(--txt0)",letterSpacing:"-0.02em"}}>ML Guide</span>
-          <span style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",padding:"2px 7px",borderRadius:100,background:"rgba(255,255,255,0.04)",border:"1px solid var(--rim1)"}}>beginner friendly</span>
+          <Logo/>
+          <span style={{fontSize:9,color:"var(--txt2)",fontFamily:"var(--fm)",padding:"2px 7px",borderRadius:100,background:"rgba(255,255,255,0.04)",border:"1px solid var(--rim1)"}}>ML Tutorial</span>
         </div>
         <div style={{display:"flex",gap:7,alignItems:"center"}}>
           {selected&&<button onClick={()=>{setSelected(null);setOpen(new Set(Array.from({length: SECTIONS.reduce((a,s)=>a+s.topics.length,0)}, (_,i)=>i))); window.scrollTo({top:0,behavior:"smooth"});}} className="nav-pill">
