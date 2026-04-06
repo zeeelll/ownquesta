@@ -325,8 +325,8 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16">
-				<aside className="fixed left-0 top-16 hidden h-[calc(100vh-4rem)] w-72 overflow-y-auto border-r border-slate-200/70 bg-white/75 px-4 py-6 backdrop-blur-md md:block xl:px-5">
+			<div className="relative pt-16 md:grid md:grid-cols-[18rem_minmax(0,1fr)]">
+				<aside className="hidden border-r border-slate-200/70 bg-white/75 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
 					<div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
 						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-700">
 							Tutorial Topics
@@ -370,7 +370,7 @@ export default function MLTutorialPage() {
 					</nav>
 				</aside>
 
-				<main className="w-full md:ml-72">
+				<main className="w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
 						<motion.section
 							className="mb-6 rounded-3xl border border-slate-200/80 bg-white/90 p-6 shadow-[0_20px_55px_-35px_rgba(15,23,42,0.5)] backdrop-blur lg:p-10"
