@@ -63,7 +63,7 @@ export default function AboutPage() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(ellipse, rgba(110,84,200,0.10) 0%, transparent 70%)', filter: 'blur(40px)' }} />
 
       {/* Main Container */}
-      <div className="max-w-[1080px] mx-auto pt-24 sm:pt-28 md:pt-32 pb-16 px-4 sm:px-6">
+      <div className="w-full pt-24 sm:pt-28 md:pt-32 pb-16 px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16">
 
         {/* Hero */}
         <div className="text-center mb-16 sm:mb-20 py-10 sm:py-14">

@@ -224,7 +224,20 @@ function HomePageMockup() {
       </div>
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-3 z-10 border-b border-white/[0.06]">
         <div className="flex items-center gap-2"><div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[10px] font-bold text-white">✦</div><span className="text-white text-sm font-bold tracking-tight">Ownquesta</span></div>
-        <div className="flex items-center gap-3"><div className="text-[10px] text-white/60 font-medium cursor-pointer">Sign In</div><div className="text-[10px] text-white/60 font-medium cursor-pointer">About</div><div className="px-3 py-1 text-[10px] text-white bg-violet-600 hover:bg-violet-500 rounded-lg font-semibold">Tutorial</div></div>
+        <div className="flex items-center gap-2.5">
+          <button className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[10px] font-semibold text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.07] hover:text-white">
+            Sign In
+          </button>
+          <button className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[10px] font-semibold text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.07] hover:text-white">
+            About
+          </button>
+          <button className="rounded-full border border-amber-300/35 bg-gradient-to-r from-amber-200 via-orange-300 to-fuchsia-500 px-3.5 py-1.5 text-[10px] font-bold text-slate-950 shadow-[0_10px_24px_rgba(251,191,36,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:from-amber-100 hover:via-orange-200 hover:to-fuchsia-400 hover:shadow-[0_14px_32px_rgba(251,191,36,0.36)]">
+            Tutorial
+          </button>
+          <button className="rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-[10px] font-semibold text-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.07] hover:text-white">
+            Help
+          </button>
+        </div>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 z-10 pt-6">
         <div className="inline-flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-white/50 border border-white/10 rounded-full px-3 py-1 mb-4 bg-white/5"><span className="w-1 h-1 rounded-full bg-violet-400" />No-Code AI Platform</div>
