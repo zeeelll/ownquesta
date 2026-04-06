@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Lenis from "lenis";
@@ -9,19 +9,16 @@ import Logo from "../components/Logo";
 import {
 	ArrowRight,
 	Brain,
-	CheckCircle2,
 	Database,
 	FlaskConical,
 	History,
 	LayoutDashboard,
 	LineChart as LineChartIcon,
-	Microscope,
 	Sparkles,
 	Target,
 	Workflow,
 	TrendingUp,
 	Zap,
-	GitBranch,
 	Activity,
 } from "lucide-react";
 import {
@@ -194,6 +191,23 @@ const biasVarianceData = [
 	{ complexity: 8, bias: 8, variance: 92, totalError: 100, label: "Too Complex" },
 ];
 
+const evaluationMetricsData = [
+	{ metric: "Accuracy", value: 88, when: "Balanced datasets" },
+	{ metric: "Precision", value: 90, when: "Minimize false positives" },
+	{ metric: "Recall", value: 86, when: "Minimize false negatives" },
+	{ metric: "F1 Score", value: 88, when: "Balance precision and recall" },
+	{ metric: "AUC-ROC", value: 92, when: "Compare ranking quality" },
+];
+
+const industryAdoptionData = [
+	{ industry: "Tech", adoption: 95, impact: 94 },
+	{ industry: "Finance", adoption: 88, impact: 90 },
+	{ industry: "Healthcare", adoption: 82, impact: 91 },
+	{ industry: "Retail", adoption: 85, impact: 84 },
+	{ industry: "Manufacturing", adoption: 78, impact: 83 },
+	{ industry: "Education", adoption: 72, impact: 80 },
+];
+
 function SectionContainer({
 	id,
 	index,
@@ -296,16 +310,6 @@ function SectionContainer({
 export default function MLTutorialPage() {
 	const [activeSection, setActiveSection] = useState<SectionId>("history");
 	const [availableSections, setAvailableSections] = useState<SectionMeta[]>(sections);
-	const sidebarItemRefs = useRef<Record<SectionId, HTMLButtonElement | null>>({
-		history: null,
-		"why-ml": null,
-		types: null,
-		"data-preprocessing": null,
-		"model-building": null,
-		"training-prediction": null,
-		"evaluation-metrics": null,
-		"real-world": null,
-	});
 
 	useEffect(() => {
 		const lenis = new Lenis({
@@ -349,13 +353,6 @@ export default function MLTutorialPage() {
 		return () => {
 			window.removeEventListener("resize", updateAvailableSections);
 		};
-	}, [activeSection]);
-
-	useEffect(() => {
-		const activeButton = sidebarItemRefs.current[activeSection];
-		if (activeButton) {
-			activeButton.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
-		}
 	}, [activeSection]);
 
 	useEffect(() => {
@@ -462,7 +459,49 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16">
+			<div className="relative pt-16 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
+				<aside className="hidden border-r border-white/[0.06] bg-[rgba(6,8,18,0.7)] px-3 backdrop-blur-xl lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:items-start lg:overflow-y-auto lg:py-4">
+					<nav
+						aria-label="ML tutorial sections"
+						className="w-full space-y-3 rounded-3xl border border-white/10 bg-[rgba(6,8,18,0.7)] p-3 shadow-[0_22px_42px_-28px_rgba(124,58,237,0.4)] backdrop-blur-xl"
+					>
+						{sections.map((section, index) => {
+							const Icon = section.icon;
+							const isActive = activeSection === section.id;
+							return (
+								<button
+									type="button"
+									key={section.id}
+									onClick={() => scrollToSection(section.id)}
+									aria-current={isActive ? "page" : undefined}
+									className={`group relative flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
+										isActive
+											? "border-white/20 bg-white/10 text-white shadow-[0_14px_30px_-18px_rgba(124,58,237,0.7)]"
+											: "border-white/10 bg-white/[0.03] text-white/75 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
+									}`}
+								>
+									{isActive ? (
+										<span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-gradient-to-b from-violet-300 to-fuchsia-300" />
+									) : null}
+									<span
+										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
+											isActive
+												? "bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"
+												: "border border-white/10 bg-white/[0.04] text-white/60 group-hover:bg-white/[0.08]"
+										}`}
+									>
+										<Icon className="h-4 w-4" />
+									</span>
+									<div>
+										<p className="text-[11px] font-semibold tracking-[0.08em] text-white/35">{formatSectionNumber(index)}</p>
+										<p className="text-[15px] font-semibold leading-snug">{section.title}</p>
+									</div>
+								</button>
+							);
+						})}
+					</nav>
+				</aside>
+
 				<main className="relative z-10 w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
 						<div className="mb-5 overflow-x-auto pb-1 md:hidden">
@@ -1022,6 +1061,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Data Collection",
 												color: "emerald",
+												badgeClass: "bg-emerald-500/20 text-emerald-300",
 												description: "Gather data from all relevant sources. This could be databases, CSV files, APIs, web scraping, or sensors.",
 												example: "For a house price predictor, collect data on past sales: address, size, bedrooms, bathrooms, sale price, sale date.",
 												tips: [
@@ -1034,6 +1074,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Initial Exploration",
 												color: "teal",
+												badgeClass: "bg-teal-500/20 text-teal-300",
 												description: "Look at your data to understand what you're working with. Check data types, ranges, and distributions.",
 												example: "Look at the first 10 rows. Check if prices range from $50K to $5M, sizes from 500 to 5000 sqft. Are there any weird values like negative prices or 0 bedrooms?",
 												tips: [
@@ -1046,6 +1087,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Handle Missing Data",
 												color: "cyan",
+												badgeClass: "bg-cyan-500/20 text-cyan-300",
 												description: "Real-world data always has missing values. You need to decide what to do with them.",
 												example: "20% of houses don't have 'year renovated' recorded. Option 1: Fill with 0 (meaning never renovated). Option 2: Fill with original build year. Option 3: Remove those houses from data.",
 												tips: [
@@ -1058,6 +1100,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Remove or Fix Outliers",
 												color: "blue",
+												badgeClass: "bg-blue-500/20 text-blue-300",
 												description: "Outliers are extreme values that could be errors or genuine rare cases.",
 												example: "You find a house listed as $50 (probably missing zeros) and another at $50 million (genuine mansion). The $50 is an error - fix it or remove it. The mansion is real - keep it.",
 												tips: [
@@ -1070,6 +1113,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Feature Scaling",
 												color: "indigo",
+												badgeClass: "bg-indigo-500/20 text-indigo-300",
 												description: "Put all numerical features on similar scales so larger numbers don't dominate the model.",
 												example: "House size ranges 500-5000 (scale: 4500), while bedrooms range 1-5 (scale: 4). Without scaling, the model thinks size is 1000x more important!",
 												tips: [
@@ -1082,6 +1126,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Encode Categorical Variables",
 												color: "purple",
+												badgeClass: "bg-purple-500/20 text-purple-300",
 												description: "ML algorithms need numbers, not text. Convert categories like 'color' or 'city' into numbers.",
 												example: "House type: 'Apartment', 'House', 'Condo'. Convert to numbers: Apartment=0, House=1, Condo=2. Or use one-hot: create 3 columns (is_apartment, is_house, is_condo) with 1s and 0s.",
 												tips: [
@@ -1094,6 +1139,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Feature Engineering",
 												color: "pink",
+												badgeClass: "bg-pink-500/20 text-pink-300",
 												description: "Create new, useful features from existing ones. This is where creativity and domain knowledge shine!",
 												example: "From house data, create: house_age = current_year - year_built, price_per_sqft = price / size, has_renovation = (year_renovated > year_built).",
 												tips: [
@@ -1106,6 +1152,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Split Data",
 												color: "rose",
+												badgeClass: "bg-rose-500/20 text-rose-300",
 												description: "Separate your data into training, validation, and test sets. Never train and test on the same data!",
 												example: "1000 houses: 700 for training (70%), 150 for validation (15%), 150 for testing (15%). Train on 700, tune on 150 validation, final test on 150 test.",
 												tips: [
@@ -1118,6 +1165,7 @@ export default function MLTutorialPage() {
 											{
 												step: "Final Verification",
 												color: "amber",
+												badgeClass: "bg-amber-500/20 text-amber-300",
 												description: "Check that preprocessing worked correctly before training any models.",
 												example: "Verify: no missing values remain, all features are numeric, training and test sets have similar distributions, no data leakage from future to past.",
 												tips: [
@@ -1130,7 +1178,7 @@ export default function MLTutorialPage() {
 										].map((item, idx) => (
 											<div key={idx} className="rounded-xl border border-emerald-500/30 bg-slate-900/70 p-5">
 												<div className="flex items-start gap-4">
-													<span className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-${item.color}-500/20 text-lg font-bold text-${item.color}-300`}>
+													<span className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-lg font-bold ${item.badgeClass}`}>
 														{idx + 1}
 													</span>
 													<div className="flex-1">
@@ -1832,9 +1880,124 @@ export default function MLTutorialPage() {
 								</div>
 							</SectionContainer>
 
-							{/* Sections 7 and 8 continued in next part due to length... */}
+							{/* Section 7: Evaluation Metrics */}
+							<SectionContainer
+								id="evaluation-metrics"
+								index={7}
+								title={sectionMap["evaluation-metrics"].title}
+								icon={sectionMap["evaluation-metrics"].icon}
+							>
+								<div className="mt-7 space-y-6">
+									<div className="rounded-2xl border border-cyan-500/35 bg-cyan-950/20 p-6">
+										<h3 className="text-xl font-bold text-cyan-200">How To Measure If Your Model Is Actually Good</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Evaluation is where many projects fail. A model is only useful if its metric aligns with business goals.
+											 For example, in disease detection you care about high recall, while in spam filtering you often care about high precision.
+										</p>
+									</div>
 
-							{/* ... Continue with Sections 7 (Evaluation Metrics) and 8 (Real-world Applications) following the same detailed, beginner-friendly pattern ... */}
+									<div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/40 p-5">
+										<h3 className="text-xl font-bold text-cyan-100">Metric Comparison</h3>
+										<div className="mt-5 h-80 rounded-xl border border-slate-200 bg-white p-4">
+											<ResponsiveContainer width="100%" height="100%">
+												<BarChart data={evaluationMetricsData}>
+													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
+													<XAxis dataKey="metric" stroke="#334155" />
+													<YAxis domain={[0, 100]} stroke="#334155" />
+													<Tooltip />
+													<Bar dataKey="value" radius={[8, 8, 0, 0]}>
+														{evaluationMetricsData.map((entry, idx) => (
+															<Cell key={`${entry.metric}-${idx}`} fill={["#0ea5e9", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899"][idx % 5]} />
+														))}
+													</Bar>
+												</BarChart>
+											</ResponsiveContainer>
+										</div>
+									</div>
+
+									<div className="grid gap-4 md:grid-cols-2">
+										{evaluationMetricsData.map((item) => (
+											<div key={item.metric} className="rounded-xl border border-cyan-500/30 bg-slate-900/70 p-4">
+												<p className="text-sm font-bold text-cyan-200">{item.metric}</p>
+												<p className="mt-2 text-sm text-slate-300">Score: {item.value}%</p>
+												<p className="mt-1 text-xs text-cyan-100">Best used when: {item.when}</p>
+											</div>
+										))}
+									</div>
+
+									<div className="rounded-2xl border-2 border-cyan-400/40 bg-cyan-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-cyan-300" />
+											<h3 className="text-xl font-bold text-cyan-200">Golden Rule</h3>
+										</div>
+										<p className="mt-4 text-base leading-7 text-cyan-100">
+											Do not optimize a metric that does not reflect business risk. Pick the metric first,
+											 then build and tune the model around it.
+										</p>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 8: Real-world Applications */}
+							<SectionContainer
+								id="real-world"
+								index={8}
+								title={sectionMap["real-world"].title}
+								icon={sectionMap["real-world"].icon}
+							>
+								<div className="mt-7 space-y-6">
+									<div className="rounded-2xl border border-indigo-500/35 bg-indigo-950/20 p-6">
+										<h3 className="text-xl font-bold text-indigo-200">Where ML Creates Real Value</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											The biggest success stories come from combining good data, practical models, and strong operations.
+											 Real-world ML is not just training once; it is monitoring, retraining, and improving continuously.
+										</p>
+									</div>
+
+									<div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/45 p-5">
+										<h3 className="text-xl font-bold text-indigo-100">Industry Adoption and Impact</h3>
+										<div className="mt-5 h-80 rounded-xl border border-slate-200 bg-white p-4">
+											<ResponsiveContainer width="100%" height="100%">
+												<AreaChart data={industryAdoptionData}>
+													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
+													<XAxis dataKey="industry" stroke="#334155" />
+													<YAxis domain={[0, 100]} stroke="#334155" />
+													<Tooltip />
+													<Legend />
+													<Area type="monotone" dataKey="adoption" stroke="#6366f1" fill="#6366f1" fillOpacity={0.4} name="Adoption" />
+													<Area type="monotone" dataKey="impact" stroke="#22c55e" fill="#22c55e" fillOpacity={0.35} name="Business Impact" />
+												</AreaChart>
+											</ResponsiveContainer>
+										</div>
+									</div>
+
+									<div className="grid gap-4 md:grid-cols-2">
+										{[
+											"Use feature stores to keep training and inference consistent.",
+											"Track model drift continuously; production data always changes.",
+											"A/B test model updates before full rollout.",
+											"Design fallbacks for failure cases and low-confidence predictions.",
+											"Prioritize explainability for high-stakes domains.",
+											"Build an MLOps loop: monitor -> retrain -> validate -> deploy.",
+										].map((point, idx) => (
+											<div key={idx} className="rounded-xl border border-indigo-500/30 bg-slate-900/70 p-4">
+												<p className="text-sm leading-6 text-slate-200">{point}</p>
+											</div>
+										))}
+									</div>
+
+									<div className="rounded-2xl border-2 border-indigo-400/40 bg-indigo-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-indigo-300" />
+											<h3 className="text-xl font-bold text-indigo-200">Final Success Formula</h3>
+										</div>
+										<p className="mt-4 text-base leading-7 text-indigo-100">
+											Great ML products follow this sequence: clear business objective, then a strong data pipeline,
+											then a simple baseline, followed by iterative improvement, monitoring, and responsible governance.
+										</p>
+									</div>
+								</div>
+							</SectionContainer>
 
 						</div>
 
