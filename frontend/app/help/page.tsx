@@ -21,8 +21,8 @@ import {
   Workflow,
   type LucideIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import Button from '../components/Button';
 import Logo from '../components/Logo';
 
 type HelpApiResponse = {
@@ -331,8 +331,9 @@ export default function HelpPage() {
     <div className="relative min-h-screen w-full overflow-x-hidden bg-[radial-gradient(circle_at_10%_12%,#14314a_0%,#0c1326_36%,#060a16_100%)] text-[#f0f5ff] font-chillax scroll-smooth">
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(40,220,180,0.08),transparent_30%,rgba(90,140,255,0.08)_70%,transparent_100%)]" />
 
-      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-start border-b border-white/[0.06] bg-[rgba(12,16,31,0.88)] px-4 py-3 backdrop-blur-xl sm:px-6 md:px-10 md:py-4">
+      <nav className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-between border-b border-white/[0.06] bg-[rgba(12,16,31,0.88)] px-4 py-3 backdrop-blur-xl sm:px-6 md:px-10 md:py-4">
         <Logo href="/" size="md" />
+        <Button href="/" size="sm">Home</Button>
       </nav>
 
       <main className="relative z-10 w-full pt-24 sm:pt-28">
@@ -453,7 +454,7 @@ export default function HelpPage() {
         <section className="w-full px-6 pb-12 lg:px-16" id="contact">
           <div className="mb-5 flex items-center gap-3">
             <Mail className="h-5 w-5 text-[#80f6d8]" />
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Contact Support</h2>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">Submit</h2>
           </div>
 
           <form
@@ -542,37 +543,19 @@ export default function HelpPage() {
               </div>
             )}
 
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <button
+            <div className="mt-5">
+              <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0ebc90] to-[#39a8ff] px-7 py-3 text-sm font-semibold text-[#05111b] shadow-[0_10px_25px_rgba(57,168,255,0.3)] transition duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
+                icon={<Mail className="h-4 w-4" />}
+                className="px-7 py-3 text-sm"
               >
-                <Mail className="h-4 w-4" />
-                {isSubmitting ? 'Sending request...' : 'Contact Support'}
-              </button>
-
-              <a href="mailto:support@ownquesta.com" className="text-sm font-medium text-[#8fd7ff] underline underline-offset-4">
-                support@ownquesta.com
-              </a>
+                {isSubmitting ? 'Sending request...' : 'Submit'}
+              </Button>
             </div>
           </form>
         </section>
 
-        <section className="w-full px-6 pb-16 lg:px-16">
-          <div className="rounded-3xl border border-white/10 bg-[#081123] px-6 py-8 text-center">
-            <p className="text-lg font-semibold text-white">Still need help? We are here for you</p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              
-              <Link
-                href="/"
-                className="rounded-xl bg-gradient-to-r from-[#0ebc90] to-[#39a8ff] px-4 py-2 text-sm font-semibold text-[#041320]"
-              >
-                Back to Home
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

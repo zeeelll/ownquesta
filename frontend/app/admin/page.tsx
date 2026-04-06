@@ -97,6 +97,10 @@ interface HelpTicket {
   description: string;
   stepsTried?: string;
   createdAt: string;
+  updatedAt?: string;
+  submittedFrom?: string;
+  ipAddress?: string;
+  userAgent?: string;
   proofFiles?: Array<{ name: string; size: number; type: string }>;
   userId?: {
     _id: string;
@@ -325,6 +329,7 @@ export default function AdminPage() {
   const filteredHelpTickets = helpTickets.filter((ticket) => {
     const linkedUser = ticket.userId && typeof ticket.userId === 'object' ? ticket.userId : null;
     const query = helpSearch.trim().toLowerCase();
+    const proofNames = (ticket.proofFiles || []).map((file) => file.name).join(' ');
 
     const matchesSearch = !query || [
       ticket.ticketId,
@@ -332,8 +337,13 @@ export default function AdminPage() {
       ticket.email,
       ticket.subject,
       ticket.description,
+      ticket.stepsTried,
       ticket.issueType,
       ticket.pageArea,
+      ticket.submittedFrom,
+      ticket.ipAddress,
+      ticket.userAgent,
+      proofNames,
       linkedUser?.name,
       linkedUser?.email,
     ].some((value) => (value || '').toString().toLowerCase().includes(query));
@@ -1468,6 +1478,7 @@ export default function AdminPage() {
                               <span>{ticket.name} ({ticket.email})</span>
                               <span>{ticket.issueType} • {ticket.pageArea}</span>
                               <span>{new Date(ticket.createdAt).toLocaleString()}</span>
+                              {ticket.submittedFrom && <span>Source: {ticket.submittedFrom}</span>}
                               {linkedUser && <span>Linked user: {linkedUser.name || linkedUser.email}</span>}
                             </div>
 
@@ -1485,10 +1496,24 @@ export default function AdminPage() {
                                 <h5 className="text-xs font-mono text-slate-400 mb-2 uppercase tracking-wider">Proof Files</h5>
                                 <div className="flex flex-wrap gap-2">
                                   {ticket.proofFiles.map((file) => (
-                                    <span key={`${ticket._id}-${file.name}-${file.size}`} className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-slate-300 font-mono">
-                                      {file.name}
-                                    </span>
+                                    <div key={`${ticket._id}-${file.name}-${file.size}`} className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-slate-300 font-mono">
+                                      <div className="truncate max-w-[300px]">{file.name}</div>
+                                      <div className="mt-1 text-[10px] text-slate-500">
+                                        {(file.type || 'unknown').toUpperCase()} • {(Number(file.size || 0) / 1024).toFixed(1)} KB
+                                      </div>
+                                    </div>
                                   ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {(ticket.ipAddress || ticket.userAgent || ticket.updatedAt) && (
+                              <div className="metadata-box rounded-lg p-3 mt-3">
+                                <h5 className="text-xs font-mono text-slate-400 mb-1 uppercase tracking-wider">Request Metadata</h5>
+                                <div className="space-y-1 text-xs text-slate-400 font-mono">
+                                  {ticket.updatedAt && <div>Last updated: {new Date(ticket.updatedAt).toLocaleString()}</div>}
+                                  {ticket.ipAddress && <div>IP: {ticket.ipAddress}</div>}
+                                  {ticket.userAgent && <div className="break-all">Device: {ticket.userAgent}</div>}
                                 </div>
                               </div>
                             )}
