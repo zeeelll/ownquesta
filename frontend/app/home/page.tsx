@@ -153,20 +153,20 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 sm:px-5 md:px-8 pt-28 sm:pt-36 md:pt-44 pb-20">
-        <div className="w-full max-w-[800px] text-center relative z-10">
+        <div className="w-full max-w-[860px] text-center relative z-10 rounded-[2rem] border border-white/[0.08] bg-[rgba(6,8,18,0.42)] backdrop-blur-xl px-5 sm:px-8 md:px-12 py-10 sm:py-12 md:py-14 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
 
           {/* Greeting badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase mb-8 border border-white/10 bg-white/[0.04] backdrop-blur-sm text-[#a87edf] animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase mb-8 border border-white/10 bg-white/[0.08] backdrop-blur-sm text-[#d8ccff] animate-fade-in-up shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Welcome back
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] mb-6 tracking-tight text-white animate-fade-in-up delay-100">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] mb-6 tracking-tight text-white animate-fade-in-up delay-100" style={{ textShadow: '0 3px 22px rgba(0,0,0,0.95)' }}>
             Hey {user.name?.split(' ')[0]},{' '}
             <span className="gradient-text">ready to build?</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[#8fa3c4] leading-relaxed max-w-[580px] mx-auto mb-12 px-2 animate-fade-in-up delay-200 font-[350]">
+          <p className="text-base sm:text-lg text-[#f4f7ff] leading-relaxed max-w-[620px] mx-auto mb-12 px-2 animate-fade-in-up delay-200 font-[350]" style={{ textShadow: '0 2px 18px rgba(0,0,0,0.9)' }}>
             Transform your data into powerful AI models — no coding required. Your next breakthrough is just one click away.
           </p>
 
@@ -192,9 +192,9 @@ export default function HomePage() {
               { label: 'Algorithms', value: 'Auto' },
               { label: 'Time Saved', value: '95%' },
             ].map((stat, i) => (
-              <div key={i} className="glass-purple rounded-2xl py-4 px-3 border border-[rgba(110,84,200,0.15)]">
+              <div key={i} className="glass-purple rounded-2xl py-4 px-3 border border-[rgba(110,84,200,0.18)] bg-[rgba(255,255,255,0.04)]">
                 <div className="text-2xl font-bold gradient-text mb-1">{stat.value}</div>
-                <div className="text-xs text-[#8fa3c4] tracking-wide">{stat.label}</div>
+                <div className="text-xs text-[#d8e2f2] tracking-wide">{stat.label}</div>
               </div>
             ))}
           </div>
