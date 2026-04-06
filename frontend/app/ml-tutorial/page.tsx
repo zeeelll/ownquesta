@@ -624,7 +624,7 @@ function SectionContainer({
 }
 
 export default function MLTutorialPage() {
-	const [activeSection, setActiveSection] = useState<SectionId>("history");
+	const [activeSection, setActiveSection] = useState<SectionId | null>(null);
 
 	useEffect(() => {
 		const lenis = new Lenis({
@@ -648,13 +648,34 @@ export default function MLTutorialPage() {
 	}, []);
 
 	useEffect(() => {
+		const setClosestSection = () => {
+			const sectionElements = sections
+				.map((section) => document.getElementById(section.id))
+				.filter((element): element is HTMLElement => Boolean(element));
+
+			if (!sectionElements.length) {
+				return;
+			}
+
+			const targetOffset = 180;
+			const closest = sectionElements.reduce((best, current) => {
+				const currentDistance = Math.abs(current.getBoundingClientRect().top - targetOffset);
+				const bestDistance = Math.abs(best.getBoundingClientRect().top - targetOffset);
+				return currentDistance < bestDistance ? current : best;
+			});
+
+			setActiveSection(closest.id as SectionId);
+		};
+
 		const observer = new IntersectionObserver(
 			(entries) => {
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						setActiveSection(entry.target.id as SectionId);
-					}
-				});
+				const visibleEntries = entries
+					.filter((entry) => entry.isIntersecting)
+					.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+				if (visibleEntries.length > 0) {
+					setActiveSection(visibleEntries[0].target.id as SectionId);
+				}
 			},
 			{
 				rootMargin: "-30% 0px -55% 0px",
@@ -664,6 +685,7 @@ export default function MLTutorialPage() {
 
 		const observed = document.querySelectorAll("[data-doc-section='true']");
 		observed.forEach((element) => observer.observe(element));
+		setClosestSection();
 
 		return () => {
 			observed.forEach((element) => observer.unobserve(element));
@@ -674,9 +696,12 @@ export default function MLTutorialPage() {
 	const scrollToSection = (id: SectionId) => {
 		const target = document.getElementById(id);
 		if (target) {
+			setActiveSection(id);
 			target.scrollIntoView({ behavior: "smooth", block: "start" });
 		}
 	};
+
+	const formatSectionNumber = (index: number) => String(index + 1).padStart(2, "0");
 
 	const sectionMap = useMemo(() => {
 		return sections.reduce<Record<SectionId, SectionMeta>>((acc, section) => {
@@ -686,7 +711,7 @@ export default function MLTutorialPage() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-[radial-gradient(circle_at_14%_16%,rgba(99,102,241,0.28),transparent_36%),radial-gradient(circle_at_86%_10%,rgba(168,85,247,0.2),transparent_34%),radial-gradient(circle_at_70%_80%,rgba(129,140,248,0.14),transparent_42%),linear-gradient(180deg,#050813_0%,#0a1021_46%,#10192f_100%)] text-slate-100">
+		<div className="min-h-screen bg-[radial-gradient(circle_at_15%_10%,rgba(76,93,254,0.24),transparent_34%),radial-gradient(circle_at_88%_18%,rgba(37,99,235,0.18),transparent_32%),radial-gradient(circle_at_72%_84%,rgba(56,189,248,0.11),transparent_38%),linear-gradient(180deg,#040711_0%,#080f22_46%,#0f1b34_100%)] text-slate-100">
 			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-700/80 bg-slate-950/80 backdrop-blur-md">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
 					<div className="flex items-center gap-2.5">
@@ -705,9 +730,15 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16 md:grid md:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
-				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/55 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:self-start xl:px-5">
-					<nav className="space-y-2.5">
+			<div className="relative pt-16 md:grid md:grid-cols-[21rem_minmax(0,1fr)] xl:grid-cols-[22rem_minmax(0,1fr)]">
+				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-[#060e24]/95 via-[#091433]/92 to-[#050b1f]/90 px-4 py-6 backdrop-blur-xl md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:self-start md:overflow-y-auto xl:px-5">
+					<div className="mb-5 rounded-2xl border border-slate-700/70 bg-slate-900/55 p-4">
+						<p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+							Course Navigation
+						</p>
+						<p className="mt-1 text-sm font-semibold text-slate-100">Machine Learning Masterclass</p>
+					</div>
+					<nav className="space-y-3">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
 							const isActive = activeSection === section.id;
@@ -715,24 +746,27 @@ export default function MLTutorialPage() {
 								<button
 									key={section.id}
 									onClick={() => scrollToSection(section.id)}
-									className={`group flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
+									className={`group relative flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
 										isActive
-											? "border-indigo-300/80 bg-gradient-to-r from-indigo-500/22 to-violet-500/12 text-indigo-50 shadow-[0_10px_30px_-18px_rgba(129,140,248,0.7)]"
-											: "border-slate-700 bg-slate-900/65 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/85"
+											? "border-indigo-200/70 bg-gradient-to-r from-[#121f4f] to-[#0a1538] text-indigo-50 shadow-[0_12px_28px_-18px_rgba(129,140,248,0.9)]"
+											: "border-slate-700/80 bg-slate-900/55 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/80"
 									}`}
 								>
+									{isActive ? (
+										<span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-gradient-to-b from-indigo-200 via-sky-300 to-indigo-200" />
+									) : null}
 									<span
 										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
 											isActive
-												? "bg-gradient-to-br from-indigo-300 to-violet-300 text-slate-950"
-												: "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
+												? "bg-gradient-to-br from-[#cbc7ff] to-[#9ac9ff] text-[#0b1438]"
+												: "bg-slate-800/90 text-slate-300 group-hover:bg-slate-700"
 										}`}
 									>
 										<Icon className="h-4 w-4" />
 									</span>
 									<div>
-										<p className="text-[11px] font-semibold tracking-[0.08em] text-slate-500">{`0${index + 1}`}</p>
-										<p className="text-sm font-semibold leading-snug">{section.title}</p>
+										<p className="text-[11px] font-semibold tracking-[0.08em] text-slate-500">{formatSectionNumber(index)}</p>
+										<p className="text-[15px] font-semibold leading-snug">{section.title}</p>
 									</div>
 								</button>
 							);
@@ -742,6 +776,35 @@ export default function MLTutorialPage() {
 
 				<main className="w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
+						<div className="mb-5 overflow-x-auto pb-1 md:hidden">
+							<div className="flex w-max gap-2.5 pr-2">
+								{sections.map((section, index) => {
+									const Icon = section.icon;
+									const isActive = activeSection === section.id;
+									return (
+										<button
+											key={`mobile-${section.id}`}
+											onClick={() => scrollToSection(section.id)}
+											className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition ${
+												isActive
+													? "border-indigo-300/70 bg-indigo-500/25 text-indigo-50"
+													: "border-slate-700 bg-slate-900/60 text-slate-200"
+											}`}
+										>
+											<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-slate-200">
+												<Icon className="h-3.5 w-3.5" />
+											</span>
+											<div>
+												<p className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">
+													{formatSectionNumber(index)}
+												</p>
+												<p className="whitespace-nowrap text-xs font-semibold">{section.title}</p>
+											</div>
+										</button>
+									);
+								})}
+							</div>
+						</div>
 						<motion.section
 							className="mb-6 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_20px_55px_-35px_rgba(99,102,241,0.5)] backdrop-blur lg:p-10"
 							initial={{ opacity: 0, y: 20 }}
