@@ -16,15 +16,69 @@ interface Message {
 }
 
 const SUGGESTED_QUESTIONS = [
-  "How does Ownquesta work?",
-    "What is the Lab Playground?",
-    "How do I upload my dataset?",
-    "What is Easy Mode vs Code Mode?",
-    "How do I test my model?",
-    "What is EDA?",
-    "Do I need coding knowledge?",
-    "How long does training take?",
+  'How does Ownquesta work from start to finish?',
+  'What happens after I click Analyse?',
+  'What is the AutoML Playground?',
+  'What is Easy Mode vs Code Mode?',
+  'How do I upload my dataset?',
+  'How do I test my model?',
+  'Do I need coding knowledge?',
+  'How long does training take?',
 ];
+
+const LOCAL_QUICK_ANSWERS = [
+  {
+    patterns: ['how does ownquesta work', 'how does ownquesta work from start to finish', 'what is ownquesta'],
+    answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
+  },
+  {
+    patterns: ['authenticated home', 'welcome page', 'go to dashboard', 'after sign in'],
+    answer: `After sign in, you land on the authenticated home page at /home. It greets you by name and gives you a single Go to Dashboard button, so you can move straight into the workspace.`,
+  },
+  {
+    patterns: ['what is the automl playground', 'automl playground', 'what happens in lab'],
+    answer: `The AutoML Playground is your ML workspace. Easy Mode is the no-code path: upload a CSV or Excel file, pick the target column if you know it, click Analyse, review the suggested models, and train one. Code Mode opens a notebook-style workflow for users who want custom Python.`,
+  },
+  {
+    patterns: ['easy mode vs code mode', 'easy mode', 'code mode'],
+    answer: `Easy Mode is best if you want point-and-click ML. Code Mode is for Python users who want notebook cells, custom code, and more control. Both modes use the same uploaded dataset and agent guidance.`,
+  },
+  {
+    patterns: ['how do i upload my dataset', 'upload my dataset', 'upload csv', 'upload excel'],
+    answer: `Open the AutoML Playground, stay in Easy Mode, and use the Upload CSV / Excel button in the right ML Agent panel. Ownquesta accepts CSV, XLSX, and XLS files. After the upload finishes, you can set the target column and click Analyse.`,
+  },
+  {
+    patterns: ['what happens after i click analyse', 'after analyse', 'what is eda', 'eda'],
+    answer: `After Analyse, Ownquesta checks missing values, applies feature engineering, and runs EDA. In Easy Mode you see three auto-generated charts, Adjust Settings, and Top 3 Recommended Models. In Code Mode you see generated notebook cells, outputs, and the same model suggestions.`,
+  },
+  {
+    patterns: ['how do i test my model', 'test my model', 'run prediction'],
+    answer: `After training, use the Test Your Model form. Fill in the feature values, click Run Prediction, and the app returns the predicted result plus a confidence score or evaluation output.`,
+  },
+  {
+    patterns: ['do i need coding knowledge', 'coding knowledge', 'no code'],
+    answer: `No. Easy Mode is built for non-coders and handles the full workflow for you. Code Mode is optional if you want to inspect or edit the generated Python.`,
+  },
+  {
+    patterns: ['how long does training take', 'training take', 'how much time'],
+    answer: `Training time depends on dataset size. Small files usually take about 1 to 5 minutes, medium datasets about 5 to 15 minutes, and larger datasets about 15 to 45 minutes.`,
+  },
+  {
+    patterns: ['what if accuracy is low', 'low accuracy', 'accuracy is low'],
+    answer: `If accuracy is low, try a different model, adjust the test split or cross-validation settings, or upload more data. Very small datasets usually need more rows before the model becomes reliable.`,
+  },
+  {
+    patterns: ['how do i download my model', 'python script', 'download model', 'export'],
+    answer: `When training finishes, use the Download Model button to save the trained model and the Python Script button to export the full pipeline as runnable code.`,
+  },
+];
+
+const normalizeQuestion = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+const findLocalAnswer = (value: string) => {
+  const normalized = normalizeQuestion(value);
+  return LOCAL_QUICK_ANSWERS.find(({ patterns }) => patterns.some((pattern) => normalized.includes(pattern)))?.answer ?? null;
+};
 
 const formatMessage = (text: string) => {
   let f = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -77,7 +131,7 @@ function QuestaAgent() {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta assistant ✦ Ask me anything about the platform — how it works, what each step does, or how to get started!", timestamp: new Date() }]);
+      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta guide ✦ Ask me about the real app flow, AutoML Playground, uploads, model training, or downloads.", timestamp: new Date() }]);
       setHasUnread(false);
     }
     if (isOpen) { setHasUnread(false); setTimeout(() => inputRef.current?.focus(), 300); }
@@ -86,14 +140,24 @@ function QuestaAgent() {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     setShowSuggestions(false);
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text.trim(), timestamp: new Date() };
+    const trimmed = text.trim();
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: trimmed, timestamp: new Date() };
+    const localAnswer = findLocalAnswer(trimmed);
+
+    if (localAnswer) {
+      setMessages((prev) => [...prev, userMsg, { id: `${Date.now()}-local`, role: 'assistant', content: localAnswer, timestamp: new Date() }]);
+      setInput('');
+      setHasUnread(false);
+      return;
+    }
+
     const typingMsg: Message = { id: 'typing', role: 'assistant', content: '', timestamp: new Date(), isTyping: true };
     setMessages((prev) => [...prev, userMsg, typingMsg]);
     setInput('');
     setIsLoading(true);
     const history = messages.filter((m) => m.id !== 'typing' && m.id !== 'welcome' && !m.isTyping).map((m) => ({ role: m.role, content: m.content }));
     try {
-      const res = await fetch(`${BACKEND_URL}/questa/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text.trim(), history }) });
+      const res = await fetch(`${BACKEND_URL}/questa/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: trimmed, history }) });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || `Server error ${res.status}`); }
       const data = await res.json();
       const replyText = data.reply || "I'm sorry, I couldn't process that. Please try again.";
@@ -339,7 +403,7 @@ const signInAnnotations = [
   { icon: '👋', label: 'Welcome Back Heading', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)', description: '"Welcome Back" is shown for returning users. If you don\'t have an account yet, click "Create one" (the violet link next to the subtext) to be taken to the registration form.' },
   { icon: '📧', label: 'Email Field', color: '#34d399', bg: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.25)', description: 'Enter the email address you used to register. The placeholder shows "you@example.com" as a hint. This field is required for both Sign In and account creation.' },
   { icon: '🔒', label: 'Password Field + Forgot', color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.25)', description: 'Enter your password here. The 👁 icon on the right toggles visibility. If you\'ve forgotten your password, click "Forgot password?" (top-right of this field) to receive a reset email.' },
-  { icon: '🚀', label: 'Sign In Button', color: '#c084fc', bg: 'rgba(192,132,252,0.1)', border: 'rgba(192,132,252,0.25)', description: 'The full-width violet gradient "Sign In" button submits your email and password. On success, you\'re taken directly to your Dashboard or the Welcome page.' },
+  { icon: '🚀', label: 'Sign In Button', color: '#c084fc', bg: 'rgba(192,132,252,0.1)', border: 'rgba(192,132,252,0.25)', description: 'The full-width violet gradient "Sign In" button submits your email and password. On success, you\'re taken directly to your Dashboard or the authenticated home page.' },
   { icon: '🔵', label: 'Continue with Google', color: '#fb923c', bg: 'rgba(251,146,60,0.1)', border: 'rgba(251,146,60,0.25)', description: 'Skip the form entirely — click this button to sign in (or register) using your Google account. No password needed. This is the fastest way to get started.' },
 ];
 
@@ -370,7 +434,7 @@ function Step2Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
-// WELCOME PAGE MOCKUP — Step 3
+// AUTHENTICATED HOME MOCKUP — Step 3
 // ─────────────────────────────────────────────
 function WelcomeMockup() {
   return (
@@ -408,11 +472,11 @@ function Step3Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
   return (
     <div className="space-y-12">
-      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">After signing in, you're taken directly to the <strong className="text-white">Welcome Page</strong> — a full-screen dark interface that greets you by name and gives you a one-click path to your workspace.</p>
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">After signing in, you're taken directly to the <strong className="text-white">authenticated home page</strong> at <strong className="text-white">/home</strong> — a full-screen dark interface that greets you by name and gives you a one-click path to your workspace.</p>
       <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full bg-orange-400" /><p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Welcome Page</p></div>
+        <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full bg-orange-400" /><p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Authenticated Home</p></div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60"><WelcomeMockup /></div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Welcome page</p>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta authenticated home page</p>
       </div>
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-5"><span className="w-2 h-2 rounded-full" style={{ background: accentColor }} /><p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — Click to Explore</p></div>
@@ -421,7 +485,7 @@ function Step3Content({ accentColor }: { accentColor: string }) {
         </div>
       </div>
       <div className="rounded-2xl border border-orange-500/15 bg-orange-500/5 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-orange-300 flex items-center gap-2"><span>🏠</span> What To Do On The Welcome Page</h4>
+        <h4 className="text-sm font-bold text-orange-300 flex items-center gap-2"><span>🏠</span> What To Do On The Authenticated Home</h4>
         <div className="space-y-3">
           {[{ step: '1', text: 'Confirm it greets you by name — if it shows the wrong name, check your account profile from the avatar dropdown in the top-right.' }, { step: '2', text: 'Note the 3 stat cards: 50+ Models, Auto Algorithms, and 95% Time Saved — these represent the platform\'s core strengths you\'ll experience through the tutorial.' }, { step: '3', text: 'Click "Go to Dashboard" (the violet button with the ⊞ icon) — this is your next step and takes you to your main project workspace.' }, { step: '4', text: 'This page reappears each time you sign in, so it\'s always a clean, focused entry point back into your work.' }].map((item) => (<div key={item.step} className="flex items-start gap-3"><span className="w-6 h-6 rounded-lg bg-orange-500/20 border border-orange-500/30 flex items-center justify-center text-[11px] font-bold text-orange-300 flex-shrink-0 mt-0.5">{item.step}</span><p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p></div>))}
         </div>
@@ -460,7 +524,7 @@ function DashboardMockup() {
           <div className="rounded-xl border border-white/[0.06] border-dashed bg-white/[0.015] p-4 flex flex-col items-center justify-center text-center" style={{ minHeight: 80 }}>
             <div className="w-7 h-7 rounded-xl bg-indigo-900/60 flex items-center justify-center text-sm mb-1.5">✏️</div>
             <div className="text-white text-[9px] font-bold mb-0.5">No projects yet</div>
-            <div className="text-white/30 text-[7px] leading-relaxed mb-2 max-w-[180px]">Start a new ML project in the Lab Playground — upload a dataset and let the AI agent build a complete pipeline for you.</div>
+            <div className="text-white/30 text-[7px] leading-relaxed mb-2 max-w-[180px]">Start a new ML project in the AutoML Playground — upload a dataset and let the AI agent build a complete pipeline for you.</div>
             <div className="px-3 py-1 rounded-lg text-[8px] font-bold text-white" style={{ background: '#7c3aed' }}>New Project</div>
           </div>
         </div>
@@ -470,7 +534,7 @@ function DashboardMockup() {
 }
 
 const dashboardAnnotations = [
-  { icon: '🔷', label: 'Top Navbar', color: '#818cf8', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.25)', description: 'Fixed top bar with the Ownquesta logo, a "→ Home" button to return to the Welcome page, and your profile (avatar + "sumit sarodiya" + dropdown arrow) for account settings and sign out.' },
+  { icon: '🔷', label: 'Top Navbar', color: '#818cf8', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.25)', description: 'Fixed top bar with the Ownquesta logo, a "→ Home" button to return to the authenticated home page, and your profile (avatar + "sumit sarodiya" + dropdown arrow) for account settings and sign out.' },
   { icon: '👋', label: 'Welcome Header + New Project', color: '#a78bfa', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.25)', description: '"Welcome back, sumit" with your name in violet, plus the subtitle "Your ML workspace — track every project from dataset to deployment." The "＋ New Project" violet button top-right starts a new ML project.' },
   { icon: '📊', label: '3 Stat Cards', color: '#c084fc', bg: 'rgba(192,132,252,0.1)', border: 'rgba(192,132,252,0.25)', description: 'Three cards show live workspace stats: Total Projects (all time), Active Projects (in progress), and Completed Models (trained or evaluated — shown in green). These update automatically as you work.' },
   { icon: '⚙️', label: 'ML Pipeline Stages', color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.25)', description: 'Four numbered stages show the full ML workflow: 1 Upload Dataset → 2 EDA & Analysis → 3 Model Training → 4 Evaluation. Each has a short description of what happens at that stage automatically.' },
@@ -482,7 +546,7 @@ function Step4Content({ accentColor }: { accentColor: string }) {
   const [activeAnnotation, setActiveAnnotation] = useState<number | null>(null);
   return (
     <div className="space-y-12">
-      <p className="text-lg md:text-xl text-white/70 leading-relaxed">After clicking <strong className="text-white">"Go to Dashboard"</strong> on the Welcome page, this is your central workspace — the <strong className="text-white">Dashboard</strong>. It shows your project stats, the ML pipeline overview, and all your projects at a glance.</p>
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed">After clicking <strong className="text-white">"Go to Dashboard"</strong> from the authenticated home page, this is your central workspace — the <strong className="text-white">Dashboard</strong>. It shows your project stats, the ML pipeline overview, and all your projects at a glance.</p>
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full bg-purple-400" /><p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Ownquesta Dashboard</p></div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60"><DashboardMockup /></div>
@@ -574,14 +638,14 @@ function Step5Content({ accentColor }: { accentColor: string }) {
 }
 
 // ─────────────────────────────────────────────
-// LAB PLAYGROUND MOCKUPS — Steps 6, 7, 8
+// AutoML Playground MOCKUPS — Steps 6, 7, 8
 // ─────────────────────────────────────────────
 function LabPlaygroundMockup() {
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-cyan-500/20 shadow-2xl shadow-cyan-900/30" style={{ aspectRatio: '16/9', background: '#080a0f' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
-        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">Lab Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
+        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">AutoML Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
         <div className="flex items-center gap-2"><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">backend</span></div><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/70">agent</span></div><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /><span className="text-white/30">no session</span></div><div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">✨ Easy Mode <span className="text-violet-300/60 font-normal ml-0.5">(active)</span></div><div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div></div>
       </div>
       <div className="absolute inset-0 top-8 flex z-10">
@@ -609,7 +673,7 @@ function EasyModeRealMockup() {
     <div className="relative w-full rounded-2xl overflow-hidden border border-violet-500/20 shadow-2xl shadow-violet-900/30" style={{ aspectRatio: '16/9', background: '#0b0d14' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0d0f1a 0%,#090b12 100%)' }} />
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d14' }}>
-        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">Lab Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
+        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">AutoML Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
         <div className="flex items-center gap-2"><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div><div className="flex items-center gap-1 text-[7px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/30"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /><span>no session</span></div><div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-blue-500/50 bg-blue-500/15">🖥 Code Mode <span className="text-blue-300/60 font-normal ml-0.5">(active)</span></div><div className="px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div></div>
       </div>
       <div className="absolute inset-0 top-8 flex z-10">
@@ -655,16 +719,16 @@ function Step6Content({ accentColor }: { accentColor: string }) {
   const annotations = activeMode === 'easy' ? codeModeAnnotations : easyModeRealAnnotations;
   return (
     <div className="space-y-12">
-      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">After clicking <strong className="text-white">"⊞ Start Project"</strong>, you land in the <strong className="text-white">Lab Playground</strong> — your AI-powered ML workspace. You get two modes: <strong className="text-white">Easy Mode</strong> (no code, AI does everything) and <strong className="text-white">Code Mode</strong> (full Jupyter notebook for custom Python). Toggle between them anytime using the button in the top-right navbar.</p>
+      <p className="text-lg md:text-xl text-white/70 leading-relaxed max-w-4xl">After clicking <strong className="text-white">"⊞ Start Project"</strong>, you land in the <strong className="text-white">AutoML Playground</strong> — your AI-powered ML workspace. You get two modes: <strong className="text-white">Easy Mode</strong> (no code, AI does everything) and <strong className="text-white">Code Mode</strong> (full Jupyter notebook for custom Python). Toggle between them anytime using the button in the top-right navbar.</p>
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={() => { setActiveMode('easy'); setActiveAnnotation(null); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all border" style={{ background: activeMode === 'easy' ? 'linear-gradient(135deg,#7c3aed,#a855f7)' : 'rgba(255,255,255,0.04)', color: activeMode === 'easy' ? '#fff' : 'rgba(255,255,255,0.4)', border: activeMode === 'easy' ? '1px solid rgba(139,92,246,0.5)' : '1px solid rgba(255,255,255,0.08)' }}>✨ Easy Mode</button>
         <button onClick={() => { setActiveMode('code'); setActiveAnnotation(null); }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all border" style={{ background: activeMode === 'code' ? 'linear-gradient(135deg,#1d4ed8,#3b82f6)' : 'rgba(255,255,255,0.04)', color: activeMode === 'code' ? '#fff' : 'rgba(255,255,255,0.4)', border: activeMode === 'code' ? '1px solid rgba(96,165,250,0.5)' : '1px solid rgba(255,255,255,0.08)' }}>🖥 Code Mode</button>
         <span className="text-[11px] text-white/25 italic">Click a tab to switch previews</span>
       </div>
       <div className="space-y-3">
-        <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full" style={{ background: activeMode === 'easy' ? '#a78bfa' : '#60a5fa' }} /><p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — Lab Playground ({activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'})</p></div>
+        <div className="flex items-center gap-2 mb-4"><span className="w-2 h-2 rounded-full" style={{ background: activeMode === 'easy' ? '#a78bfa' : '#60a5fa' }} /><p className="text-xs font-bold uppercase tracking-widest text-white/30">Live Preview — AutoML Playground ({activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'})</p></div>
         <div className="mx-auto w-full max-w-3xl rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl shadow-black/60">{activeMode === 'easy' ? <LabPlaygroundMockup /> : <EasyModeRealMockup />}</div>
-        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta Lab Playground — {activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'}</p>
+        <p className="text-[11px] text-white/25 text-center max-w-3xl mx-auto">↑ Replica of the actual Ownquesta AutoML Playground — {activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'}</p>
       </div>
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-5"><span className="w-2 h-2 rounded-full" style={{ background: accentColor }} /><p className="text-xs font-bold uppercase tracking-widest text-white/30">UI Element Breakdown — {activeMode === 'easy' ? 'Easy Mode' : 'Code Mode'} — Click to Explore</p></div>
@@ -677,7 +741,7 @@ function Step6Content({ accentColor }: { accentColor: string }) {
         <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5 space-y-3"><h4 className="text-sm font-bold text-blue-300 flex items-center gap-2"><span>🖥</span> Code Mode — Best For</h4><div className="space-y-2">{['Python developers who want full control', 'Custom preprocessing or feature engineering logic', 'Reviewing and editing the AI-generated code', 'Running your own experiments cell by cell', 'Advanced users who want Jupyter-style flexibility'].map((item, i) => (<div key={i} className="flex items-start gap-2 text-[12px] text-white/55"><span className="text-blue-400 flex-shrink-0 mt-0.5">✓</span><span>{item}</span></div>))}</div></div>
       </div>
       <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-6 space-y-4">
-        <h4 className="text-sm font-bold text-yellow-300 flex items-center gap-2"><span>⚡</span> What To Do In The Lab Playground</h4>
+        <h4 className="text-sm font-bold text-yellow-300 flex items-center gap-2"><span>⚡</span> What To Do In The AutoML Playground</h4>
         <div className="space-y-3">
           {[{ step: '1', text: 'Check the top-right status dots — "backend" and "agent" should both be green. If grey, wait a few seconds for the server to initialize.' }, { step: '2', text: 'Choose your mode: "✨ Easy Mode" is the default (best for most users). If you\'re a developer, click "🖥 Code Mode" to switch to the Jupyter notebook view.' }, { step: '3', text: 'In Easy Mode: use the right ML Agent panel — click "📁 Upload CSV / Excel" to load your dataset file (.csv, .xlsx, .xls).' }, { step: '4', text: 'Optionally type your target column name (e.g. "Churn" or "Price") in the target field. Leave blank to let the AI detect it automatically.' }, { step: '5', text: 'Click the violet "🔍 Analyse" button. The ML Agent will profile your data, handle missing values, apply feature engineering, and suggest top models — all automatically.' }, { step: '6', text: 'Use the "💬 Ask the AI Agent" chat box at any time to ask questions like "Why did you choose this model?" or "Show feature importance".' }].map((item) => (<div key={item.step} className="flex items-start gap-3"><span className="w-6 h-6 rounded-lg bg-yellow-500/20 border border-yellow-500/30 flex items-center justify-center text-[11px] font-bold text-yellow-300 flex-shrink-0 mt-0.5">{item.step}</span><p className="text-[13px] text-white/65 leading-relaxed">{item.text}</p></div>))}
         </div>
@@ -701,7 +765,7 @@ function LabRunningMockup() {
     <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-500/20 shadow-2xl shadow-emerald-900/20" style={{ aspectRatio: '16/9', background: '#080a0f' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-2 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
-        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">Lab Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
+        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-5 h-5 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px]">🧪</div><span className="text-white text-[10px] font-black">AutoML Playground</span><span className="px-1.5 py-0.5 rounded text-[6px] font-bold uppercase tracking-widest text-white/50 border border-white/10 bg-white/5">BETA</span></div></div>
         <div className="flex items-center gap-2"><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div><div className="flex items-center gap-1 text-[7px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div><div className="flex items-center gap-1 text-[7px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40"><span className="w-1.5 h-1.5 rounded-full bg-blue-400" /><span>session 1a117b9…</span></div><div className="flex items-center gap-1 px-2 py-1 rounded-md text-[7px] font-bold text-white border border-violet-500/40 bg-violet-500/10">⚡ Easy Mode</div><div className="px-2 py-1 rounded-md text-[7px] text-white/50 border border-white/10 bg-white/[0.03]">Reset Kernel</div></div>
       </div>
       <div className="absolute inset-0 top-8 flex z-10">
@@ -751,7 +815,7 @@ function EasyModeMockup() {
     <div className="relative w-full rounded-2xl overflow-hidden border border-violet-500/20 shadow-2xl shadow-violet-900/20" style={{ aspectRatio: '16/9', background: '#080a0f' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#0a0c14 0%,#060810 100%)' }} />
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-1.5 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
-        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">Lab Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div></div>
+        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">AutoML Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div></div>
         <div className="flex items-center gap-1.5"><div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div><div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div><div className="flex items-center gap-1 text-[6.5px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40"><span className="w-1.5 h-1.5 rounded-full bg-blue-400" /><span>session e4bea0…</span></div><div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[6.5px] font-bold text-white border border-blue-500/40 bg-blue-500/10">🖥 Code Mode</div><div className="px-2 py-0.5 rounded-md text-[6.5px] text-white/40 border border-white/10 bg-white/[0.03]">Reset Kernel</div></div>
       </div>
       <div className="absolute inset-0 top-7 flex z-10">
@@ -832,7 +896,7 @@ function ModelingCodeModeMockup() {
     <div className="relative w-full rounded-2xl overflow-hidden border border-emerald-500/20 shadow-2xl shadow-emerald-900/20" style={{ aspectRatio: '16/9', background: '#080a10' }}>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,#090b14 0%,#06080f 100%)' }} />
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-1.5 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
-        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">Lab Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div></div>
+        <div className="flex items-center gap-2"><div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div><div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">AutoML Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div></div>
         <div className="flex items-center gap-1.5"><div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div><div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">agent</span></div><div className="flex items-center gap-1 text-[6.5px] px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-white/40"><span className="w-1.5 h-1.5 rounded-full bg-blue-400" /><span>session e4bea0…</span></div><div className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[6.5px] font-bold text-white border border-violet-500/40 bg-violet-500/10">⚡ Easy Mode</div><div className="px-2 py-0.5 rounded-md text-[6.5px] text-white/40 border border-white/10 bg-white/[0.03]">Reset Kernel</div></div>
       </div>
       <div className="absolute inset-0 top-7 flex z-10">
@@ -941,7 +1005,7 @@ function TrainingResultsEasyMockup() {
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-1.5 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div>
-          <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">Lab Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">AutoML Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div>
@@ -1074,7 +1138,7 @@ function TrainingResultsMockup() {
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-3 py-1.5 z-10 border-b border-white/[0.06]" style={{ background: '#0b0d16' }}>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-white/10 bg-white/[0.04] text-[7px] text-white/50"><span>←</span><span>Dashboard</span></div>
-          <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">Lab Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div>
+          <div className="flex items-center gap-1.5"><div className="w-4 h-4 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[7px]">🧪</div><span className="text-white text-[9px] font-black">AutoML Playground</span><span className="px-1 py-0.5 rounded text-[5.5px] font-bold uppercase tracking-widest text-white/40 border border-white/10 bg-white/5">BETA</span></div>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1 text-[6.5px]"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-green-400/80">backend</span></div>
@@ -1247,9 +1311,9 @@ export default function TutorialPage() {
   const steps = [
     { number: 1, title: 'Home Page (About / Help / Sign In)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
     { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
-    { number: 3, title: 'Authenticated Home', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
+    { number: 3, title: 'Authenticated Home (/home)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
     { number: 4, title: 'Dashboard (Create Project)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
-    { number: 5, title: 'Lab Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
+    { number: 5, title: 'AutoML Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
     { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
     { number: 7, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
     { number: 8, title: 'Prediction Test + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
@@ -1303,25 +1367,25 @@ export default function TutorialPage() {
       note: 'Transition: Login / Register -> Authenticated Home.',
     },
     3: {
-      summary: 'The authenticated home page replaces the public hero with your name and a direct path to the dashboard. It is a quick confirmation that sign in worked.',
+      summary: 'The authenticated home page at /home replaces the public hero with your name and a direct path to the dashboard. It is a quick confirmation that sign in worked.',
       actions: ['Check that your name is shown correctly in the welcome heading.', 'Open the profile menu if you need to update account details.', 'Click Go to Dashboard when you are ready to start a project.'],
       buttons: [
         { name: 'Profile dropdown', behavior: 'Opens your account menu.', outcome: 'You can reach Profile or sign out from here.' },
         { name: 'Go to Dashboard', behavior: 'Moves to the main workspace.', outcome: 'You enter the project management area.' },
       ],
-      note: 'Transition: Authenticated Home -> Dashboard.',
+      note: 'Transition: Authenticated Home (/home) -> Dashboard.',
     },
     4: {
       summary: 'The dashboard is the project control room. It shows workspace stats, pipeline stages, and the entry point for creating or resuming projects.',
-      actions: ['Scan the project counters and pipeline stages to understand the current workspace state.', 'Use New Project when you want to start fresh, or open an existing project if one already exists.', 'Continue into Lab Playground once the project context is selected.'],
+      actions: ['Scan the project counters and pipeline stages to understand the current workspace state.', 'Use New Project when you want to start fresh, or open an existing project if one already exists.', 'Continue into AutoML Playground once the project context is selected.'],
       buttons: [
         { name: 'New Project', behavior: 'Opens the project creation modal.', outcome: 'You can name the project and set the prediction goal.' },
         { name: 'Open Project', behavior: 'Loads an existing project.', outcome: 'You continue the model workflow from the saved state.' },
       ],
-      note: 'Transition: Dashboard -> Lab Playground.',
+      note: 'Transition: Dashboard -> AutoML Playground.',
     },
     5: {
-      summary: 'The Lab Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
+      summary: 'The AutoML Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
       actions: ['Open the lab from your chosen project on the dashboard.', 'Choose the mode that matches how you want to work.', 'Move to dataset upload and analysis after the mode is active.'],
       buttons: [
         { name: 'Easy Mode', behavior: 'Starts the guided visual workflow.', outcome: 'The AI handles the model pipeline step by step.' },
