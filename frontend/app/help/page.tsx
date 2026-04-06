@@ -238,6 +238,11 @@ function FaqItem({
 }
 
 export default function HelpPage() {
+  const darkInputClass =
+    'h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50 autofill:[-webkit-text-fill-color:#ffffff] autofill:shadow-[inset_0_0_0px_1000px_#081224]';
+  const darkTextareaClass =
+    'w-full rounded-2xl border border-white/10 bg-[#081224] px-4 py-3 text-sm text-white outline-none transition focus:border-[#80f6d8]/50 autofill:[-webkit-text-fill-color:#ffffff] autofill:shadow-[inset_0_0_0px_1000px_#081224]';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [name, setName] = useState('');
@@ -534,7 +539,7 @@ export default function HelpPage() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="Enter your full name"
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                  className={darkInputClass}
                 />
               </label>
 
@@ -545,7 +550,7 @@ export default function HelpPage() {
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="Enter your email"
                   type="email"
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                  className={darkInputClass}
                 />
               </label>
 
@@ -570,7 +575,7 @@ export default function HelpPage() {
                   value={subject}
                   onChange={(event) => setSubject(event.target.value)}
                   placeholder="Short issue title"
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                  className={darkInputClass}
                 />
               </label>
             </div>
@@ -582,7 +587,7 @@ export default function HelpPage() {
                 onChange={(event) => setMessage(event.target.value)}
                 placeholder="Describe what happened, expected result, and what you tried."
                 rows={5}
-                className="w-full rounded-2xl border border-white/10 bg-[#081224] px-4 py-3 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                className={darkTextareaClass}
               />
             </label>
 
@@ -636,7 +641,7 @@ export default function HelpPage() {
                   value={statusTicketId}
                   onChange={(event) => setStatusTicketId(event.target.value)}
                   placeholder="Example: OQ-HELP-ABC123"
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                  className={darkInputClass}
                 />
               </label>
 
@@ -647,7 +652,7 @@ export default function HelpPage() {
                   onChange={(event) => setStatusEmail(event.target.value)}
                   type="email"
                   placeholder="Enter the same email used in complaint"
-                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                  className={darkInputClass}
                 />
               </label>
 
