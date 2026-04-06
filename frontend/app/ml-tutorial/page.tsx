@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
+import Logo from "../components/Logo";
 import {
 	ArrowRight,
 	Brain,
@@ -30,6 +31,7 @@ import {
 	PieChart,
 	Radar,
 	RadarChart,
+	PolarGrid,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -312,9 +314,7 @@ export default function MLTutorialPage() {
 		<div className="min-h-screen bg-[radial-gradient(circle_at_10%_20%,rgba(56,189,248,0.18),transparent_40%),radial-gradient(circle_at_90%_10%,rgba(14,165,233,0.16),transparent_35%),linear-gradient(180deg,#eff6ff_0%,#f8fafc_45%,#e2e8f0_100%)] text-slate-900">
 			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
-					<div className="text-2xl font-extrabold tracking-tight text-slate-900">
-						OwnQuesta
-					</div>
+					<Logo href="/home" size="md" />
 					<Link
 						href="/dashboard"
 						className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
@@ -672,7 +672,7 @@ export default function MLTutorialPage() {
 											))}
 										</div>
 										<div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-											Data Flow: Raw Sources -> Quality Checks -> Feature Table -> Train/Validation/Test
+											Data Flow: Raw Sources -&gt; Quality Checks -&gt; Feature Table -&gt; Train/Validation/Test
 										</div>
 									</div>
 								}
@@ -929,7 +929,7 @@ export default function MLTutorialPage() {
 
 						<footer className="mt-6 rounded-3xl border border-slate-200 bg-white/90 p-6 text-center shadow-sm">
 							<p className="text-base font-semibold text-slate-900">
-								End of Documentation • OwnQuesta Machine Learning Tutorial
+								End of Documentation • Ownquesta Machine Learning Tutorial
 							</p>
 							<p className="mt-2 text-sm text-slate-600">
 								Continue to Dashboard to practice with labs, quizzes, and project workflows.
