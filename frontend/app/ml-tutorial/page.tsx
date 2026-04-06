@@ -706,7 +706,7 @@ export default function MLTutorialPage() {
 			</header>
 
 			<div className="relative pt-16 md:grid md:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
-				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/55 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
+				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/55 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:self-start xl:px-5">
 					<nav className="space-y-2.5">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
