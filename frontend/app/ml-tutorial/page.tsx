@@ -880,7 +880,7 @@ export default function MLTutorialPage() {
 	useEffect(() => {
 		const activeButton = sidebarItemRefs.current[activeSection];
 		if (activeButton) {
-			activeButton.scrollIntoView({ block: "nearest", behavior: "smooth" });
+			activeButton.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
 		}
 	}, [activeSection]);
 
@@ -988,7 +988,7 @@ export default function MLTutorialPage() {
 			</header>
 
 			<div className="relative pt-16 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
-				<aside className="hidden border-r border-white/[0.06] bg-[rgba(6,8,18,0.7)] px-3 backdrop-blur-xl lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:items-center lg:overflow-y-auto lg:py-0">
+				<aside className="hidden border-r border-white/[0.06] bg-[rgba(6,8,18,0.7)] px-3 backdrop-blur-xl lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:items-start lg:overflow-y-auto lg:py-4">
 					<nav className="w-full space-y-3 rounded-3xl border border-white/10 bg-[rgba(6,8,18,0.7)] p-3 shadow-[0_22px_42px_-28px_rgba(124,58,237,0.4)] backdrop-blur-xl">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
