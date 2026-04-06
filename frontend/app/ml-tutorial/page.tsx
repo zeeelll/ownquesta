@@ -536,7 +536,7 @@ function SectionContainer({
 		<motion.section
 			id={id}
 			data-doc-section="true"
-			className="w-full scroll-mt-24 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_24px_60px_-30px_rgba(2,132,199,0.5)] backdrop-blur lg:p-10"
+			className="w-full scroll-mt-24 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_24px_60px_-30px_rgba(99,102,241,0.42)] backdrop-blur lg:p-10"
 			initial={{ opacity: 0, y: 28 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			viewport={{ once: false, amount: 0.2 }}
@@ -544,11 +544,11 @@ function SectionContainer({
 			whileHover={{ y: -3 }}
 		>
 			<div className="flex items-center gap-4">
-				<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/20 text-sky-300 shadow-[0_0_24px_rgba(56,189,248,0.35)]">
+				<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300 shadow-[0_0_24px_rgba(129,140,248,0.35)]">
 					<Icon className="h-6 w-6" />
 				</div>
 				<div>
-					<p className="text-sm font-semibold uppercase tracking-[0.16em] text-sky-300">
+					<p className="text-sm font-semibold uppercase tracking-[0.16em] text-indigo-300">
 						Section {index}
 					</p>
 					<h2 className="text-3xl font-bold text-slate-100 lg:text-4xl">{title}</h2>
@@ -563,7 +563,7 @@ function SectionContainer({
 					<p className="mt-3 text-[15px] leading-7 text-slate-300">{simpleExplanation}</p>
 				</article>
 
-				<article className="rounded-2xl border border-sky-500/25 bg-sky-950/20 p-5">
+				<article className="rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-5">
 					<h3 className="text-lg font-semibold text-slate-100">{copy.exampleTitle}</h3>
 					<p className="mt-3 text-[15px] leading-7 text-slate-300">{realLifeExample}</p>
 				</article>
@@ -579,7 +579,7 @@ function SectionContainer({
 							key={`${id}-step-${stepIndex}`}
 							className="flex gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3"
 						>
-							<span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-500/85 text-xs font-bold text-slate-950">
+							<span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500/85 text-xs font-bold text-slate-950">
 								{stepIndex + 1}
 							</span>
 							<p className="text-sm leading-6 text-slate-300">{step}</p>
@@ -613,12 +613,12 @@ function SectionContainer({
 				</div>
 			</article>
 
-			<article className="mt-6 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/45 p-5">
+			<article className="mt-6 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/45 p-5">
 				<h3 className="text-lg font-semibold text-slate-100">Visual Analytics</h3>
 				<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
 			</article>
 
-			<div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-sky-400/55 to-transparent" />
+			<div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-indigo-400/55 to-transparent" />
 		</motion.section>
 	);
 }
@@ -686,7 +686,7 @@ export default function MLTutorialPage() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-[radial-gradient(circle_at_14%_18%,rgba(14,165,233,0.28),transparent_40%),radial-gradient(circle_at_88%_8%,rgba(56,189,248,0.2),transparent_32%),radial-gradient(circle_at_78%_72%,rgba(34,197,94,0.14),transparent_38%),linear-gradient(180deg,#030712_0%,#020617_45%,#0f172a_100%)] text-slate-100">
+		<div className="min-h-screen bg-[radial-gradient(circle_at_14%_16%,rgba(99,102,241,0.28),transparent_36%),radial-gradient(circle_at_86%_10%,rgba(168,85,247,0.2),transparent_34%),radial-gradient(circle_at_70%_80%,rgba(129,140,248,0.14),transparent_42%),linear-gradient(180deg,#050813_0%,#0a1021_46%,#10192f_100%)] text-slate-100">
 			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-700/80 bg-slate-950/80 backdrop-blur-md">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
 					<div className="flex items-center gap-2.5">
@@ -697,7 +697,7 @@ export default function MLTutorialPage() {
 					</div>
 					<Link
 						href="/dashboard"
-						className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.45)] transition hover:bg-sky-400"
+						className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(129,140,248,0.42)] transition hover:bg-indigo-400"
 					>
 						<LayoutDashboard className="h-4 w-4" />
 						Dashboard
@@ -708,7 +708,7 @@ export default function MLTutorialPage() {
 			<div className="relative pt-16 md:grid md:grid-cols-[18rem_minmax(0,1fr)]">
 				<aside className="hidden border-r border-slate-800/80 bg-slate-950/60 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
 					<div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-sm">
-						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">
+						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-300">
 							Tutorial Topics
 						</p>
 						<h2 className="mt-2 text-lg font-bold text-slate-100">Machine Learning</h2>
@@ -727,14 +727,14 @@ export default function MLTutorialPage() {
 									onClick={() => scrollToSection(section.id)}
 									className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition ${
 										isActive
-											? "border-sky-400 bg-sky-500/20 text-sky-100 shadow-[0_0_20px_rgba(56,189,248,0.22)]"
+											? "border-indigo-400 bg-indigo-500/20 text-indigo-100 shadow-[0_0_20px_rgba(129,140,248,0.24)]"
 											: "border-slate-700 bg-slate-900/70 text-slate-300 hover:border-slate-500 hover:bg-slate-900"
 									}`}
 								>
 									<span
 										className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${
 											isActive
-												? "bg-sky-400 text-slate-950"
+												? "bg-indigo-400 text-slate-950"
 												: "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
 										}`}
 									>
@@ -753,12 +753,12 @@ export default function MLTutorialPage() {
 				<main className="w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
 						<motion.section
-							className="mb-6 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_20px_55px_-35px_rgba(14,165,233,0.6)] backdrop-blur lg:p-10"
+							className="mb-6 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_20px_55px_-35px_rgba(99,102,241,0.5)] backdrop-blur lg:p-10"
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.55, ease: "easeOut" }}
 						>
-							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-sky-300">
+							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-300">
 								Advanced Learning Documentation
 							</p>
 							<h1 className="mt-3 text-4xl font-black leading-tight text-slate-100 lg:text-5xl">
@@ -782,14 +782,14 @@ export default function MLTutorialPage() {
 										{ step: "Deployment", icon: Sparkles },
 									].map(({ step, icon: StepIcon }, idx, arr) => (
 										<div key={step} className="flex items-center gap-3">
-											<div className="group rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 transition hover:border-sky-400 hover:bg-slate-800">
+											<div className="group rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 transition hover:border-indigo-400 hover:bg-slate-800">
 												<div className="flex items-center gap-2">
-													<StepIcon className="h-4 w-4 text-sky-600" />
+													<StepIcon className="h-4 w-4 text-indigo-300" />
 													<span className="text-sm font-semibold text-slate-200">{step}</span>
 												</div>
 											</div>
 											{idx < arr.length - 1 ? (
-												<ArrowRight className="h-4 w-4 text-sky-300" />
+												<ArrowRight className="h-4 w-4 text-indigo-300" />
 											) : null}
 										</div>
 									))}
@@ -1981,7 +1981,7 @@ export default function MLTutorialPage() {
 								<div className="mt-6 flex flex-wrap justify-center gap-3">
 									<Link
 										href="/dashboard"
-										className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_22px_rgba(56,189,248,0.45)] transition hover:bg-sky-400"
+										className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_22px_rgba(129,140,248,0.42)] transition hover:bg-indigo-400"
 									>
 										<LayoutDashboard className="h-4 w-4" />
 										Go to Dashboard
