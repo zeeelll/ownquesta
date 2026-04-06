@@ -14,6 +14,20 @@ const LAB_URL     = 'http://localhost:8010';
 const AGENT_URL   = 'http://localhost:8020';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
+const LAB_THEME = {
+  bg: '#060914',
+  bgSoft: '#0b1327',
+  panel: '#0e172c',
+  panelAlt: '#0a1224',
+  text: '#e6eef8',
+  muted: '#8aa0bf',
+  accent: '#6ea8ff',
+  accent2: '#22d3ee',
+  accentGlow: 'rgba(110,168,255,0.35)',
+  border: 'rgba(148,163,184,0.2)',
+  borderStrong: 'rgba(110,168,255,0.35)',
+};
+
 // ── Payment config ────────────────────────────────────────────────────────────
 const MODEL_DOWNLOAD_PRICE = 4.99;
 const FREE_DOWNLOADS_KEY = 'ownquesta_free_download_usage';
@@ -780,43 +794,56 @@ export default function LabPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0b14', color: '#e6eef8', fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: `radial-gradient(1200px 500px at 10% -10%, rgba(34,211,238,0.12), transparent 55%), radial-gradient(1000px 520px at 95% 0%, rgba(110,168,255,0.14), transparent 58%), ${LAB_THEME.bg}`, color: LAB_THEME.text, fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' }}>
 
       {/* Header */}
-      <header style={{ height: 52, flexShrink: 0, background: 'rgba(10,11,20,0.92)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <header style={{ height: 52, flexShrink: 0, background: 'rgba(8,14,30,0.82)', backdropFilter: 'blur(14px)', borderBottom: `1px solid ${LAB_THEME.border}`, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => router.push('/dashboard')} title="Back to Dashboard"
+            onMouseEnter={e => {
+              const el = e.currentTarget;
+              el.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.5), rgba(6,182,212,0.36))';
+              el.style.boxShadow = '0 10px 24px rgba(56,189,248,0.32)';
+              el.style.borderColor = 'rgba(125,211,252,0.75)';
+            }}
+            onMouseLeave={e => {
+              const el = e.currentTarget;
+              el.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.34), rgba(6,182,212,0.2))';
+              el.style.boxShadow = '0 6px 16px rgba(56,189,248,0.2)';
+              el.style.borderColor = 'rgba(125,211,252,0.55)';
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))',
+              background: 'linear-gradient(135deg, rgba(59,130,246,0.34), rgba(6,182,212,0.2))',
               borderWidth: 1,
               borderStyle: 'solid',
-              borderColor: 'rgba(148,163,184,0.36)',
+              borderColor: 'rgba(125,211,252,0.55)',
               borderRadius: 10,
               padding: '6px 14px',
-              color: '#e2e8f0',
+              color: '#eff8ff',
               fontSize: 11.5,
               fontWeight: 700,
               cursor: 'pointer',
               fontFamily: 'inherit',
               letterSpacing: '0.02em',
-              boxShadow: '0 6px 16px rgba(2,6,23,0.28)'
+              boxShadow: '0 6px 16px rgba(56,189,248,0.2)',
+              transition: 'all 0.18s ease'
             }}>
             Dashboard
           </button>
-          <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ddd6fe', boxShadow: '0 0 12px rgba(110,84,200,0.4)' }}>
+          <div style={{ width: 1, height: 14, background: LAB_THEME.border }} />
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#2563eb,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dbeafe', boxShadow: `0 0 12px ${LAB_THEME.accentGlow}` }}>
             <AutoMlIcon size={14} />
           </div>
           <span style={{ fontWeight: 700, fontSize: 14 }}>AutoMl Playground</span>
-          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.18)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>BETA</span>
+          <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' as const, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.35)', color: '#67e8f9' }}>BETA</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <ServiceDot label="backend" up={backendUp} />
           <ServiceDot label="agent"   up={agentUp} />
-          <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: 1, height: 14, background: LAB_THEME.border }} />
           <span style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, color: sid ? '#4ade80' : '#475569' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: sid ? '#4ade80' : '#475569', display: 'inline-block' }} />
             {sid ? `session ${sid.slice(0,7)}…` : 'no session'}
@@ -851,7 +878,7 @@ export default function LabPage() {
             </>
           )}
           <button onClick={() => setEasyMode(e => !e)}
-            style={{ ...ghostBtn, color: easyMode ? '#c4b5fd' : '#94a3b8', borderColor: easyMode ? 'rgba(110,84,200,0.5)' : 'rgba(255,255,255,0.1)', background: easyMode ? 'rgba(110,84,200,0.15)' : 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', gap: 5 }}>
+            style={{ ...ghostBtn, color: easyMode ? '#bfdbfe' : LAB_THEME.muted, borderColor: easyMode ? LAB_THEME.borderStrong : LAB_THEME.border, background: easyMode ? 'rgba(110,168,255,0.17)' : 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 5 }}>
             {easyMode ? <><span>💻</span><span>Code Mode</span></> : <><span>✨</span><span>Easy Mode</span></>}
           </button>
           <button onClick={reset} style={ghostBtn}>Reset Kernel</button>
@@ -904,16 +931,16 @@ export default function LabPage() {
 
         {/* Drag handle */}
         <div onMouseDown={e => { dragRef.current = { startX: e.clientX, startW: panelW }; e.preventDefault(); }}
-          style={{ width: 5, flexShrink: 0, cursor: 'col-resize', background: 'rgba(110,84,200,0.12)', borderLeft: '1px solid rgba(110,84,200,0.2)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.4)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.12)'; }} />
+          style={{ width: 5, flexShrink: 0, cursor: 'col-resize', background: 'rgba(34,211,238,0.14)', borderLeft: `1px solid ${LAB_THEME.borderStrong}` }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,211,238,0.36)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,211,238,0.14)'; }} />
 
         {/* Right: Chat Panel */}
-        <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0c0d1a', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.25)' }}>
+        <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: LAB_THEME.panelAlt, borderLeft: `1px solid ${LAB_THEME.border}` }}>
+          <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: `1px solid ${LAB_THEME.border}`, background: 'rgba(4,10,24,0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <span style={{ fontSize: 13 }}>🤖</span>
-              <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>ML Agent</span>
+              <span style={{ fontWeight: 700, fontSize: 13, color: '#bfdbfe' }}>ML Agent</span>
               <ModelSelector models={availableModels} selectedId={selectedAiModelId} onChange={setSelectedAiModelId} disabled={analyzing || buildingPipeline} />
             </div>
             <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: 'none' }}
@@ -939,11 +966,11 @@ export default function LabPage() {
                 style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '5px 9px', color: '#e2e8f0', fontSize: 11, outline: 'none', fontFamily: 'monospace', opacity: analysisStage !== 'idle' ? 0.4 : 1 }} />
               {analysisStage === 'idle' ? (
                 <button onClick={analyze} disabled={!uploadedFilePath || analyzing}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, cursor: (!uploadedFilePath || analyzing) ? 'not-allowed' : 'pointer', background: (!uploadedFilePath || analyzing) ? 'rgba(110,84,200,0.1)' : 'linear-gradient(135deg,rgba(110,84,200,0.7),rgba(124,92,191,0.7))', border: '1px solid rgba(110,84,200,0.5)', color: !uploadedFilePath ? '#475569' : '#e2e8f0', fontSize: 11, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, cursor: (!uploadedFilePath || analyzing) ? 'not-allowed' : 'pointer', background: (!uploadedFilePath || analyzing) ? 'rgba(110,168,255,0.12)' : 'linear-gradient(135deg,rgba(37,99,235,0.72),rgba(8,145,178,0.72))', border: `1px solid ${LAB_THEME.borderStrong}`, color: !uploadedFilePath ? '#4b5b73' : '#e2e8f0', fontSize: 11, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
                   {analyzing ? <><SpinIcon size={10}/><span>Analysing…</span></> : <><span>🔍</span><span>Analyse</span></>}
                 </button>
               ) : analysisStage === 'analyzed' ? (
-                <span style={{ fontSize: 10, color: '#a87edf', whiteSpace: 'nowrap' as const }}>Select a model ↓</span>
+                <span style={{ fontSize: 10, color: '#93c5fd', whiteSpace: 'nowrap' as const }}>Select a model ↓</span>
               ) : (
                 <span style={{ fontSize: 10, color: '#4ade80', whiteSpace: 'nowrap' as const }}>✓ Pipeline built</span>
               )}
@@ -966,14 +993,14 @@ export default function LabPage() {
             <div ref={chatEndRef} style={{ height: 12 }} />
           </div>
 
-          <div style={{ flexShrink: 0, padding: '10px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)', display: 'flex', gap: 7, alignItems: 'flex-end' }}>
+          <div style={{ flexShrink: 0, padding: '10px 12px', borderTop: `1px solid ${LAB_THEME.border}`, background: 'rgba(4,10,24,0.55)', display: 'flex', gap: 7, alignItems: 'flex-end' }}>
             <textarea value={chatInput} onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
               placeholder="Ask anything about your data or pipeline… (Enter to send)"
               rows={2}
               style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '8px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5 }} />
             <button onClick={() => sendChat()} disabled={chatSending || !chatInput.trim()}
-              style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: chatInput.trim() ? 'linear-gradient(135deg,rgba(110,84,200,0.8),rgba(124,92,191,0.8))' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(110,84,200,0.4)', color: chatInput.trim() ? '#e2e8f0' : '#475569', cursor: chatInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+              style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: chatInput.trim() ? 'linear-gradient(135deg,rgba(37,99,235,0.86),rgba(8,145,178,0.86))' : 'rgba(255,255,255,0.05)', border: `1px solid ${LAB_THEME.borderStrong}`, color: chatInput.trim() ? '#e2e8f0' : '#475569', cursor: chatInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
               {chatSending ? <SpinIcon size={11}/> : '↑'}
             </button>
           </div>
@@ -1613,4 +1640,4 @@ function ModelOption({ m, selectedId, onChange }: { m: AIModel; selectedId: stri
   );
 }
 
-const ghostBtn: React.CSSProperties = { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 12px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' };
+const ghostBtn: React.CSSProperties = { background: 'rgba(255,255,255,0.03)', border: `1px solid ${LAB_THEME.border}`, borderRadius: 8, padding: '4px 12px', color: LAB_THEME.muted, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' };
