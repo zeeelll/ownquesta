@@ -449,20 +449,7 @@ export default function HelpPage() {
           </div>
         </section>
 
-        <section className="w-full px-6 pb-12 lg:px-16" id="tutorial">
-          <div className="mb-5 flex items-center gap-3">
-            <PlayCircle className="h-5 w-5 text-[#80f6d8]" />
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">Video Tutorial</h2>
-          </div>
-          <div className="rounded-3xl border border-dashed border-[#80f6d8]/35 bg-[#081327] p-8 text-center">
-            <PlayCircle className="mx-auto h-12 w-12 text-[#80f6d8]" />
-            <p className="mt-4 text-base font-semibold text-white">Tutorial video placeholder</p>
-            <p className="mt-2 text-sm text-[#adc0e0]">
-              Embed your walkthrough video here to demonstrate upload, training, prediction, and download steps.
-            </p>
-          </div>
-        </section>
-
+      
         <section className="w-full px-6 pb-12 lg:px-16" id="contact">
           <div className="mb-5 flex items-center gap-3">
             <Mail className="h-5 w-5 text-[#80f6d8]" />
@@ -576,9 +563,7 @@ export default function HelpPage() {
           <div className="rounded-3xl border border-white/10 bg-[#081123] px-6 py-8 text-center">
             <p className="text-lg font-semibold text-white">Still need help? We are here for you</p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-              <a href="#contact" className="rounded-xl border border-white/20 bg-white/[0.04] px-4 py-2 text-sm text-[#d7e6ff] transition hover:border-[#80f6d8]/50 hover:text-white">
-                Contact section
-              </a>
+              
               <Link
                 href="/"
                 className="rounded-xl bg-gradient-to-r from-[#0ebc90] to-[#39a8ff] px-4 py-2 text-sm font-semibold text-[#041320]"
