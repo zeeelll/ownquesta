@@ -365,6 +365,184 @@ function SectionContainer({
 
 	const copy = styleCopy[teachingStyle];
 
+	const sectionThemes: Record<
+		SectionId,
+		{
+			shell: string;
+			iconWrap: string;
+			iconText: string;
+			sectionText: string;
+			quickCard: string;
+			exampleCard: string;
+			detailCard: string;
+			stepCard: string;
+			stepBadge: string;
+			keyCard: string;
+			checkIcon: string;
+			visualCard: string;
+			visualTitle: string;
+			techCard: string;
+			techIcon: string;
+			techText: string;
+			divider: string;
+		}
+	> = {
+		history: {
+			shell: "border-sky-500/35 shadow-[0_24px_60px_-30px_rgba(56,189,248,0.45)]",
+			iconWrap: "bg-sky-500/20",
+			iconText: "text-sky-300",
+			sectionText: "text-sky-300",
+			quickCard: "border-sky-500/35 bg-sky-950/20",
+			exampleCard: "border-cyan-500/35 bg-cyan-950/20",
+			detailCard: "border-sky-500/30 bg-slate-950/70",
+			stepCard: "border-sky-500/25 bg-slate-900/70",
+			stepBadge: "bg-sky-500/90 text-slate-950",
+			keyCard: "border-cyan-500/30 bg-slate-950/70",
+			checkIcon: "text-sky-300",
+			visualCard: "border-sky-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950/45",
+			visualTitle: "text-sky-100",
+			techCard: "border-sky-400/40 bg-sky-950/25",
+			techIcon: "text-sky-300",
+			techText: "text-sky-200",
+			divider: "via-sky-400/55",
+		},
+		"why-ml": {
+			shell: "border-rose-500/35 shadow-[0_24px_60px_-30px_rgba(244,63,94,0.4)]",
+			iconWrap: "bg-rose-500/20",
+			iconText: "text-rose-300",
+			sectionText: "text-rose-300",
+			quickCard: "border-rose-500/35 bg-rose-950/20",
+			exampleCard: "border-emerald-500/35 bg-emerald-950/20",
+			detailCard: "border-rose-500/30 bg-slate-950/70",
+			stepCard: "border-rose-500/25 bg-slate-900/70",
+			stepBadge: "bg-rose-500/90 text-slate-950",
+			keyCard: "border-emerald-500/30 bg-slate-950/70",
+			checkIcon: "text-emerald-300",
+			visualCard: "border-rose-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/40",
+			visualTitle: "text-rose-100",
+			techCard: "border-rose-400/40 bg-rose-950/25",
+			techIcon: "text-rose-300",
+			techText: "text-rose-200",
+			divider: "via-rose-400/55",
+		},
+		types: {
+			shell: "border-violet-500/35 shadow-[0_24px_60px_-30px_rgba(139,92,246,0.42)]",
+			iconWrap: "bg-violet-500/20",
+			iconText: "text-violet-300",
+			sectionText: "text-violet-300",
+			quickCard: "border-violet-500/35 bg-violet-950/20",
+			exampleCard: "border-fuchsia-500/35 bg-fuchsia-950/20",
+			detailCard: "border-violet-500/30 bg-slate-950/70",
+			stepCard: "border-violet-500/25 bg-slate-900/70",
+			stepBadge: "bg-violet-500/90 text-slate-950",
+			keyCard: "border-fuchsia-500/30 bg-slate-950/70",
+			checkIcon: "text-violet-300",
+			visualCard: "border-violet-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950/45",
+			visualTitle: "text-violet-100",
+			techCard: "border-violet-400/40 bg-violet-950/25",
+			techIcon: "text-violet-300",
+			techText: "text-violet-200",
+			divider: "via-violet-400/55",
+		},
+		"data-preprocessing": {
+			shell: "border-emerald-500/35 shadow-[0_24px_60px_-30px_rgba(16,185,129,0.42)]",
+			iconWrap: "bg-emerald-500/20",
+			iconText: "text-emerald-300",
+			sectionText: "text-emerald-300",
+			quickCard: "border-emerald-500/35 bg-emerald-950/20",
+			exampleCard: "border-teal-500/35 bg-teal-950/20",
+			detailCard: "border-emerald-500/30 bg-slate-950/70",
+			stepCard: "border-emerald-500/25 bg-slate-900/70",
+			stepBadge: "bg-emerald-500/90 text-slate-950",
+			keyCard: "border-teal-500/30 bg-slate-950/70",
+			checkIcon: "text-emerald-300",
+			visualCard: "border-emerald-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40",
+			visualTitle: "text-emerald-100",
+			techCard: "border-emerald-400/40 bg-emerald-950/25",
+			techIcon: "text-emerald-300",
+			techText: "text-emerald-200",
+			divider: "via-emerald-400/55",
+		},
+		"model-building": {
+			shell: "border-amber-500/35 shadow-[0_24px_60px_-30px_rgba(245,158,11,0.42)]",
+			iconWrap: "bg-amber-500/20",
+			iconText: "text-amber-300",
+			sectionText: "text-amber-300",
+			quickCard: "border-amber-500/35 bg-amber-950/20",
+			exampleCard: "border-orange-500/35 bg-orange-950/20",
+			detailCard: "border-amber-500/30 bg-slate-950/70",
+			stepCard: "border-amber-500/25 bg-slate-900/70",
+			stepBadge: "bg-amber-500/90 text-slate-950",
+			keyCard: "border-orange-500/30 bg-slate-950/70",
+			checkIcon: "text-amber-300",
+			visualCard: "border-amber-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/40",
+			visualTitle: "text-amber-100",
+			techCard: "border-amber-400/45 bg-amber-950/30",
+			techIcon: "text-amber-300",
+			techText: "text-amber-200",
+			divider: "via-amber-400/55",
+		},
+		"training-prediction": {
+			shell: "border-fuchsia-500/35 shadow-[0_24px_60px_-30px_rgba(217,70,239,0.42)]",
+			iconWrap: "bg-fuchsia-500/20",
+			iconText: "text-fuchsia-300",
+			sectionText: "text-fuchsia-300",
+			quickCard: "border-fuchsia-500/35 bg-fuchsia-950/20",
+			exampleCard: "border-pink-500/35 bg-pink-950/20",
+			detailCard: "border-fuchsia-500/30 bg-slate-950/70",
+			stepCard: "border-fuchsia-500/25 bg-slate-900/70",
+			stepBadge: "bg-fuchsia-500/90 text-slate-950",
+			keyCard: "border-pink-500/30 bg-slate-950/70",
+			checkIcon: "text-fuchsia-300",
+			visualCard: "border-fuchsia-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-fuchsia-950/40",
+			visualTitle: "text-fuchsia-100",
+			techCard: "border-fuchsia-400/40 bg-fuchsia-950/25",
+			techIcon: "text-fuchsia-300",
+			techText: "text-fuchsia-200",
+			divider: "via-fuchsia-400/55",
+		},
+		"evaluation-metrics": {
+			shell: "border-cyan-500/35 shadow-[0_24px_60px_-30px_rgba(6,182,212,0.42)]",
+			iconWrap: "bg-cyan-500/20",
+			iconText: "text-cyan-300",
+			sectionText: "text-cyan-300",
+			quickCard: "border-cyan-500/35 bg-cyan-950/20",
+			exampleCard: "border-blue-500/35 bg-blue-950/20",
+			detailCard: "border-cyan-500/30 bg-slate-950/70",
+			stepCard: "border-cyan-500/25 bg-slate-900/70",
+			stepBadge: "bg-cyan-500/90 text-slate-950",
+			keyCard: "border-blue-500/30 bg-slate-950/70",
+			checkIcon: "text-cyan-300",
+			visualCard: "border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/40",
+			visualTitle: "text-cyan-100",
+			techCard: "border-cyan-400/40 bg-cyan-950/25",
+			techIcon: "text-cyan-300",
+			techText: "text-cyan-200",
+			divider: "via-cyan-400/55",
+		},
+		"real-world": {
+			shell: "border-indigo-500/35 shadow-[0_24px_60px_-30px_rgba(99,102,241,0.45)]",
+			iconWrap: "bg-indigo-500/20",
+			iconText: "text-indigo-300",
+			sectionText: "text-indigo-300",
+			quickCard: "border-indigo-500/35 bg-indigo-950/20",
+			exampleCard: "border-purple-500/35 bg-purple-950/20",
+			detailCard: "border-indigo-500/30 bg-slate-950/70",
+			stepCard: "border-indigo-500/25 bg-slate-900/70",
+			stepBadge: "bg-indigo-500/90 text-slate-950",
+			keyCard: "border-purple-500/30 bg-slate-950/70",
+			checkIcon: "text-indigo-300",
+			visualCard: "border-indigo-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/45",
+			visualTitle: "text-indigo-100",
+			techCard: "border-indigo-400/40 bg-indigo-950/25",
+			techIcon: "text-indigo-300",
+			techText: "text-indigo-200",
+			divider: "via-indigo-400/55",
+		},
+	};
+
+	const theme = sectionThemes[id];
+
 	const renderTeachingPanel = () => {
 		switch (teachingStyle) {
 			case "timeline-story":
@@ -536,7 +714,7 @@ function SectionContainer({
 		<motion.section
 			id={id}
 			data-doc-section="true"
-			className="w-full scroll-mt-24 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_24px_60px_-30px_rgba(99,102,241,0.42)] backdrop-blur lg:p-10"
+			className={`w-full scroll-mt-24 rounded-3xl border bg-slate-900/80 p-6 backdrop-blur lg:p-10 ${theme.shell}`}
 			initial={{ opacity: 0, y: 28 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			viewport={{ once: false, amount: 0.2 }}
@@ -544,11 +722,11 @@ function SectionContainer({
 			whileHover={{ y: -3 }}
 		>
 			<div className="flex items-center gap-4">
-				<div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300 shadow-[0_0_24px_rgba(129,140,248,0.35)]">
+				<div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${theme.iconWrap} ${theme.iconText}`}>
 					<Icon className="h-6 w-6" />
 				</div>
 				<div>
-					<p className="text-sm font-semibold uppercase tracking-[0.16em] text-indigo-300">
+					<p className={`text-sm font-semibold uppercase tracking-[0.16em] ${theme.sectionText}`}>
 						Section {index}
 					</p>
 					<h2 className="text-3xl font-bold text-slate-100 lg:text-4xl">{title}</h2>
@@ -558,28 +736,28 @@ function SectionContainer({
 			{renderTeachingPanel()}
 
 			<div className="mt-8 grid gap-6 lg:grid-cols-2">
-				<article className="rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
-					<h3 className="text-lg font-semibold text-slate-100">{copy.quickTitle}</h3>
+				<article className={`rounded-2xl border p-5 ${theme.quickCard}`}>
+					<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.quickTitle}</h3>
 					<p className="mt-3 text-[15px] leading-7 text-slate-300">{simpleExplanation}</p>
 				</article>
 
-				<article className="rounded-2xl border border-indigo-500/25 bg-indigo-950/20 p-5">
-					<h3 className="text-lg font-semibold text-slate-100">{copy.exampleTitle}</h3>
+				<article className={`rounded-2xl border p-5 ${theme.exampleCard}`}>
+					<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.exampleTitle}</h3>
 					<p className="mt-3 text-[15px] leading-7 text-slate-300">{realLifeExample}</p>
 				</article>
 			</div>
 
-			<article className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
-				<h3 className="text-lg font-semibold text-slate-100">
+			<article className={`mt-6 rounded-2xl border p-5 ${theme.detailCard}`}>
+				<h3 className={`text-lg font-semibold ${theme.sectionText}`}>
 					{copy.detailTitle}
 				</h3>
 				<div className="mt-4 space-y-3">
 					{deepExplanation.map((step, stepIndex) => (
 						<div
 							key={`${id}-step-${stepIndex}`}
-							className="flex gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3"
+							className={`flex gap-3 rounded-xl border px-4 py-3 ${theme.stepCard}`}
 						>
-							<span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-indigo-500/85 text-xs font-bold text-slate-950">
+							<span className={`mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${theme.stepBadge}`}>
 								{stepIndex + 1}
 							</span>
 							<p className="text-sm leading-6 text-slate-300">{step}</p>
@@ -589,36 +767,36 @@ function SectionContainer({
 			</article>
 
 			{technicalNote && (
-				<article className="mt-6 rounded-2xl border-2 border-amber-400/40 bg-amber-950/25 p-5 shadow-[0_0_24px_rgba(245,158,11,0.18)]">
+				<article className={`mt-6 rounded-2xl border-2 p-5 ${theme.techCard}`}>
 					<div className="flex items-center gap-2">
-						<Zap className="h-5 w-5 text-amber-300" />
-						<h3 className="text-lg font-semibold text-amber-100">Technical Insight</h3>
+						<Zap className={`h-5 w-5 ${theme.techIcon}`} />
+						<h3 className={`text-lg font-semibold ${theme.sectionText}`}>Technical Insight</h3>
 					</div>
-					<p className="mt-3 text-[15px] leading-7 text-amber-200">{technicalNote}</p>
+					<p className={`mt-3 text-[15px] leading-7 ${theme.techText}`}>{technicalNote}</p>
 				</article>
 			)}
 
-			<article className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
-				<h3 className="text-lg font-semibold text-slate-100">{copy.keyTitle}</h3>
+			<article className={`mt-6 rounded-2xl border p-5 ${theme.keyCard}`}>
+				<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.keyTitle}</h3>
 				<div className="mt-4 grid gap-3 md:grid-cols-2">
 					{keyPoints.map((point, pointIndex) => (
 						<div
 							key={`${id}-point-${pointIndex}`}
-							className="flex items-start gap-3 rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-3"
+							className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${theme.stepCard}`}
 						>
-							<CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-300" />
+							<CheckCircle2 className={`mt-0.5 h-5 w-5 flex-shrink-0 ${theme.checkIcon}`} />
 							<p className="text-sm leading-6 text-slate-300">{point}</p>
 						</div>
 					))}
 				</div>
 			</article>
 
-			<article className="mt-6 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/45 p-5">
-				<h3 className="text-lg font-semibold text-slate-100">Visual Analytics</h3>
+			<article className={`mt-6 rounded-2xl border p-5 ${theme.visualCard}`}>
+				<h3 className={`text-lg font-semibold ${theme.visualTitle}`}>Visual Analytics</h3>
 				<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
 			</article>
 
-			<div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-indigo-400/55 to-transparent" />
+			<div className={`mt-8 h-px w-full bg-gradient-to-r from-transparent to-transparent ${theme.divider}`} />
 		</motion.section>
 	);
 }
