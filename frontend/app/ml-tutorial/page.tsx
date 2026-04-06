@@ -868,7 +868,7 @@ export default function MLTutorialPage() {
 	}, []);
 
 	useEffect(() => {
-		const setClosestSection = () => {
+		const setCurrentSectionFromScroll = () => {
 			const sectionElements = sections
 				.map((section) => document.getElementById(section.id))
 				.filter((element): element is HTMLElement => Boolean(element));
@@ -877,39 +877,45 @@ export default function MLTutorialPage() {
 				return;
 			}
 
-			const targetOffset = 180;
-			const closest = sectionElements.reduce((best, current) => {
-				const currentDistance = Math.abs(current.getBoundingClientRect().top - targetOffset);
-				const bestDistance = Math.abs(best.getBoundingClientRect().top - targetOffset);
-				return currentDistance < bestDistance ? current : best;
-			});
+			const atPageBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+			if (atPageBottom) {
+				setActiveSection(sectionElements[sectionElements.length - 1].id as SectionId);
+				return;
+			}
 
-			setActiveSection(closest.id as SectionId);
+			const targetOffset = 190;
+			const passedSections = sectionElements.filter(
+				(sectionElement) => sectionElement.getBoundingClientRect().top <= targetOffset
+			);
+
+			const currentSection =
+				passedSections.length > 0
+					? passedSections[passedSections.length - 1]
+					: sectionElements[0];
+
+			setActiveSection(currentSection.id as SectionId);
 		};
 
-		const observer = new IntersectionObserver(
-			(entries) => {
-				const visibleEntries = entries
-					.filter((entry) => entry.isIntersecting)
-					.sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-
-				if (visibleEntries.length > 0) {
-					setActiveSection(visibleEntries[0].target.id as SectionId);
-				}
-			},
-			{
-				rootMargin: "-30% 0px -55% 0px",
-				threshold: [0.2, 0.4, 0.6],
+		let ticking = false;
+		const onScrollOrResize = () => {
+			if (ticking) {
+				return;
 			}
-		);
 
-		const observed = document.querySelectorAll("[data-doc-section='true']");
-		observed.forEach((element) => observer.observe(element));
-		setClosestSection();
+			ticking = true;
+			requestAnimationFrame(() => {
+				setCurrentSectionFromScroll();
+				ticking = false;
+			});
+		};
+
+		setCurrentSectionFromScroll();
+		window.addEventListener("scroll", onScrollOrResize, { passive: true });
+		window.addEventListener("resize", onScrollOrResize);
 
 		return () => {
-			observed.forEach((element) => observer.unobserve(element));
-			observer.disconnect();
+			window.removeEventListener("scroll", onScrollOrResize);
+			window.removeEventListener("resize", onScrollOrResize);
 		};
 	}, []);
 
@@ -931,18 +937,32 @@ export default function MLTutorialPage() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-[radial-gradient(circle_at_15%_10%,rgba(76,93,254,0.24),transparent_34%),radial-gradient(circle_at_88%_18%,rgba(37,99,235,0.18),transparent_32%),radial-gradient(circle_at_72%_84%,rgba(56,189,248,0.11),transparent_38%),linear-gradient(180deg,#040711_0%,#080f22_46%,#0f1b34_100%)] text-slate-100">
-			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-700/80 bg-slate-950/80 backdrop-blur-md">
+		<div className="relative min-h-screen overflow-x-hidden bg-[#060812] text-[#e6eef8]">
+			<div className="pointer-events-none fixed inset-0">
+				<div className="absolute inset-0 bg-gradient-to-br from-[#060812] via-[#0d0a1f] to-[#060812]" />
+				<div
+					className="absolute inset-0 opacity-[0.03]"
+					style={{
+						backgroundImage:
+							"linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+						backgroundSize: "60px 60px",
+					}}
+				/>
+				<div className="absolute left-1/4 top-1/4 h-[460px] w-[460px] rounded-full bg-violet-600/10 blur-[120px]" />
+				<div className="absolute bottom-1/4 right-1/4 h-[360px] w-[360px] rounded-full bg-blue-600/10 blur-[100px]" />
+			</div>
+
+			<header className="fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-[rgba(6,8,18,0.85)] backdrop-blur-2xl">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
 					<div className="flex items-center gap-2.5">
 						<Logo href="/home" size="md" showText={false} />
-						<Link href="/home" className="text-xl font-bold tracking-tight text-slate-100">
+						<Link href="/home" className="text-xl font-bold tracking-tight text-white">
 							Ownquesta
 						</Link>
 					</div>
 					<Link
 						href="/dashboard"
-						className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(129,140,248,0.42)] transition hover:bg-indigo-400"
+						className="inline-flex items-center gap-2 rounded-xl border border-violet-400/30 bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(124,58,237,0.45)] transition hover:from-violet-500 hover:to-fuchsia-500"
 					>
 						<LayoutDashboard className="h-4 w-4" />
 						Dashboard
@@ -950,9 +970,9 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16 md:grid md:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)]">
-				<aside className="hidden px-3 md:sticky md:top-20 md:block md:self-start xl:px-4">
-					<nav className="space-y-3 rounded-3xl border border-slate-700/70 bg-gradient-to-b from-[#061030]/90 to-[#070f2a]/85 p-3 shadow-[0_22px_42px_-28px_rgba(37,99,235,0.55)] backdrop-blur-xl">
+			<div className="relative pt-16 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
+				<aside className="hidden border-r border-white/[0.06] bg-[rgba(6,8,18,0.7)] px-3 py-4 backdrop-blur-xl lg:sticky lg:top-16 lg:block lg:h-[calc(100vh-4rem)] lg:overflow-y-auto">
+					<nav className="space-y-3 rounded-3xl border border-white/10 bg-[rgba(6,8,18,0.7)] p-3 shadow-[0_22px_42px_-28px_rgba(124,58,237,0.4)] backdrop-blur-xl">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
 							const isActive = activeSection === section.id;
@@ -962,24 +982,24 @@ export default function MLTutorialPage() {
 									onClick={() => scrollToSection(section.id)}
 									className={`group relative flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
 										isActive
-											? "border-indigo-200/75 bg-gradient-to-r from-[#1a2f73] to-[#111f56] text-indigo-50 shadow-[0_14px_30px_-18px_rgba(129,140,248,0.85)]"
-											: "border-slate-700/80 bg-[#041034]/45 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-[#081844]/70"
+											? "border-white/20 bg-white/10 text-white shadow-[0_14px_30px_-18px_rgba(124,58,237,0.7)]"
+											: "border-white/10 bg-white/[0.03] text-white/75 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
 									}`}
 								>
 									{isActive ? (
-										<span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-gradient-to-b from-indigo-200 via-sky-300 to-indigo-200" />
+										<span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-gradient-to-b from-violet-300 to-fuchsia-300" />
 									) : null}
 									<span
 										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
 											isActive
-												? "bg-gradient-to-br from-[#cbc7ff] to-[#9ac9ff] text-[#0b1438]"
-												: "bg-slate-800/80 text-slate-300 group-hover:bg-slate-700"
+												? "bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"
+												: "border border-white/10 bg-white/[0.04] text-white/60 group-hover:bg-white/[0.08]"
 										}`}
 									>
 										<Icon className="h-4 w-4" />
 									</span>
 									<div>
-										<p className="text-[11px] font-semibold tracking-[0.08em] text-slate-500">{formatSectionNumber(index)}</p>
+										<p className="text-[11px] font-semibold tracking-[0.08em] text-white/35">{formatSectionNumber(index)}</p>
 										<p className="text-[15px] font-semibold leading-snug">{section.title}</p>
 									</div>
 								</button>
@@ -988,7 +1008,7 @@ export default function MLTutorialPage() {
 					</nav>
 				</aside>
 
-				<main className="w-full min-w-0">
+				<main className="relative z-10 w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
 						<div className="mb-5 overflow-x-auto pb-1 md:hidden">
 							<div className="flex w-max gap-2.5 pr-2">
@@ -1001,15 +1021,15 @@ export default function MLTutorialPage() {
 											onClick={() => scrollToSection(section.id)}
 											className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-left transition ${
 												isActive
-													? "border-indigo-300/70 bg-indigo-500/25 text-indigo-50"
-													: "border-slate-700 bg-slate-900/60 text-slate-200"
+													? "border-white/20 bg-white/10 text-white"
+													: "border-white/10 bg-white/[0.03] text-white/75"
 											}`}
 										>
-											<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-slate-200">
+											<span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.05] text-white/80">
 												<Icon className="h-3.5 w-3.5" />
 											</span>
 											<div>
-												<p className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">
+												<p className="text-[10px] font-semibold tracking-[0.08em] text-white/35">
 													{formatSectionNumber(index)}
 												</p>
 												<p className="whitespace-nowrap text-xs font-semibold">{section.title}</p>
@@ -1020,23 +1040,23 @@ export default function MLTutorialPage() {
 							</div>
 						</div>
 						<motion.section
-							className="mb-6 rounded-3xl border border-slate-700/80 bg-slate-900/80 p-6 shadow-[0_20px_55px_-35px_rgba(99,102,241,0.5)] backdrop-blur lg:p-10"
+							className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_20px_55px_-35px_rgba(124,58,237,0.55)] backdrop-blur lg:p-10"
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.55, ease: "easeOut" }}
 						>
-							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-300">
+							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300">
 								Advanced Learning Documentation
 							</p>
-							<h1 className="mt-3 text-4xl font-black leading-tight text-slate-100 lg:text-5xl">
+							<h1 className="mt-3 text-4xl font-black leading-tight text-white lg:text-5xl">
 								Complete Machine Learning Tutorial: From Foundations to Production
 							</h1>
-							<p className="mt-4 max-w-none text-base leading-8 text-slate-300 lg:text-lg">
+							<p className="mt-4 max-w-none text-base leading-8 text-white/70 lg:text-lg">
 								Master Machine Learning through comprehensive explanations, visual analytics, and real-world applications. This advanced tutorial covers theory, mathematics, implementation strategies, and production best practices—all explained in clear, accessible language.
 							</p>
 
-							<div className="mt-6 rounded-2xl border border-slate-700 bg-slate-950/70 p-5">
-								<h3 className="text-lg font-bold text-slate-100">Complete ML Pipeline</h3>
+							<div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+								<h3 className="text-lg font-bold text-white">Complete ML Pipeline</h3>
 								<div className="mt-4 flex flex-wrap items-center gap-3">
 									{[
 										{ step: "Data Collection", icon: Database },
@@ -1049,14 +1069,14 @@ export default function MLTutorialPage() {
 										{ step: "Deployment", icon: Sparkles },
 									].map(({ step, icon: StepIcon }, idx, arr) => (
 										<div key={step} className="flex items-center gap-3">
-											<div className="group rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 transition hover:border-indigo-400 hover:bg-slate-800">
+											<div className="group rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 transition hover:border-violet-400/50 hover:bg-white/[0.06]">
 												<div className="flex items-center gap-2">
-													<StepIcon className="h-4 w-4 text-indigo-300" />
-													<span className="text-sm font-semibold text-slate-200">{step}</span>
+													<StepIcon className="h-4 w-4 text-violet-300" />
+													<span className="text-sm font-semibold text-white/85">{step}</span>
 												</div>
 											</div>
 											{idx < arr.length - 1 ? (
-												<ArrowRight className="h-4 w-4 text-indigo-300" />
+												<ArrowRight className="h-4 w-4 text-violet-300" />
 											) : null}
 										</div>
 									))}
