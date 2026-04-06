@@ -730,15 +730,9 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16 md:grid md:grid-cols-[21rem_minmax(0,1fr)] xl:grid-cols-[22rem_minmax(0,1fr)]">
-				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-[#060e24]/95 via-[#091433]/92 to-[#050b1f]/90 px-4 py-6 backdrop-blur-xl md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:self-start md:overflow-y-auto xl:px-5">
-					<div className="mb-5 rounded-2xl border border-slate-700/70 bg-slate-900/55 p-4">
-						<p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-							Course Navigation
-						</p>
-						<p className="mt-1 text-sm font-semibold text-slate-100">Machine Learning Masterclass</p>
-					</div>
-					<nav className="space-y-3">
+			<div className="relative pt-16 md:grid md:grid-cols-[20rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)]">
+				<aside className="hidden px-3 md:sticky md:top-20 md:block md:self-start xl:px-4">
+					<nav className="space-y-3 rounded-3xl border border-slate-700/70 bg-gradient-to-b from-[#061030]/90 to-[#070f2a]/85 p-3 shadow-[0_22px_42px_-28px_rgba(37,99,235,0.55)] backdrop-blur-xl">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
 							const isActive = activeSection === section.id;
@@ -748,8 +742,8 @@ export default function MLTutorialPage() {
 									onClick={() => scrollToSection(section.id)}
 									className={`group relative flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
 										isActive
-											? "border-indigo-200/70 bg-gradient-to-r from-[#121f4f] to-[#0a1538] text-indigo-50 shadow-[0_12px_28px_-18px_rgba(129,140,248,0.9)]"
-											: "border-slate-700/80 bg-slate-900/55 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/80"
+											? "border-indigo-200/75 bg-gradient-to-r from-[#1a2f73] to-[#111f56] text-indigo-50 shadow-[0_14px_30px_-18px_rgba(129,140,248,0.85)]"
+											: "border-slate-700/80 bg-[#041034]/45 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-[#081844]/70"
 									}`}
 								>
 									{isActive ? (
@@ -759,7 +753,7 @@ export default function MLTutorialPage() {
 										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
 											isActive
 												? "bg-gradient-to-br from-[#cbc7ff] to-[#9ac9ff] text-[#0b1438]"
-												: "bg-slate-800/90 text-slate-300 group-hover:bg-slate-700"
+												: "bg-slate-800/80 text-slate-300 group-hover:bg-slate-700"
 										}`}
 									>
 										<Icon className="h-4 w-4" />
