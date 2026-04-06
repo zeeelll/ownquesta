@@ -1,9 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import Logo from '../components/Logo';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CreditCard,
+  Lock,
+  Package,
+  ShieldCheck,
+  Smartphone,
+  Wallet,
+  Zap,
+} from 'lucide-react';
 
 const DEFAULT_PRICE = 4.99;
 const UPI_EXCHANGE_RATE = 83;
@@ -100,10 +112,10 @@ export default function PaymentPage() {
         : 'Notebook file only';
   const deliveryChips =
     downloadTarget === 'trained-model'
-      ? ['📦 model.pkl']
+      ? [{ label: 'model.pkl', icon: <Package size={12} strokeWidth={2.3} /> }]
       : downloadTarget === 'py'
-        ? ['🐍 pipeline.py']
-        : ['📓 pipeline.ipynb'];
+        ? [{ label: 'pipeline.py', icon: <Package size={12} strokeWidth={2.3} /> }]
+        : [{ label: 'pipeline.ipynb', icon: <Package size={12} strokeWidth={2.3} /> }];
 
   const upiApproxAmount = useMemo(() => Number((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);
   const upiPaymentLink = useMemo(() => {
@@ -308,20 +320,20 @@ export default function PaymentPage() {
 
   const trustItems = [
     {
-      icon: '⚡',
+      icon: <Zap size={14} strokeWidth={2.4} />,
       text:
         downloadTarget === 'trained-model'
           ? 'This checkout unlocks only the trained `.pkl` model download for your current session.'
           : `This checkout unlocks only the ${downloadTarget === 'py' ? 'Python script' : 'Jupyter notebook'} you selected.`,
     },
     {
-      icon: '📦',
+      icon: <Package size={14} strokeWidth={2.2} />,
       text:
         downloadTarget === 'trained-model'
           ? 'Download the trained model instantly and keep the export files behind their own payment gate.'
           : 'Your paid file starts downloading automatically right after payment confirmation.',
     },
-    { icon: '🔒', text: 'Choose PayPal, debit/credit card, or UPI with a smooth return back to Ownquesta' },
+    { icon: <Lock size={14} strokeWidth={2.2} />, text: 'Choose PayPal, debit/credit card, or UPI with a smooth return back to Ownquesta' },
   ];
 
   return (
@@ -642,7 +654,10 @@ export default function PaymentPage() {
                   href={returnPath}
                   className="px-4 py-2 rounded-xl text-sm font-semibold border border-white/10 bg-white/[0.03] text-[#c5d4ed] hover:text-white hover:bg-white/[0.06] hover:border-white/20 transition-all duration-200"
                 >
-                  ← Back to Lab
+                  <span className="inline-flex items-center gap-2">
+                    <ArrowLeft size={14} strokeWidth={2.4} />
+                    Back to Lab
+                  </span>
                 </Link>
               )}
             </div>
@@ -699,7 +714,9 @@ export default function PaymentPage() {
               {/* Delivery info */}
               <div className="delivery-box">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20 shrink-0">📦</div>
+                  <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl bg-violet-500/15 border border-violet-400/20 shrink-0">
+                    <Package size={20} strokeWidth={2.2} className="text-violet-200" />
+                  </div>
                   <div>
                     <p className="text-white font-bold text-[15px]">What you get after payment</p>
                     <p className="text-xs text-[#5a718a] mt-0.5">Only the item you selected will unlock and download</p>
@@ -707,13 +724,16 @@ export default function PaymentPage() {
                 </div>
                 <div className="bundle-row mb-4">
                   {deliveryChips.map((chip) => (
-                    <span key={chip} className="bundle-chip">{chip}</span>
+                    <span key={chip.label} className="bundle-chip inline-flex items-center gap-1.5">
+                      {chip.icon}
+                      {chip.label}
+                    </span>
                   ))}
                 </div>
                 <div className="space-y-3">
                   {trustItems.map((item) => (
                     <div key={item.text} className="flex items-start gap-3 text-sm text-[#c5d4ed]">
-                      <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
+                      <span className="text-base shrink-0 mt-0.5 inline-flex items-center justify-center">{item.icon}</span>
                       <span>{item.text}</span>
                     </div>
                   ))}
@@ -748,21 +768,24 @@ export default function PaymentPage() {
                       onClick={() => { setPaymentMethod('paypal'); setErrors({}); }}
                       className={`method-btn ${paymentMethod === 'paypal' ? 'active-paypal' : 'inactive'}`}
                     >
-                      🅿️ PayPal
+                      <Wallet size={14} strokeWidth={2.2} />
+                      PayPal
                     </button>
                     <button
                       type="button"
                       onClick={() => { setPaymentMethod('card'); setErrors({}); }}
                       className={`method-btn ${paymentMethod === 'card' ? 'active-card' : 'inactive'}`}
                     >
-                      💳 Card
+                      <CreditCard size={14} strokeWidth={2.2} />
+                      Card
                     </button>
                     <button
                       type="button"
                       onClick={() => { setPaymentMethod('upi'); setErrors({}); }}
                       className={`method-btn ${paymentMethod === 'upi' ? 'active-upi' : 'inactive'}`}
                     >
-                      📱 UPI
+                      <Smartphone size={14} strokeWidth={2.2} />
+                      UPI
                     </button>
                   </div>
 
@@ -1001,9 +1024,9 @@ export default function PaymentPage() {
 
                   {/* Security */}
                   <div className="sec-row">
-                    <span className="sec-item"><span>🔒</span> SSL encrypted</span>
-                    <span className="sec-item"><span>✓</span> Secure checkout</span>
-                    <span className="sec-item"><span>⚡</span> Instant delivery</span>
+                    <span className="sec-item"><Lock size={13} strokeWidth={2.2} /> SSL encrypted</span>
+                    <span className="sec-item"><ShieldCheck size={13} strokeWidth={2.2} /> Secure checkout</span>
+                    <span className="sec-item"><Zap size={13} strokeWidth={2.2} /> Instant delivery</span>
                   </div>
                 </div>
               )}
@@ -1035,7 +1058,9 @@ export default function PaymentPage() {
               {/* ── SUCCESS STEP ── */}
               {step === 'success' && (
                 <div className="fade-in py-10 text-center">
-                  <div className="success-ring">✓</div>
+                  <div className="success-ring">
+                    <Check size={28} strokeWidth={2.8} className="text-emerald-300" />
+                  </div>
                   <h3 className="text-xl font-extrabold text-white mb-2" style={{ letterSpacing: '-0.02em' }}>
                     Payment successful
                   </h3>
@@ -1063,13 +1088,18 @@ function Field({
 }: {
   label: string;
   error?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <label className="block">
       <span className="f-label">{label}</span>
       {children}
-      {error && <span className="f-error">⚠ {error}</span>}
+      {error && (
+        <span className="f-error inline-flex items-center gap-1.5">
+          <AlertTriangle size={12} strokeWidth={2.2} />
+          {error}
+        </span>
+      )}
     </label>
   );
 }
