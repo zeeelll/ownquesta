@@ -1232,15 +1232,16 @@ function Step9Content({ accentColor }: { accentColor: string }) {
 export default function TutorialPage() {
   const shouldReduceMotion = useReducedMotion();
   const steps = [
-    { number: 1, title: 'Open Ownquesta & Explore the Home Page', icon: '🌟', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Getting Started' },
-    { number: 2, title: 'Sign In or Create Your Account', icon: '🔐', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Authentication' },
-    { number: 3, title: 'Welcome Page', icon: '🏠', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
-    { number: 4, title: 'Navigate Your Dashboard', icon: '📊', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Command Center' },
-    { number: 5, title: 'Create a Project & Choose Your Path', icon: '✨', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Project Setup' },
-    { number: 6, title: 'Lab Playground — Easy Mode vs Code Mode', icon: '⚡', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Your Workspace' },
-    { number: 7, title: 'Analyse Results — Easy Mode & Code Mode', icon: '🔬', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AI Results' },
-    { number: 8, title: 'Model Selection & Build Pipeline', icon: '🚀', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Train Your Model' },
-    { number: 9, title: 'Training Results & Test Your Model', icon: '🏆', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Evaluate & Predict' },
+    { number: 1, title: 'Home Page (About, Help)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
+    { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
+    { number: 3, title: 'Welcome Page (Profile Update)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
+    { number: 4, title: 'Dashboard (Create Project)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
+    { number: 5, title: 'Lab Playground (Easy Mode / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
+    { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
+    { number: 7, title: 'Auto Analysis -> Model Generation', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
+    { number: 8, title: 'Real Values -> Prediction + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
+    { number: 9, title: 'Payment', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
+    { number: 10, title: 'Download Model / Python Script (.py)', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1267,31 +1268,156 @@ export default function TutorialPage() {
     if (section) section.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const stepGuides: Record<number, { summary: string; actions: string[]; buttons: { name: string; behavior: string; outcome: string }[]; note: string }> = {
+    1: {
+      summary: 'Home is the discovery page. Users check product value first, then decide whether to read About/Help or move directly to account access.',
+      actions: ['Open Home page and review top navigation and hero actions.', 'Visit About/Help when user needs feature or support context.', 'Continue to Login/Register to start authenticated flow.'],
+      buttons: [
+        { name: 'About', behavior: 'Opens product overview.', outcome: 'User understands capabilities before signup.' },
+        { name: 'Help', behavior: 'Opens support and FAQs.', outcome: 'User can resolve doubts before proceeding.' },
+        { name: 'Sign In / Get Started', behavior: 'Routes to authentication page.', outcome: 'Starts user onboarding process.' },
+      ],
+      note: 'Transition: Home -> Login / Register.',
+    },
+    2: {
+      summary: 'Login/Register validates identity and creates user session. This is the secure gateway to all project and lab actions.',
+      actions: ['Choose Login for existing account or Register for new account.', 'Submit credentials/details and complete verification.', 'System redirects to Welcome page on success.'],
+      buttons: [
+        { name: 'Login', behavior: 'Authenticates existing user.', outcome: 'Access to protected workspace is granted.' },
+        { name: 'Register', behavior: 'Creates a new user account.', outcome: 'New user enters platform workflow.' },
+        { name: 'Forgot Password', behavior: 'Starts reset flow.', outcome: 'User regains account access.' },
+      ],
+      note: 'Transition: Login/Register -> Welcome page.',
+    },
+    3: {
+      summary: 'Welcome page confirms successful entry and prompts profile completion for cleaner project ownership and account settings.',
+      actions: ['Review welcome instructions and next-step guidance.', 'Open profile settings and complete required fields.', 'Continue to Dashboard for project operations.'],
+      buttons: [
+        { name: 'Update Profile', behavior: 'Navigates to profile edit section.', outcome: 'Account details become complete and usable.' },
+        { name: 'Continue to Dashboard', behavior: 'Moves to main workspace.', outcome: 'User can create and manage projects.' },
+      ],
+      note: 'Transition: Welcome -> Profile update -> Dashboard.',
+    },
+    4: {
+      summary: 'Dashboard is the command center for projects. Users create a new project or continue an existing one from here.',
+      actions: ['Inspect project cards/status and available quick actions.', 'Create a new project or open existing project.', 'Proceed into Lab Playground with selected project context.'],
+      buttons: [
+        { name: 'Create Project', behavior: 'Opens project creation flow.', outcome: 'New workspace is initialized.' },
+        { name: 'Open Project', behavior: 'Loads project details.', outcome: 'User continues model work in lab.' },
+      ],
+      note: 'Transition: Dashboard -> Lab Playground.',
+    },
+    5: {
+      summary: 'Lab Playground starts model workflow. User chooses Easy Mode for guided flow or Code Mode for advanced control.',
+      actions: ['Open Lab from dashboard for selected project.', 'Choose Easy Mode or Code Mode based on expertise.', 'Enter data input stage after mode selection.'],
+      buttons: [
+        { name: 'Easy Mode', behavior: 'Starts guided visual workflow.', outcome: 'Fast setup for no-code users.' },
+        { name: 'Code Mode', behavior: 'Starts advanced technical workflow.', outcome: 'More control over processing and training.' },
+      ],
+      note: 'Transition: Mode selection -> Upload dataset step.',
+    },
+    6: {
+      summary: 'User uploads dataset and selects the target column. Target selection defines what the model should predict.',
+      actions: ['Upload dataset and confirm successful parsing.', 'Select target column from available columns.', 'Start analysis after data and target are validated.'],
+      buttons: [
+        { name: 'Upload Dataset', behavior: 'Ingests dataset file.', outcome: 'Data becomes available for training workflow.' },
+        { name: 'Select Target Column', behavior: 'Sets prediction objective.', outcome: 'Model goal is configured.' },
+        { name: 'Analyse', behavior: 'Starts automated analysis pipeline.', outcome: 'Auto analysis/model generation begins.' },
+      ],
+      note: 'Transition: Upload + target -> Auto analysis.',
+    },
+    7: {
+      summary: 'Auto analysis performs preprocessing, insight generation, and model candidate creation. This step prepares training-ready model options.',
+      actions: ['System checks missing values and feature quality.', 'System generates model recommendations and training options.', 'User selects model option to continue.'],
+      buttons: [
+        { name: 'Run Analysis', behavior: 'Executes automated data analysis.', outcome: 'Insights and candidate models are produced.' },
+        { name: 'Build Pipeline / Train', behavior: 'Launches selected model training.', outcome: 'Trained model and metrics are generated.' },
+      ],
+      note: 'Transition: Auto analysis -> Prediction testing.',
+    },
+    8: {
+      summary: 'User enters real-world feature values and tests model output. Accuracy and metrics confirm prediction reliability.',
+      actions: ['Fill prediction form with practical input values.', 'Run prediction using trained model.', 'Review predicted class/value and accuracy metrics.'],
+      buttons: [
+        { name: 'Run Prediction', behavior: 'Performs inference on entered values.', outcome: 'Returns prediction result.' },
+        { name: 'View Accuracy', behavior: 'Shows accuracy and evaluation scores.', outcome: 'User validates model performance.' },
+      ],
+      note: 'Transition: Prediction verified -> Payment (if feature/export requires).',
+    },
+    9: {
+      summary: 'Payment step unlocks subscription-based features and export permissions when required by selected plan.',
+      actions: ['Open payment page and compare plan options.', 'Complete transaction with selected plan.', 'Confirm unlock status in app.'],
+      buttons: [
+        { name: 'Choose Plan', behavior: 'Selects pricing tier.', outcome: 'Correct entitlement is assigned.' },
+        { name: 'Pay Now', behavior: 'Completes payment processing.', outcome: 'Restricted features become available.' },
+      ],
+      note: 'Transition: Payment success -> Download step.',
+    },
+    10: {
+      summary: 'Final step exports model artifacts and generated Python script for external use, deployment, or reproducibility.',
+      actions: ['Open export/download options.', 'Download trained model and .py script.', 'Store files with version naming for reuse.'],
+      buttons: [
+        { name: 'Download Model', behavior: 'Exports trained model artifact.', outcome: 'Model can be used outside the app.' },
+        { name: 'Download Python Script (.py)', behavior: 'Exports runnable generated script.', outcome: 'Pipeline is reproducible in external environment.' },
+      ],
+      note: 'Transition: Download complete -> App user flow finished.',
+    },
+  };
+
   const renderStepContent = (stepNumber: number, accentColor: string) => {
-    switch (stepNumber) {
-      case 1: return <Step1Content accentColor={accentColor} />;
-      case 2: return <Step2Content accentColor={accentColor} />;
-      case 3: return <Step3Content accentColor={accentColor} />;
-      case 4: return <Step4Content accentColor={accentColor} />;
-      case 5: return <Step5Content accentColor={accentColor} />;
-      case 6: return <Step6Content accentColor={accentColor} />;
-      case 7: return <Step7Content accentColor={accentColor} />;
-      case 8: return <Step8Content accentColor={accentColor} />;
-      case 9: return <Step9Content accentColor={accentColor} />;
-      default: return null;
-    }
+    const guide = stepGuides[stepNumber];
+    if (!guide) return null;
+
+    return (
+      <div className="space-y-6">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+          <h3 className="text-lg md:text-xl font-semibold text-white">How This Page Works</h3>
+          <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-[linear-gradient(140deg,rgba(255,255,255,0.04),rgba(124,92,191,0.08))] p-6 md:p-7">
+          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Process Flow</h4>
+          <div className="mt-4 space-y-3">
+            {guide.actions.map((action, idx) => (
+              <div key={idx} className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3">
+                <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold" style={{ background: `${accentColor}33`, color: accentColor }}>{idx + 1}</span>
+                <p className="text-sm leading-relaxed text-white/70">{action}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Buttons and What They Do</h4>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+            {guide.buttons.map((btn, idx) => (
+              <div key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <p className="text-sm font-semibold text-white">{btn.name}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-white/65"><span className="text-white/85">Action:</span> {btn.behavior}</p>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-white/65"><span className="text-white/85">Result:</span> {btn.outcome}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border px-4 py-3" style={{ borderColor: `${accentColor}55`, background: `${accentColor}14` }}>
+          <p className="text-sm font-medium text-white/80">{guide.note}</p>
+        </div>
+      </div>
+    );
   };
 
   const topicDescriptions: Record<number, string> = {
-    1: 'Understand the platform vision, navbar actions, and the no-code AI workflow at a glance.',
-    2: 'Sign in securely, create your account, and access your personal workspace in minutes.',
-    3: 'Review the post-login welcome flow and identify your fastest path to start building.',
-    4: 'Learn dashboard zones, key controls, and where each major action lives.',
-    5: 'Create your first project and choose between guided automation or code-first workflow.',
-    6: 'Compare Easy Mode and Code Mode so you can pick the right style for each dataset.',
-    7: 'Interpret generated analytics, model hints, and AI recommendations with confidence.',
-    8: 'Select an algorithm and launch a reproducible training pipeline with one action.',
-    9: 'Read performance metrics, validate outputs, and run live predictions with test inputs.',
+    1: 'Home entry with About and Help guidance.',
+    2: 'Authenticate using Login or Register.',
+    3: 'Complete Welcome onboarding and profile update.',
+    4: 'Use dashboard to create and manage projects.',
+    5: 'Choose Easy Mode or Code Mode in Lab Playground.',
+    6: 'Upload dataset and set prediction target column.',
+    7: 'Run auto analysis and generate model options.',
+    8: 'Enter real values and check prediction + accuracy.',
+    9: 'Complete payment for required access.',
+    10: 'Download model artifact and Python script (.py).',
   };
 
   return (
@@ -1369,8 +1495,8 @@ export default function TutorialPage() {
                 className="max-w-5xl"
               >
                 <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase font-semibold text-violet-300/80 mb-3">Tutorial Overview</p>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Learn Ownquesta Like a Modern Learning Platform</h1>
-                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">Use the left topic list for quick navigation. On the right, each topic card gives a focused objective and direct action to jump into the full tutorial section.</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Ownquesta App User Flow</h1>
+                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, Lab, Payment, and final downloads.</p>
               </motion.div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
@@ -1404,7 +1530,7 @@ export default function TutorialPage() {
 
           <section className="px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-8 pb-4 border-b border-white/[0.04]">
             <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">Detailed Step-by-Step Lessons</h2>
-            <p className="mt-2 text-sm text-white/55">Each lesson below includes an interface walkthrough, context notes, and action checklist to complete the workflow end-to-end.</p>
+            <p className="mt-2 text-sm text-white/55">Each lesson below includes page behavior, button processing, and step-to-step transition details.</p>
           </section>
 
           {steps.map((step, index) => (
@@ -1437,11 +1563,11 @@ export default function TutorialPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-fuchsia-600/10 to-pink-600/10 pointer-events-none" />
             <div className="absolute inset-0 pointer-events-none"><div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" /></div>
             <div className="relative text-center px-8 max-w-2xl mx-auto">
-              <div className="text-8xl mb-8 animate-bounce">🎉</div>
+              <div className="text-8xl mb-8 animate-bounce">◎</div>
               <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight">You Know<br /><span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Ownquesta!</span></h2>
               <p className="text-lg text-white/60 mb-10 leading-relaxed">From signing in to deploying a live AI model — you've walked through the complete AutoML workflow. Now it's time to build something real.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/home" className="px-8 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 transition-all hover:scale-105 shadow-xl shadow-violet-500/20">🚀 Start Building Your Model</Link>
+                <Link href="/home" className="px-8 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 transition-all hover:scale-105 shadow-xl shadow-violet-500/20">Start Building Your Model</Link>
                 <button onClick={() => scrollToStep(1)} className="px-8 py-4 rounded-2xl font-semibold text-white/60 hover:text-white border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all">↑ Review Tutorial</button>
               </div>
             </div>
