@@ -786,8 +786,25 @@ export default function LabPage() {
       <header style={{ height: 52, flexShrink: 0, background: 'rgba(10,11,20,0.92)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => router.push('/dashboard')} title="Back to Dashboard"
-            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-            ← Dashboard
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))',
+              borderWidth: 1,
+              borderStyle: 'solid',
+              borderColor: 'rgba(148,163,184,0.36)',
+              borderRadius: 10,
+              padding: '6px 14px',
+              color: '#e2e8f0',
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              letterSpacing: '0.02em',
+              boxShadow: '0 6px 16px rgba(2,6,23,0.28)'
+            }}>
+            Dashboard
           </button>
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
           <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 0 12px rgba(110,84,200,0.4)' }}>🧪</div>
