@@ -1986,13 +1986,6 @@ export default function MLTutorialPage() {
 										<LayoutDashboard className="h-4 w-4" />
 										Go to Dashboard
 									</Link>
-									<Link
-										href="/labs"
-										className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-500 bg-slate-950 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:bg-slate-900"
-									>
-										<FlaskConical className="h-4 w-4" />
-										Practice Labs
-									</Link>
 								</div>
 							</div>
 						</footer>
