@@ -2019,33 +2019,21 @@ const adminStyles = `
   .stat-card:hover {
     transform: translateY(-2px);
   }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    opacity: 0.07;
-    transform: translate(30%, -30%);
-  }
   .stat-card-blue {
     background: linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(6,182,212,0.04) 100%);
     border-color: rgba(6,182,212,0.2);
     box-shadow: 0 4px 24px rgba(6,182,212,0.08), inset 0 1px 0 rgba(6,182,212,0.1);
   }
-  .stat-card-blue::before { background: #06b6d4; }
   .stat-card-purple {
     background: linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(139,92,246,0.04) 100%);
     border-color: rgba(139,92,246,0.2);
     box-shadow: 0 4px 24px rgba(139,92,246,0.08), inset 0 1px 0 rgba(139,92,246,0.1);
   }
-  .stat-card-purple::before { background: #8b5cf6; }
   .stat-card-emerald {
     background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%);
     border-color: rgba(16,185,129,0.2);
     box-shadow: 0 4px 24px rgba(16,185,129,0.08), inset 0 1px 0 rgba(16,185,129,0.1);
   }
-  .stat-card-emerald::before { background: #10b981; }
 
   .stat-label {
     font-family: 'JetBrains Mono', monospace;
