@@ -161,7 +161,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 sm:px-5 md:px-8 pt-28 sm:pt-36 md:pt-44 pb-20 md:pb-28">
-        <div className="w-full max-w-[860px] text-center relative z-10">
+        <div className="w-full max-w-[920px] text-center relative z-10 px-5 sm:px-8 md:px-12 py-10 sm:py-12 md:py-14">
 
           {/* Badge */}
           {!user?.authenticated && (
@@ -171,14 +171,14 @@ export default function Home() {
             </div>
           )}
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight gradient-text animate-fade-in-up delay-100">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight text-white animate-fade-in-up delay-100" style={{ textShadow: '0 3px 24px rgba(0,0,0,0.95)' }}>
             {user?.authenticated
               ? `Welcome, ${user.name?.split(' ')[0]}`
               : 'From Raw Data to\nIntelligent Models'
             }
           </h1>
 
-          <p className="text-base sm:text-lg text-[#8fa3c4] leading-relaxed max-w-[640px] mx-auto mb-14 px-2 animate-fade-in-up delay-200 font-[350]">
+          <p className="text-base sm:text-lg text-[#f1f5ff] leading-relaxed max-w-[640px] mx-auto mb-14 px-2 animate-fade-in-up delay-200 font-[350]" style={{ textShadow: '0 2px 18px rgba(0,0,0,0.85)' }}>
             {user?.authenticated
               ? 'Click "Go to Menu" to start your journey with Ownquesta.'
               : 'A complete no-code AI platform to explore datasets, create features, and train production-ready ML and deep learning models—instantly.'
@@ -198,10 +198,10 @@ export default function Home() {
                     className="group opacity-0 animate-fade-in-up"
                     style={{ animationDelay: `${0.3 + i * 0.1}s`, animationFillMode: 'forwards' }}
                   >
-                    <div className="glass-purple rounded-2xl p-5 text-left hover:-translate-y-1 transition-all duration-300 hover:shadow-glow-sm cursor-default">
-                      <div className="text-xs font-semibold tracking-widest text-[#a87edf] mb-2 uppercase">{step.num}</div>
+                    <div className="glass-purple rounded-2xl p-5 text-left hover:-translate-y-1 transition-all duration-300 hover:shadow-glow-sm cursor-default bg-[rgba(255,255,255,0.05)] border border-[rgba(168,126,223,0.18)]">
+                      <div className="text-xs font-semibold tracking-widest text-[#d8ccff] mb-2 uppercase">{step.num}</div>
                       <div className="text-base font-semibold text-white mb-1">{step.title}</div>
-                      <div className="text-xs text-[#8fa3c4] font-[350]">{step.desc}</div>
+                      <div className="text-xs text-[#eef4ff] font-[350]">{step.desc}</div>
                     </div>
                   </div>
                 ))}
@@ -219,13 +219,13 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/about"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide glass hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all duration-300 text-[#c5d4ed]"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide glass hover:bg-white/[0.06] hover:-translate-y-0.5 transition-all duration-300 text-[#f2f6ff]"
                 >
                   Learn More
                 </Link>
                 <Link
                   href="/help"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide border border-[#a87edf]/30 bg-[#a87edf]/10 hover:bg-[#a87edf]/18 hover:-translate-y-0.5 transition-all duration-300 text-[#efe7ff]"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-base tracking-wide border border-[#a87edf]/30 bg-[#a87edf]/10 hover:bg-[#a87edf]/18 hover:-translate-y-0.5 transition-all duration-300 text-[#ffffff]"
                 >
                   Help Center
                 </Link>
