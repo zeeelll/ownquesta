@@ -33,17 +33,27 @@ export async function GET(request: Request) {
       cache: 'no-store',
     });
 
-    const data = await response.json().catch(() => ({
-      success: false,
-      error: 'Unable to fetch complaint status right now.',
-    }));
+    const text = await response.text();
+    let data: { success?: boolean; error?: string; complaint?: unknown } = {};
+
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = {
+        success: false,
+        error:
+          response.status === 404
+            ? 'Complaint status endpoint is not active. Restart backend server and try again.'
+            : 'Unable to fetch complaint status right now.',
+      };
+    }
 
     return NextResponse.json(data, { status: response.status });
   } catch {
     return NextResponse.json(
       {
         success: false,
-        error: 'Unable to fetch complaint status right now.',
+        error: 'Backend server is not reachable. Start/restart backend and try again.',
       },
       { status: 500 },
     );

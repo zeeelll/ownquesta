@@ -360,7 +360,7 @@ export default function HelpPage() {
   const handleCheckComplaintStatus = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const tid = statusTicketId.trim();
+    const tid = statusTicketId.trim().toUpperCase();
     const em = statusEmail.trim();
 
     if (!tid || !em) {

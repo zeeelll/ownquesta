@@ -138,6 +138,45 @@ exports.getHelpTickets = async (req, res) => {
 
 exports.getHelpTicketStatus = async (req, res) => {
   try {
+    const ticketId = normalizeText(req.query.ticketId, 80).toUpperCase();
+    const email = normalizeText(req.query.email, 160).toLowerCase();
+
+    if (!ticketId || !email) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide ticket ID and email.",
+      });
+    }
+
+    const ticket = await HelpTicket.findOne({ ticketId, email })
+      .select("ticketId name email issueType pageArea severity subject description status stepsTried proofFiles createdAt updatedAt")
+      .lean();
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        error: "Complaint not found for the provided ticket ID and email.",
+      });
+    }
+
+    return res.json({
+      success: true,
+      complaint: {
+        ...ticket,
+        complaintStatus: ticket.status === "resolved" ? "complete" : "underprocess",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching complaint status:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to fetch complaint status right now.",
+    });
+  }
+};
+
+exports.getHelpTicketStatus = async (req, res) => {
+  try {
     const ticketId = normalizeText(req.query.ticketId, 80);
     const email = normalizeText(req.query.email, 160).toLowerCase();
 
