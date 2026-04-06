@@ -350,18 +350,19 @@ const STYLES = `
   }
 
   .nav-pill-home {
-    background:rgba(255,255,255,0.025);
-    border-color:rgba(255,255,255,0.08);
+    background:linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.022) 100%);
+    border-color:rgba(255,255,255,0.09);
     color:var(--txt0);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
   }
   .nav-pill-home:hover {
-    background:rgba(255,255,255,0.06);
-    border-color:rgba(255,255,255,0.14);
-    box-shadow:0 8px 20px rgba(0,0,0,0.14);
+    background:linear-gradient(180deg, rgba(255,255,255,0.065) 0%, rgba(255,255,255,0.035) 100%);
+    border-color:rgba(255,255,255,0.16);
+    box-shadow:0 10px 24px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.05);
   }
   .nav-pill-home:focus-visible {
-    box-shadow:0 0 0 3px rgba(255,255,255,0.08), 0 10px 22px rgba(0,0,0,0.16);
-    border-color:rgba(255,255,255,0.18);
+    box-shadow:0 0 0 3px rgba(255,255,255,0.08), 0 10px 24px rgba(0,0,0,0.18);
+    border-color:rgba(255,255,255,0.2);
   }
 
   /* ── Activity row ── */

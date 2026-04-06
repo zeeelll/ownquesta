@@ -967,9 +967,10 @@ export default function MLTutorialPage() {
 				/>
 				<div className="absolute left-1/4 top-1/4 h-[460px] w-[460px] rounded-full bg-violet-600/10 blur-[120px]" />
 				<div className="absolute bottom-1/4 right-1/4 h-[360px] w-[360px] rounded-full bg-blue-600/10 blur-[100px]" />
+				<div className="absolute right-1/4 top-1/4 h-[340px] w-[340px] rounded-full bg-amber-500/12 blur-[110px]" />
 			</div>
 
-			<header className="fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-[rgba(6,8,18,0.85)] backdrop-blur-2xl">
+			<header className="fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-[rgba(6,8,18,0.88)] backdrop-blur-2xl">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
 					<div className="flex items-center gap-2.5">
 						<Logo href="/home" size="md" showText={false} />
@@ -979,7 +980,7 @@ export default function MLTutorialPage() {
 					</div>
 					<Link
 						href="/dashboard"
-						className="inline-flex items-center gap-2 rounded-xl border border-violet-400/30 bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_rgba(124,58,237,0.45)] transition hover:from-violet-500 hover:to-fuchsia-500"
+						className="inline-flex items-center gap-2 rounded-xl border border-amber-300/40 bg-gradient-to-r from-amber-200 via-orange-300 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-[0_0_0_1px_rgba(251,191,36,0.2),0_14px_34px_rgba(251,191,36,0.28)] transition duration-200 hover:-translate-y-0.5 hover:from-amber-100 hover:via-orange-200 hover:to-fuchsia-400 hover:shadow-[0_0_0_1px_rgba(251,191,36,0.26),0_18px_42px_rgba(251,191,36,0.34)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#060812]"
 					>
 						<LayoutDashboard className="h-4 w-4" />
 						Dashboard
@@ -1060,12 +1061,12 @@ export default function MLTutorialPage() {
 							</div>
 						</div>
 						<motion.section
-							className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_20px_55px_-35px_rgba(124,58,237,0.55)] backdrop-blur lg:p-10"
+							className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_20px_55px_-35px_rgba(251,191,36,0.26)] backdrop-blur lg:p-10"
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.55, ease: "easeOut" }}
 						>
-							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300">
+							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
 								Advanced Learning Documentation
 							</p>
 							<h1 className="mt-3 text-4xl font-black leading-tight text-white lg:text-5xl">
