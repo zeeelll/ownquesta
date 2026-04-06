@@ -1,9 +1,30 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, type ReactNode } from "react";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import Logo from "../components/Logo";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Bot,
+  Brain,
+  Check,
+  CheckCircle2,
+  Circle,
+  Folder,
+  Hash,
+  Hexagon,
+  Network,
+  Plus,
+  Search,
+  Shapes,
+  Sparkles,
+  Trash2,
+  Wrench,
+  X,
+  Zap,
+} from "lucide-react";
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || "http://localhost:8010";
 
@@ -80,6 +101,25 @@ function stageTheme(s: Stage) {
   if (s === "dataset_uploaded")
     return { col:"#60a5fa", glow:"rgba(96,165,250,0.20)", border:"rgba(96,165,250,0.18)", bg:"rgba(96,165,250,0.06)" };
   return { col:"#334155", glow:"rgba(51,65,85,0.12)", border:"rgba(51,65,85,0.18)", bg:"rgba(51,65,85,0.05)" };
+}
+
+function stageIcon(stage: Stage, size = 13) {
+  if (["evaluated", "completed"].includes(stage)) {
+    return <Check size={size} strokeWidth={2.6} />;
+  }
+  if (stage === "trained") {
+    return <Sparkles size={size} strokeWidth={2.2} />;
+  }
+  if (stage === "eda_completed") {
+    return <Search size={size} strokeWidth={2.2} />;
+  }
+  if (stage === "dataset_uploaded") {
+    return <Folder size={size} strokeWidth={2.2} />;
+  }
+  if (["model_selected", "training"].includes(stage)) {
+    return <Wrench size={size} strokeWidth={2.2} />;
+  }
+  return <Circle size={size} strokeWidth={2.2} />;
 }
 
 // ── Stylesheet ────────────────────────────────────────────────────────────────
@@ -455,7 +495,7 @@ function StageTracker({ stage }: { stage: Stage }) {
                   boxShadow: done ? `0 0 8px ${t.glow}` : "none",
                 }}
               >
-                {done ? "✓" : i+1}
+                {done ? <Check size={10} strokeWidth={2.8} /> : i+1}
               </div>
               <span style={{
                 fontSize:8, marginTop:3, whiteSpace:"nowrap",
@@ -484,7 +524,7 @@ function StageTracker({ stage }: { stage: Stage }) {
 // ── StatCard ──────────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, accent, icon, delay=0 }: {
   label:string; value:number|string; sub?:string;
-  accent:string; icon:string; delay?:number;
+  accent:string; icon:ReactNode; delay?:number;
 }) {
   return (
     <div className="stat-card rise" style={{ animationDelay:`${delay}ms` }}>
@@ -515,7 +555,7 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
             background:`linear-gradient(140deg, ${accent}14, ${accent}05)`,
             border:`1px solid ${accent}25`,
             display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:15,
+            color:accent,
           }}>{icon}</div>
         </div>
         <p style={{
@@ -568,7 +608,7 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
                 fontSize:16, position:"relative",
                 boxShadow: isActive ? `0 0 14px ${t.glow}` : "none",
               }}>
-                {finished ? "✓" : isActive ? "◈" : "○"}
+                {finished ? <Check size={14} strokeWidth={2.8} /> : isActive ? <Sparkles size={14} strokeWidth={2.2} /> : <Circle size={14} strokeWidth={2.2} />}
                 {isActive && (
                   <span style={{
                     position:"absolute", top:-2, right:-2,
@@ -618,7 +658,11 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
                 background:"rgba(255,255,255,0.015)",
                 borderColor:"rgba(255,255,255,0.04)",
                 color:"var(--txt2)",
-              }}>→ {project.targetColumn}</span>
+                display:"inline-flex", alignItems:"center", gap:5,
+              }}>
+                <ArrowRight size={11} strokeWidth={2.3} />
+                {project.targetColumn}
+              </span>
             )}
             {project.selectedModel && (
               <span className="chip" style={{
@@ -730,7 +774,9 @@ function DeleteConfirmModal({ project, onConfirm, onCancel }: {
               background:"rgba(248,113,113,0.08)",
               border:"1px solid rgba(248,113,113,0.18)",
               display:"flex", alignItems:"center", justifyContent:"center", fontSize:18,
-            }}>🗑</div>
+            }}>
+              <Trash2 size={18} strokeWidth={2.3} />
+            </div>
             <div>
               <h3 style={{ fontFamily:"var(--font-display)", fontSize:16, fontWeight:800, color:"var(--txt0)", letterSpacing:"-0.02em" }}>
                 Delete Project
@@ -793,11 +839,11 @@ function DeleteConfirmModal({ project, onConfirm, onCancel }: {
 
 // ── NewProjectModal ───────────────────────────────────────────────────────────
 const GOAL_OPTIONS = [
-  { value:"auto",           icon:"◎", label:"Auto-detect",        desc:"Let the AI figure out the best approach" },
-  { value:"classification", icon:"◈", label:"Predict a category", desc:"Spam, churn, diagnosis, fraud…" },
-  { value:"regression",     icon:"◬", label:"Predict a number",   desc:"Price, sales, temperature…" },
-  { value:"clustering",     icon:"⬡", label:"Group similar items",desc:"Customer segments, topics…" },
-  { value:"anomaly",        icon:"⚠", label:"Detect anomalies",   desc:"Fraud detection, equipment failure…" },
+  { value:"auto",           icon:<Brain size={14} strokeWidth={2.2} />, label:"Auto-detect",        desc:"Let the AI figure out the best approach" },
+  { value:"classification", icon:<Shapes size={14} strokeWidth={2.2} />, label:"Predict a category", desc:"Spam, churn, diagnosis, fraud…" },
+  { value:"regression",     icon:<Hash size={14} strokeWidth={2.2} />, label:"Predict a number",   desc:"Price, sales, temperature…" },
+  { value:"clustering",     icon:<Network size={14} strokeWidth={2.2} />, label:"Group similar items",desc:"Customer segments, topics…" },
+  { value:"anomaly",        icon:<AlertTriangle size={14} strokeWidth={2.2} />, label:"Detect anomalies",   desc:"Fraud detection, equipment failure…" },
 ];
 
 function NewProjectModal({ onStart, onCancel }: {
@@ -827,7 +873,9 @@ function NewProjectModal({ onStart, onCancel }: {
                   background:"rgba(99,102,241,0.1)", border:"1px solid rgba(99,102,241,0.22)",
                   display:"flex", alignItems:"center", justifyContent:"center",
                   fontSize:18, boxShadow:"0 0 16px rgba(99,102,241,0.12)",
-                }}>⬡</div>
+                }}>
+                  <Hexagon size={18} strokeWidth={2.2} />
+                </div>
                 <div>
                   <h3 style={{ fontFamily:"var(--font-display)", fontSize:18, fontWeight:800, color:"var(--txt0)", letterSpacing:"-0.03em" }}>
                     New Project
@@ -882,6 +930,7 @@ function NewProjectModal({ onStart, onCancel }: {
                     <span style={{
                       fontFamily:"var(--font-mono)", fontSize:13, flexShrink:0,
                       color:goal===opt.value?"#a5b4fc":"var(--txt2)",
+                      display:"inline-flex", alignItems:"center", justifyContent:"center",
                     }}>{opt.icon}</span>
                     <span style={{ flex:1 }}>
                       <span style={{ display:"block", fontFamily:"var(--font-body)", fontSize:13, fontWeight:600, letterSpacing:"-0.01em" }}>
@@ -896,7 +945,9 @@ function NewProjectModal({ onStart, onCancel }: {
                         width:17, height:17, borderRadius:"50%", flexShrink:0,
                         background:"var(--ind)", display:"flex", alignItems:"center",
                         justifyContent:"center", fontSize:7, color:"#fff", fontWeight:900,
-                      }}>✓</span>
+                      }}>
+                        <Check size={11} strokeWidth={3} />
+                      </span>
                     )}
                   </button>
                 ))}
@@ -933,7 +984,7 @@ function NewProjectModal({ onStart, onCancel }: {
                 border:"1px solid rgba(251,191,36,0.15)",
                 marginBottom:16,
               }}>
-                <span style={{ fontSize:11 }}>◈</span>
+                <Sparkles size={12} strokeWidth={2.3} />
                 <p style={{ fontFamily:"var(--font-body)", fontSize:11, color:"#fbbf24", fontWeight:600 }}>
                   {!name.trim() ? "Project name is required." : "Select a prediction goal to continue."}
                 </p>
@@ -1212,7 +1263,9 @@ export default function DashboardPage() {
             background:notice.ok?"rgba(52,211,153,0.1)":"rgba(248,113,113,0.1)",
             display:"flex", alignItems:"center", justifyContent:"center",
             fontSize:9, fontWeight:900,
-          }}>{notice.ok?"✓":"✕"}</div>
+          }}>
+            {notice.ok ? <Check size={11} strokeWidth={3} /> : <X size={11} strokeWidth={3} />}
+          </div>
           {notice.msg}
         </div>
       )}
@@ -1435,9 +1488,9 @@ export default function DashboardPage() {
 
         {/* ── Stats ── */}
         <div className="stats-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
-          <StatCard label="Total Projects"  value={stats.total}     sub="across all sessions"  icon="📁" accent="#6366f1" delay={0}   />
-          <StatCard label="In Progress"      value={stats.active}    sub="currently running"    icon="⚡" accent="#c084fc" delay={70}  />
-          <StatCard label="Models Trained"   value={stats.completed} sub="ready for evaluation" icon="🤖" accent="#34d399" delay={140} />
+          <StatCard label="Total Projects"  value={stats.total}     sub="across all sessions"  icon={<Folder size={16} strokeWidth={2.2} />} accent="#6366f1" delay={0}   />
+          <StatCard label="In Progress"      value={stats.active}    sub="currently running"    icon={<Zap size={16} strokeWidth={2.2} />} accent="#c084fc" delay={70}  />
+          <StatCard label="Models Trained"   value={stats.completed} sub="ready for evaluation" icon={<Bot size={16} strokeWidth={2.2} />} accent="#34d399" delay={140} />
         </div>
 
         {/* ── Pipeline legend ── */}
@@ -1460,28 +1513,28 @@ export default function DashboardPage() {
           <div className="leg-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
             {([
               {
-                icon:"📂", label:"Upload Dataset",
+                icon:<Folder size={15} strokeWidth={2.2} />, label:"Upload Dataset",
                 desc:"CSV or Excel dropped in, parsed instantly",
                 bg:"rgba(96,165,250,0.045)", border:"rgba(96,165,250,0.12)",
                 ib:"rgba(96,165,250,0.2)", ic:"rgba(96,165,250,0.08)",
                 tc:"#60a5fa", n:"01",
               },
               {
-                icon:"🔍", label:"EDA & Analysis",
+                icon:<Search size={15} strokeWidth={2.2} />, label:"EDA & Analysis",
                 desc:"AI profiles columns, detects types & patterns",
                 bg:"rgba(99,102,241,0.045)", border:"rgba(99,102,241,0.12)",
                 ib:"rgba(99,102,241,0.2)", ic:"rgba(99,102,241,0.08)",
                 tc:"#818cf8", n:"02",
               },
               {
-                icon:"🏗", label:"Model Training",
+                icon:<Wrench size={15} strokeWidth={2.2} />, label:"Model Training",
                 desc:"Best-fit pipeline built, tuned & executed",
                 bg:"rgba(192,132,252,0.04)", border:"rgba(192,132,252,0.11)",
                 ib:"rgba(192,132,252,0.18)", ic:"rgba(192,132,252,0.07)",
                 tc:"#c084fc", n:"03",
               },
               {
-                icon:"✅", label:"Evaluation",
+                icon:<CheckCircle2 size={15} strokeWidth={2.2} />, label:"Evaluation",
                 desc:"Metrics scored, predictions validated",
                 bg:"rgba(52,211,153,0.035)", border:"rgba(52,211,153,0.1)",
                 ib:"rgba(52,211,153,0.16)", ic:"rgba(52,211,153,0.06)",
@@ -1540,7 +1593,11 @@ export default function DashboardPage() {
                 padding:"4px 11px", borderRadius:100,
                 background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.16)",
                 color:"#fbbf24",
-              }}>⚠ LOCAL ONLY</span>
+                display:"inline-flex", alignItems:"center", gap:5,
+              }}>
+                <AlertTriangle size={11} strokeWidth={2.4} />
+                LOCAL ONLY
+              </span>
             )}
           </div>
 
@@ -1561,7 +1618,7 @@ export default function DashboardPage() {
                 fontSize:26, position:"relative",
                 animation:"float-up 3s ease infinite",
               }}>
-                ⬡
+                <Hexagon size={28} strokeWidth={2} />
                 <span style={{
                   position:"absolute", inset:-1, borderRadius:20,
                   border:"1px solid rgba(99,102,241,0.13)",
@@ -1584,7 +1641,10 @@ export default function DashboardPage() {
                 className="btn-primary"
                 onClick={() => setShowNewProj(true)}
                 style={{ padding:"11px 28px", fontSize:13, borderRadius:13 }}
-              >+ New Project</button>
+              >
+                <Plus size={14} strokeWidth={2.6} />
+                New Project
+              </button>
             </div>
           ) : (
             <div className="proj-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
@@ -1615,7 +1675,6 @@ export default function DashboardPage() {
                 letterSpacing:"-0.03em", color:"var(--txt0)",
               }}>Recent Activity</h2>
             </div>
-
             <div className="surface" style={{ overflow:"hidden" }}>
               <div style={{
                 position:"absolute", top:0, left:60, right:60, height:1,
@@ -1639,14 +1698,10 @@ export default function DashboardPage() {
                       width:34, height:34, borderRadius:10, flexShrink:0,
                       background:t.bg, border:`1px solid ${t.border}`,
                       display:"flex", alignItems:"center", justifyContent:"center",
-                      fontSize:12, color:t.col, fontFamily:"var(--font-mono)",
+                      color:t.col,
                       boxShadow:`0 0 10px ${t.glow}`,
                     }}>
-                      {["evaluated","completed"].includes(project.stage) ? "✓"
-                        : project.stage==="trained" ? "◈"
-                        : project.stage==="eda_completed" ? "◬"
-                        : project.stage==="dataset_uploaded" ? "▣"
-                        : "○"}
+                      {stageIcon(project.stage, 13)}
                     </div>
 
                     {/* Name & stage */}
