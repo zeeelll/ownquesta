@@ -705,19 +705,9 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16 md:grid md:grid-cols-[18rem_minmax(0,1fr)]">
-				<aside className="hidden border-r border-slate-800/80 bg-slate-950/60 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
-					<div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-sm">
-						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-300">
-							Tutorial Topics
-						</p>
-						<h2 className="mt-2 text-lg font-bold text-slate-100">Machine Learning</h2>
-						<p className="mt-2 text-sm text-slate-400">
-							Advanced concepts explained simply. Click any section to explore.
-						</p>
-					</div>
-
-					<nav className="mt-5 space-y-2">
+			<div className="relative pt-16 md:grid md:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[20rem_minmax(0,1fr)]">
+				<aside className="hidden border-r border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/55 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
+					<nav className="space-y-2.5">
 						{sections.map((section, index) => {
 							const Icon = section.icon;
 							const isActive = activeSection === section.id;
@@ -725,24 +715,24 @@ export default function MLTutorialPage() {
 								<button
 									key={section.id}
 									onClick={() => scrollToSection(section.id)}
-									className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-3 text-left transition ${
+									className={`group flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
 										isActive
-											? "border-indigo-400 bg-indigo-500/20 text-indigo-100 shadow-[0_0_20px_rgba(129,140,248,0.24)]"
-											: "border-slate-700 bg-slate-900/70 text-slate-300 hover:border-slate-500 hover:bg-slate-900"
+											? "border-indigo-300/80 bg-gradient-to-r from-indigo-500/22 to-violet-500/12 text-indigo-50 shadow-[0_10px_30px_-18px_rgba(129,140,248,0.7)]"
+											: "border-slate-700 bg-slate-900/65 text-slate-200 hover:-translate-y-0.5 hover:border-slate-500 hover:bg-slate-900/85"
 									}`}
 								>
 									<span
-										className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${
+										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
 											isActive
-												? "bg-indigo-400 text-slate-950"
+												? "bg-gradient-to-br from-indigo-300 to-violet-300 text-slate-950"
 												: "bg-slate-800 text-slate-300 group-hover:bg-slate-700"
 										}`}
 									>
 										<Icon className="h-4 w-4" />
 									</span>
 									<div>
-										<p className="text-xs font-semibold text-slate-500">{`0${index + 1}`}</p>
-										<p className="text-sm font-semibold leading-5">{section.title}</p>
+										<p className="text-[11px] font-semibold tracking-[0.08em] text-slate-500">{`0${index + 1}`}</p>
+										<p className="text-sm font-semibold leading-snug">{section.title}</p>
 									</div>
 								</button>
 							);
