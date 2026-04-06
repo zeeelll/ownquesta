@@ -26,6 +26,8 @@ async function generateUniqueUserId() {
 }
 
 router.post("/register", authController.register);
+router.post("/send-signup-otp", authController.sendSignupOtp);
+router.post("/verify-signup-otp", authController.verifySignupOtp);
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 router.post("/forgot-password", authController.forgotPassword);

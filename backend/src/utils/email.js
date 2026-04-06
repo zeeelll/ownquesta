@@ -1,5 +1,11 @@
 const nodemailer = require('nodemailer');
 
+const emailDebug = process.env.EMAIL_DEBUG === 'true';
+
+if ((process.env.EMAIL_HOST || '').includes('hostinger.com') && (process.env.EMAIL_USER || '').endsWith('@gmail.com')) {
+  console.warn('EMAIL config warning: hostinger SMTP is being used with a Gmail address. Use Hostinger mailbox credentials or switch to Gmail SMTP.');
+}
+
 // Create transporter with multiple fallback options
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -16,8 +22,8 @@ const transporter = nodemailer.createTransport({
   connectionTimeout: 30000,
   greetingTimeout: 30000,
   socketTimeout: 30000,
-  debug: true,
-  logger: true,
+  debug: emailDebug,
+  logger: emailDebug,
   pool: true,
   maxConnections: 5,
   maxMessages: 100

@@ -30,6 +30,12 @@ export default function LoginPage() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [signUpMessage, setSignUpMessage] = useState('');
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [signUpOtp, setSignUpOtp] = useState('');
+  const [signUpOtpSent, setSignUpOtpSent] = useState(false);
+  const [signUpOtpVerified, setSignUpOtpVerified] = useState(false);
+  const [signUpOtpLoading, setSignUpOtpLoading] = useState(false);
+  const [signUpOtpMessage, setSignUpOtpMessage] = useState('');
+  const [signUpOtpSuccess, setSignUpOtpSuccess] = useState(false);
 
   // Forgot Password
   const [forgotEmail, setForgotEmail] = useState('');
@@ -101,6 +107,7 @@ export default function LoginPage() {
     setSignUpMessage('');
     if (!firstName || !lastName) { setSignUpMessage('Please enter your first and last name.'); setSignUpSuccess(false); return; }
     if (!signUpEmail || !signUpPassword) { setSignUpMessage('Please enter email and password.'); setSignUpSuccess(false); return; }
+    if (!signUpOtpVerified) { setSignUpMessage('Please verify your email with OTP before creating account.'); setSignUpSuccess(false); return; }
     if (!isSignUpPasswordStrong) { setSignUpMessage(passwordStrengthMessage || 'Please choose a stronger password.'); setSignUpSuccess(false); return; }
     if (!agreeTerms) { setSignUpMessage('Please agree to the Terms & Conditions.'); setSignUpSuccess(false); return; }
     setLoading(true);
@@ -122,6 +129,87 @@ export default function LoginPage() {
   const handleGoogleAuth = () => {
     setLoading(true);
     setTimeout(() => { window.location.href = `${BACKEND_URL}/api/auth/google`; }, 500);
+  };
+
+  const handleSendSignUpOtp = async () => {
+    setSignUpMessage('');
+    setSignUpOtpMessage('');
+    setSignUpOtpSuccess(false);
+
+    if (!signUpEmail) {
+      setSignUpOtpMessage('Please enter your email first.');
+      return;
+    }
+
+    setSignUpOtpLoading(true);
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/send-signup-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: signUpEmail }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setSignUpOtpSent(true);
+        setSignUpOtpVerified(false);
+        setSignUpOtpMessage(data.message || 'OTP sent to your email. Please verify to continue.');
+        setSignUpOtpSuccess(true);
+      } else {
+        setSignUpOtpMessage(data.message || data.error || 'Failed to send OTP.');
+        setSignUpOtpSuccess(false);
+      }
+    } catch {
+      setSignUpOtpMessage('Network error. Please try again.');
+      setSignUpOtpSuccess(false);
+    } finally {
+      setSignUpOtpLoading(false);
+    }
+
+  };
+
+  const handleVerifySignUpOtp = async () => {
+    setSignUpMessage('');
+    setSignUpOtpMessage('');
+    setSignUpOtpSuccess(false);
+
+    if (!signUpEmail) {
+      setSignUpOtpMessage('Please enter your email first.');
+      return;
+    }
+
+    if (!signUpOtp) {
+      setSignUpOtpMessage('Please enter the OTP.');
+      return;
+    }
+
+    setSignUpOtpLoading(true);
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/verify-signup-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: signUpEmail, otp: signUpOtp }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setSignUpOtpVerified(true);
+        setSignUpOtpMessage(data.message || 'Email verified successfully.');
+        setSignUpOtpSuccess(true);
+      } else {
+        setSignUpOtpVerified(false);
+        setSignUpOtpMessage(data.message || data.error || 'Invalid OTP.');
+        setSignUpOtpSuccess(false);
+      }
+    } catch {
+      setSignUpOtpVerified(false);
+      setSignUpOtpMessage('Network error. Please try again.');
+      setSignUpOtpSuccess(false);
+    } finally {
+      setSignUpOtpLoading(false);
+    }
   };
 
   const handleLogoutFromLogin = () => {
@@ -199,6 +287,14 @@ export default function LoginPage() {
     setPasswordStrengthMessage(v.message);
   }, [signUpPassword]);
 
+  useEffect(() => {
+    setSignUpOtp('');
+    setSignUpOtpSent(false);
+    setSignUpOtpVerified(false);
+    setSignUpOtpMessage('');
+    setSignUpOtpSuccess(false);
+  }, [signUpEmail]);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-5 md:p-8 relative overflow-x-hidden font-chillax" style={{ background: 'radial-gradient(ellipse at top left, #1a1040 0%, #0a0b14 55%, #0e1020 100%)' }}>
       <NeuralBackground showText={false} />
@@ -274,7 +370,7 @@ export default function LoginPage() {
                   {isForgotPassword ? (
                     <>Remember your password?{' '}<button onClick={resetForgotPassword} className="text-[#a87edf] font-semibold hover:text-white transition-colors">Sign in</button></>
                   ) : (
-                    <>Don't have an account?{' '}<button onClick={() => setIsSignUp(true)} className="text-[#a87edf] font-semibold hover:text-white transition-colors">Create one</button></>
+                    <>Don't have an account?{' '}<button onClick={() => setIsSignUp(true)} className="text-[#a87edf] font-semibold hover:text-white transition-colors">Register</button></>
                   )}
                 </p>
               </div>
@@ -438,7 +534,42 @@ export default function LoginPage() {
                 <div>
                   <label className={labelClass}>Email</label>
                   <input type="email" placeholder="you@example.com" value={signUpEmail} onChange={e => setSignUpEmail(e.target.value)} className={inputClass} />
+                  <button
+                    type="button"
+                    onClick={handleSendSignUpOtp}
+                    disabled={signUpOtpLoading || !signUpEmail}
+                    className="mt-3 w-full py-2.5 rounded-xl font-medium text-xs tracking-wide cursor-pointer transition-all duration-300 border border-white/[0.08] text-[#c5d4ed] bg-white/[0.02] hover:bg-white/[0.06] hover:border-white/[0.15] disabled:opacity-50 disabled:cursor-not-allowed font-chillax"
+                  >
+                    {signUpOtpLoading ? 'Sending OTP...' : (signUpOtpSent ? 'Resend OTP' : 'Send OTP')}
+                  </button>
                 </div>
+                {signUpOtpSent && (
+                  <div>
+                    <label className={labelClass}>Email OTP</label>
+                    <div className="grid grid-cols-[1fr_auto] gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter OTP"
+                        value={signUpOtp}
+                        onChange={e => setSignUpOtp(e.target.value)}
+                        className={inputClass}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifySignUpOtp}
+                        disabled={signUpOtpLoading || !signUpOtp || signUpOtpVerified}
+                        className="px-4 rounded-xl font-medium text-xs tracking-wide cursor-pointer transition-all duration-300 border border-white/[0.08] text-[#c5d4ed] bg-white/[0.02] hover:bg-white/[0.06] hover:border-white/[0.15] disabled:opacity-50 disabled:cursor-not-allowed font-chillax"
+                      >
+                        {signUpOtpVerified ? 'Verified' : (signUpOtpLoading ? 'Verifying...' : 'Verify OTP')}
+                      </button>
+                    </div>
+                    {signUpOtpMessage && (
+                      <div className={`mt-2 p-2.5 rounded-xl text-xs ${signUpOtpSuccess ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                        {signUpOtpMessage}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label className={labelClass}>Password</label>
                   <div className="relative">

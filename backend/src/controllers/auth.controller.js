@@ -3,6 +3,7 @@
 const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const User = require("../models/User");
+const SignupOtp = require("../models/SignupOtp");
 const speakeasy = require('speakeasy');
 const { sendNotificationEmail, sendWelcomeEmail } = require("../utils/email");
 const ActivityService = require("../services/activity.service");
@@ -29,8 +30,25 @@ async function generateUniqueUserId() {
 exports.register = async (req, res) => {
   try {
     const { name, email, password, isAdmin } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const adminManagedRegistration = !!(req.user && req.user.role === 'admin');
 
-    const existing = await User.findOne({ email });
+    if (!name || !normalizedEmail || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    if (!adminManagedRegistration) {
+      const signupOtp = await SignupOtp.findOne({ email: normalizedEmail });
+      if (!signupOtp || !signupOtp.verified) {
+        return res.status(400).json({ message: 'Please verify your email OTP before registration' });
+      }
+      if (Date.now() > new Date(signupOtp.expiresAt).getTime()) {
+        await SignupOtp.deleteOne({ email: normalizedEmail });
+        return res.status(400).json({ message: 'Signup OTP expired. Please request a new OTP.' });
+      }
+    }
+
+    const existing = await User.findOne({ email: normalizedEmail });
     if (existing) return res.status(400).json({ message: "Email already used" });
 
     // Check if there are any admin users
@@ -50,7 +68,7 @@ exports.register = async (req, res) => {
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password: hash,
       userId,
       role: userRole,
@@ -92,6 +110,7 @@ exports.register = async (req, res) => {
       
       user.firstLogin = false;
       await user.save();
+      await SignupOtp.deleteOne({ email: normalizedEmail }).catch(() => {});
       console.log("✅ User auto-logged in after registration");
 
       await ActivityService.logActivity(
@@ -477,6 +496,87 @@ exports.deleteAccount = async (req, res) => {
   } catch (err) {
     console.error('❌ Delete account error:', err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+// Send signup OTP: expects { email }
+exports.sendSignupOtp = async (req, res) => {
+  try {
+    const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
+    if (!normalizedEmail) return res.status(400).json({ message: 'Email required' });
+
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) return res.status(400).json({ message: 'Email already used' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 2 * 60 * 1000);
+
+    await SignupOtp.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        email: normalizedEmail,
+        otp,
+        verified: false,
+        verifiedAt: null,
+        expiresAt: expiry,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #8b5cf6;">Verify Your Ownquesta Account</h2>
+        <p>Your signup OTP is:</p>
+        <p><strong style="font-size: 24px; color: #8b5cf6;">${otp}</strong></p>
+        <p><strong style="color: #dc2626;">This OTP expires in 2 minutes.</strong></p>
+        <p>If you did not request this, please ignore this email.</p>
+        <br>
+        <p>Best regards,<br>Ownquesta Team</p>
+      </div>
+    `;
+
+    const result = await sendNotificationEmail(normalizedEmail, 'Signup OTP - Ownquesta', html);
+    if (result && result.ok) {
+      return res.json({ message: 'Signup OTP sent to your email' });
+    }
+
+    return res.status(500).json({ message: 'OTP generated but email failed to send' });
+  } catch (err) {
+    console.error('❌ Send signup OTP error:', err);
+    res.status(500).json({ message: 'Failed to send signup OTP' });
+  }
+};
+
+// Verify signup OTP: expects { email, otp }
+exports.verifySignupOtp = async (req, res) => {
+  try {
+    const normalizedEmail = String(req.body?.email || '').trim().toLowerCase();
+    const otp = String(req.body?.otp || '').trim();
+    if (!normalizedEmail || !otp) return res.status(400).json({ message: 'Email and OTP required' });
+
+    const record = await SignupOtp.findOne({ email: normalizedEmail });
+    if (!record) return res.status(400).json({ message: 'No signup OTP request found' });
+
+    if (Date.now() > new Date(record.expiresAt).getTime()) {
+      await SignupOtp.deleteOne({ email: normalizedEmail });
+      return res.status(400).json({ message: 'OTP expired' });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
+
+    // Keep verification valid briefly so user can finish registration.
+    record.verified = true;
+    record.verifiedAt = new Date();
+    record.otp = null;
+    record.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await record.save();
+
+    res.json({ message: 'Signup OTP verified successfully' });
+  } catch (err) {
+    console.error('❌ Verify signup OTP error:', err);
+    res.status(500).json({ message: 'Failed to verify signup OTP' });
   }
 };
 
