@@ -7,6 +7,43 @@ import { python } from '@codemirror/lang-python';
 import { keymap } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowUp,
+  BarChart3,
+  Bot,
+  Brain,
+  Check,
+  CheckCircle2,
+  Code2,
+  ChevronDown,
+  Construction,
+  Download,
+  FileText,
+  FlaskConical,
+  FolderOpen,
+  Hexagon,
+  LineChart,
+  Lock,
+  MessageCircle,
+  Microscope,
+  Play,
+  Plus,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Trophy,
+  Wrench,
+  X,
+  Zap,
+  Diamond,
+  Clock3,
+} from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
 
@@ -154,18 +191,20 @@ function PaymentModal({
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#6e54c8', marginBottom: 4 }}>Secure Checkout</div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: '#f1f5f9' }}>Download Trained Model</div>
-                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>One-time purchase · Instant download</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>One-time purchase - Instant download</div>
                 </div>
-                <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 18 }}>×</button>
+                <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', fontSize: 18 }}>
+                  <X size={16} />
+                </button>
               </div>
 
               {/* Order summary */}
               <div style={{ background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.22)', borderRadius: 12, padding: '12px 16px', marginBottom: 22, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontSize: 13, color: '#4ade80', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>📥</span> {modelName} (.pkl)
+                    <Download size={14} /> {modelName} (.pkl)
                   </div>
-                  <div style={{ fontSize: 11, color: '#475569', marginTop: 3 }}>Trained ML model · Python pickle format</div>
+                  <div style={{ fontSize: 11, color: '#475569', marginTop: 3 }}>Trained ML model - Python pickle format</div>
                 </div>
                 <div style={{ fontSize: 26, fontWeight: 900, color: '#a87edf' }}>${MODEL_DOWNLOAD_PRICE}</div>
               </div>
@@ -194,7 +233,7 @@ function PaymentModal({
                   </PField>
                   <PField label="CVV" error={errors.cvv} style={{ flex: 1 }}>
                     <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g, '').slice(0, 3))}
-                      placeholder="•••" type="password" style={pInputStyle(!!errors.cvv)} />
+                      placeholder="***" type="password" style={pInputStyle(!!errors.cvv)} />
                   </PField>
                 </div>
               </div>
@@ -214,9 +253,9 @@ function PaymentModal({
               </button>
 
               <div style={{ marginTop: 14, display: 'flex', justifyContent: 'center', gap: 18, fontSize: 11, color: '#475569' }}>
-                <span>🔒 SSL Encrypted</span>
-                <span>✓ Secure Payment</span>
-                <span>⚡ Instant Delivery</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Lock size={12} /> SSL Encrypted</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><ShieldCheck size={12} /> Secure Payment</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Zap size={12} /> Instant Delivery</span>
               </div>
             </>
           )}
@@ -224,9 +263,9 @@ function PaymentModal({
           {/* ── Processing ── */}
           {step === 'processing' && (
             <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ fontSize: 50, marginBottom: 16, display: 'inline-block', animation: 'pmSpin 1s linear infinite' }}>⚙️</div>
+              <div style={{ marginBottom: 16, display: 'inline-flex', animation: 'pmSpin 1s linear infinite' }}><Settings size={42} /></div>
               <style>{`@keyframes pmSpin{to{transform:rotate(360deg)}}`}</style>
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>Processing Payment…</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f1f5f9', marginBottom: 8 }}>Processing Payment...</div>
               <div style={{ fontSize: 13, color: '#64748b' }}>Please wait, do not close this window</div>
               <div style={{ marginTop: 22, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{ height: '100%', background: 'linear-gradient(90deg,#6e54c8,#a87edf)', borderRadius: 4, animation: 'pmProg 2.2s ease-out forwards' }} />
@@ -238,9 +277,9 @@ function PaymentModal({
           {/* ── Success ── */}
           {step === 'success' && (
             <div style={{ textAlign: 'center', padding: '36px 0' }}>
-              <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '2px solid #4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', fontSize: 30 }}>✓</div>
+              <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'rgba(74,222,128,0.15)', border: '2px solid #4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', color: '#4ade80' }}><Check size={30} /></div>
               <div style={{ fontSize: 18, fontWeight: 700, color: '#4ade80', marginBottom: 8 }}>Payment Successful!</div>
-              <div style={{ fontSize: 13, color: '#64748b' }}>Preparing your model download…</div>
+              <div style={{ fontSize: 13, color: '#64748b' }}>Preparing your model download...</div>
             </div>
           )}
         </div>
@@ -421,11 +460,11 @@ export default function LabPage() {
         eda_completed:    'EDA was previously completed. Click **Analyse** to re-run, then select a model to build the pipeline.',
         model_selected:   'A model was selected last time. Click **Analyse** to re-run, then rebuild the pipeline.',
         training:         'The pipeline was building. Click **Analyse** to re-run from scratch.',
-        trained:          'The model was trained. Click **Analyse** → select model → build pipeline to retrain.',
+        trained:          'The model was trained. Click **Analyse**, select a model, then build the pipeline to retrain.',
         evaluated:        'The model was evaluated. Click **Analyse** to run the full workflow again.',
         completed:        'Project was completed. Click **Analyse** to re-run the full workflow.',
       };
-      addMsg({ type: 'info', text: [`🔄 **Resuming "${proj.name || 'your project'}"**`, `Last stage: *${stage.replace(/_/g, ' ')}*`, '', '> The Python kernel is stateless — variables reset each session.', '> Chat history and notebook cells have been restored. Re-run cells to regenerate charts.', hint[stage] ?? 'Click **Analyse** to re-run the pipeline.'].join('\n') });
+      addMsg({ type: 'info', text: [`**Resuming "${proj.name || 'your project'}"**`, `Last stage: *${stage.replace(/_/g, ' ')}*`, '', '> The Python kernel is stateless; variables reset each session.', '> Chat history and notebook cells have been restored. Re-run cells to regenerate charts.', hint[stage] ?? 'Click **Analyse** to re-run the pipeline.'].join('\n') });
     } catch { /* ignore */ }
   }, []);
 
@@ -442,7 +481,7 @@ export default function LabPage() {
       if (proj.name)      newProjectNameRef.current = proj.name;
       if (proj.targetCol) setTargetCol(proj.targetCol);
       const goalLabel: Record<string, string> = { auto: 'Auto-detect the best ML approach', classification: 'Predict a category (Classification)', regression: 'Predict a number (Regression)', clustering: 'Group similar items (Clustering)', anomaly: 'Detect anomalies' };
-      addMsg({ type: 'info', text: [`🚀 **Project: "${proj.name ?? 'New Project'}"**`, `Goal: *${goalLabel[proj.goal ?? ''] ?? proj.goal ?? 'Auto-detect'}*`, proj.targetCol ? `Target column pre-set to \`${proj.targetCol}\`.` : '', 'Upload your dataset using the button above to begin.'].filter(Boolean).join('\n') });
+      addMsg({ type: 'info', text: [`**Project: "${proj.name ?? 'New Project'}"**`, `Goal: *${goalLabel[proj.goal ?? ''] ?? proj.goal ?? 'Auto-detect'}*`, proj.targetCol ? `Target column pre-set to \`${proj.targetCol}\`.` : '', 'Upload your dataset using the button above to begin.'].filter(Boolean).join('\n') });
     } catch { /* ignore */ }
   }, []);
 
@@ -497,7 +536,7 @@ export default function LabPage() {
     const cell = cellsRef.current.find(c => c.id === id);
     if (!cell || cell.status === 'running') return;
     const violation = checkCode(cell.code);
-    if (violation) { setCells(p => p.map(c => c.id === id ? { ...c, status: 'error', out: { stdout: '', error: `🚫 ${violation}`, charts: [] }, ms: 0, outOpen: true } : c)); return; }
+    if (violation) { setCells(p => p.map(c => c.id === id ? { ...c, status: 'error', out: { stdout: '', error: `Blocked: ${violation}`, charts: [] }, ms: 0, outOpen: true } : c)); return; }
     const session = await getSession(); if (!session) return;
     const n = ++execCount.current, t0 = performance.now();
     setCells(p => p.map(c => c.id === id ? { ...c, status: 'running', out: null, execN: n } : c));
@@ -527,7 +566,7 @@ export default function LabPage() {
       const r = await fetch(`${LAB_URL}/upload`, { method: 'POST', body: form });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json(); setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
-      addMsg({ type: 'info', text: `📄 **${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
+      addMsg({ type: 'info', text: `**${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
       saveLabProjectToDashboard(d.filename);
       updateProjectProgress('dataset_uploaded', { name: newProjectNameRef.current || d.filename.replace(/\.[^/.]+$/, ''), dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() } });
     } catch (e: any) { setUploadErr(e.message); }
@@ -542,7 +581,7 @@ export default function LabPage() {
     if (modelObj && !canUseModel(modelObj)) { addMsg({ type: 'error', text: `You've used all ${modelObj.free_quota} free session(s) for **${modelObj.display_name}**. Please choose a different model.` }); return; }
     if (modelObj) recordModelUsage(modelObj.id);
     setAnalyzing(true);
-    addMsg({ type: 'info', text: `🔍 Analysing **${uploadedFilename}**… this may take 20–40 s.` });
+    addMsg({ type: 'info', text: `Analysing **${uploadedFilename}**... this may take 20-40 s.` });
     try {
       const r = await fetch(`${AGENT_URL}/v2/analyze-stream`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: session, uploaded_file_path: uploadedFilePath, uploaded_filename: uploadedFilename, target_column: targetCol.trim() || null, model_id: selectedAiModelId }) });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
@@ -571,7 +610,7 @@ export default function LabPage() {
   const buildPipeline = useCallback(async (modelName: string) => {
     const session = await getSession(); if (!session) return;
     setSelectedModel(modelName); setBuildingPipeline(true);
-    addMsg({ type: 'info', text: `🏗️ Building ML pipeline with **${modelName}**…` });
+    addMsg({ type: 'info', text: `Building ML pipeline with **${modelName}**...` });
     try {
       const r = await fetch(`${AGENT_URL}/v2/build-pipeline-stream`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: session, selected_model: modelName, target_column: targetCol.trim() || null, model_id: selectedAiModelId }) });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
@@ -585,7 +624,7 @@ export default function LabPage() {
         if (type === 'done') {
           const cols = ev.feature_columns as string[] ?? [];
           setFeatureColumns(cols); setPredictInputs(Object.fromEntries(cols.map(c => [c, '']))); setAnalysisStage('pipeline_built');
-          addMsg({ type: 'ai', text: '✅ Pipeline complete! All cells have been added to the notebook.' });
+          addMsg({ type: 'ai', text: 'Pipeline complete. All cells have been added to the notebook.' });
           if (cols.length > 0) addMsg({ type: 'predict_form', text: 'predict' });
           updateProjectProgress('trained', { selectedModel: modelName });
         }
@@ -608,7 +647,7 @@ export default function LabPage() {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json();
       addCellFromSSE(d.code, d.output ?? '', d.error ?? null, []);
-      addMsg({ type: 'ai', text: d.error ? `⚠️ Prediction error: ${d.error}` : `🎯 Prediction result:\n\`\`\`\n${d.output}\n\`\`\`` });
+      addMsg({ type: 'ai', text: d.error ? `Prediction error: ${d.error}` : `Prediction result:\n\`\`\`\n${d.output}\n\`\`\`` });
       if (!d.error) updateProjectProgress('evaluated');
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setPredicting(false); }
@@ -654,7 +693,7 @@ export default function LabPage() {
   const doDownloadModel = useCallback(async () => {
     const session = sid || sidRef.current; if (!session) return;
     setDownloadingModel(true);
-    addMsg({ type: 'info', text: '📦 Serialising model… this may take a few seconds.' });
+    addMsg({ type: 'info', text: 'Serializing model... this may take a few seconds.' });
     try {
       const dedicated = await fetch(`${LAB_URL}/download-model?session_id=${session}`).catch(() => null);
       if (dedicated && dedicated.ok) {
@@ -662,7 +701,7 @@ export default function LabPage() {
         const disposition = dedicated.headers.get('content-disposition');
         const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? `model_${session.slice(0, 7)}.pkl`;
         triggerBlobDownload(blob, filename);
-        addMsg({ type: 'ai', text: `✅ Model downloaded as \`${filename}\`` });
+        addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
         return;
       }
       const serializeCode = [
@@ -691,7 +730,7 @@ export default function LabPage() {
       const blob = new Blob([bytes], { type: 'application/octet-stream' });
       const filename = `trained_model_${session.slice(0, 7)}.pkl`;
       triggerBlobDownload(blob, filename);
-      addMsg({ type: 'ai', text: `✅ Model downloaded as \`${filename}\`` });
+      addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
     } catch (e: any) {
       addMsg({ type: 'error', text: `Download failed: ${e.message}` });
     } finally { setDownloadingModel(false); }
@@ -734,7 +773,7 @@ export default function LabPage() {
             FREE_DOWNLOADS_KEY,
             JSON.stringify({ ...usage, model: freeCount + 1 }),
           );
-          addMsg({ type: 'info', text: '🎁 Your first model download is free. Payment will be required from the second download.' });
+          addMsg({ type: 'info', text: 'Your first model download is free. Payment will be required from the second download.' });
           doDownloadModel();
           return;
         }
@@ -775,7 +814,7 @@ export default function LabPage() {
       setModelPaid(true);
       sessionStorage.removeItem('ownquesta_model_payment');
       window.history.replaceState({}, '', window.location.pathname);
-      addMsg({ type: 'info', text: '✅ Payment confirmed. Preparing your trained model download…' });
+      addMsg({ type: 'info', text: 'Payment confirmed. Preparing your trained model download...' });
       setTimeout(() => doDownloadModel(), 150);
     } catch { /* ignore invalid payment state */ }
   }, [sid, doDownloadModel, addMsg]);
@@ -846,7 +885,7 @@ export default function LabPage() {
           <div style={{ width: 1, height: 14, background: LAB_THEME.border }} />
           <span style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, color: sid ? '#4ade80' : '#475569' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: sid ? '#4ade80' : '#475569', display: 'inline-block' }} />
-            {sid ? `session ${sid.slice(0,7)}…` : 'no session'}
+            {sid ? `session ${sid.slice(0,7)}...` : 'no session'}
           </span>
           {analysisStage === 'pipeline_built' && (
             <>
@@ -860,10 +899,10 @@ export default function LabPage() {
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}>
                 {downloadingModel
-                  ? <><SpinIcon size={10}/><span>Downloading…</span></>
+                  ? <><SpinIcon size={10}/><span>Downloading...</span></>
                   : modelPaid
-                    ? <><span>📥</span><span>Download Model</span></>
-                    : <><span>🔒</span><span>Download Model</span>
+                    ? <><Download size={12} /><span>Download Model</span></>
+                    : <><Lock size={12} /><span>Download Model</span>
                         <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24', marginLeft: 2 }}>
                           ${MODEL_DOWNLOAD_PRICE}
                         </span>
@@ -873,13 +912,13 @@ export default function LabPage() {
 
               <button onClick={() => openScriptEditor()}
                 style={{ ...ghostBtn, color: '#60a5fa', borderColor: 'rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.08)', display: 'flex', alignItems: 'center', gap: 5 }}>
-                <span>🐍</span><span>Python Script</span>
+                <Code2 size={12} /><span>Python Script</span>
               </button>
             </>
           )}
           <button onClick={() => setEasyMode(e => !e)}
             style={{ ...ghostBtn, color: easyMode ? '#bfdbfe' : LAB_THEME.muted, borderColor: easyMode ? LAB_THEME.borderStrong : LAB_THEME.border, background: easyMode ? 'rgba(110,168,255,0.17)' : 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', gap: 5 }}>
-            {easyMode ? <><span>💻</span><span>Code Mode</span></> : <><span>✨</span><span>Easy Mode</span></>}
+            {easyMode ? <><Code2 size={12} /><span>Code Mode</span></> : <><Sparkles size={12} /><span>Easy Mode</span></>}
           </button>
           <button onClick={reset} style={ghostBtn}>Reset Kernel</button>
         </div>
@@ -913,9 +952,9 @@ export default function LabPage() {
             />
           ) : (
             <>
-              {connErr && <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.28)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, color: '#fca5a5', fontSize: 12 }}>⚠ {connErr}</div>}
+              {connErr && <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.28)', borderRadius: 10, padding: '10px 14px', marginBottom: 16, color: '#fca5a5', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={12} /> {connErr}</div>}
               <div style={{ background: 'rgba(251,191,36,0.05)', border: '1px solid rgba(251,191,36,0.18)', borderRadius: 10, padding: '8px 12px', marginBottom: 16, fontSize: 12, color: '#fbbf24', display: 'flex', gap: 6 }}>
-                🔒 <span><code style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '0 4px', borderRadius: 3 }}>pip install</code> and heavy DL libraries are restricted.</span>
+                <Lock size={12} /> <span><code style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '0 4px', borderRadius: 3 }}>pip install</code> and heavy DL libraries are restricted.</span>
               </div>
               {cells.map((cell, idx) => (
                 <CellBlock key={cell.id} cell={cell} index={idx} total={cells.length}
@@ -939,7 +978,7 @@ export default function LabPage() {
         <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: LAB_THEME.panelAlt, borderLeft: `1px solid ${LAB_THEME.border}` }}>
           <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: `1px solid ${LAB_THEME.border}`, background: 'rgba(4,10,24,0.6)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <span style={{ fontSize: 13 }}>🤖</span>
+              <Bot size={13} />
               <span style={{ fontWeight: 700, fontSize: 13, color: '#bfdbfe' }}>ML Agent</span>
               <ModelSelector models={availableModels} selectedId={selectedAiModelId} onChange={setSelectedAiModelId} disabled={analyzing || buildingPipeline} />
             </div>
@@ -948,17 +987,17 @@ export default function LabPage() {
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const, alignItems: 'center', marginBottom: 6 }}>
               {uploadedFilename ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 7, padding: '4px 8px' }}>
-                  <span style={{ fontSize: 11 }}>📄</span>
+                  <FileText size={11} />
                   <span style={{ fontSize: 11, color: '#4ade80', fontFamily: 'monospace', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{uploadedFilename}</span>
-                  {analysisStage === 'idle' && <button onClick={() => { setUploadedFilename(null); setUploadedFilePath(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 13, padding: 0 }}>×</button>}
+                  {analysisStage === 'idle' && <button onClick={() => { setUploadedFilename(null); setUploadedFilePath(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 13, padding: 0, display: 'inline-flex' }}><X size={13} /></button>}
                 </div>
               ) : (
                 <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 7, cursor: uploading ? 'not-allowed' : 'pointer', background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.18)', color: '#94a3b8', fontSize: 11, fontFamily: 'inherit' }}>
-                  {uploading ? <><SpinIcon size={10}/><span>Uploading…</span></> : <><span>📂</span><span>Upload CSV / Excel</span></>}
+                  {uploading ? <><SpinIcon size={10}/><span>Uploading...</span></> : <><FolderOpen size={11} /><span>Upload CSV / Excel</span></>}
                 </button>
               )}
-              {uploadErr && <span style={{ fontSize: 11, color: '#f87171' }}>⚠ {uploadErr}</span>}
+              {uploadErr && <span style={{ fontSize: 11, color: '#f87171', display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle size={10} /> {uploadErr}</span>}
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <input value={targetCol} onChange={e => setTargetCol(e.target.value)} placeholder="target column (optional)"
@@ -967,12 +1006,12 @@ export default function LabPage() {
               {analysisStage === 'idle' ? (
                 <button onClick={analyze} disabled={!uploadedFilePath || analyzing}
                   style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 7, cursor: (!uploadedFilePath || analyzing) ? 'not-allowed' : 'pointer', background: (!uploadedFilePath || analyzing) ? 'rgba(110,168,255,0.12)' : 'linear-gradient(135deg,rgba(37,99,235,0.72),rgba(8,145,178,0.72))', border: `1px solid ${LAB_THEME.borderStrong}`, color: !uploadedFilePath ? '#4b5b73' : '#e2e8f0', fontSize: 11, fontWeight: 600, fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}>
-                  {analyzing ? <><SpinIcon size={10}/><span>Analysing…</span></> : <><span>🔍</span><span>Analyse</span></>}
+                  {analyzing ? <><SpinIcon size={10}/><span>Analysing...</span></> : <><Search size={11} /><span>Analyse</span></>}
                 </button>
               ) : analysisStage === 'analyzed' ? (
                 <span style={{ fontSize: 10, color: '#93c5fd', whiteSpace: 'nowrap' as const }}>Select a model ↓</span>
               ) : (
-                <span style={{ fontSize: 10, color: '#4ade80', whiteSpace: 'nowrap' as const }}>✓ Pipeline built</span>
+                <span style={{ fontSize: 10, color: '#4ade80', whiteSpace: 'nowrap' as const, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={10} /> Pipeline built</span>
               )}
             </div>
           </div>
@@ -987,7 +1026,7 @@ export default function LabPage() {
             ))}
             {(analyzing || buildingPipeline) && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', color: '#a87edf', fontSize: 12 }}>
-                <SpinIcon size={12} /> {analyzing ? 'Agent is analysing your dataset…' : 'Building the pipeline, step by step…'}
+                <SpinIcon size={12} /> {analyzing ? 'Agent is analysing your dataset...' : 'Building the pipeline, step by step...'}
               </div>
             )}
             <div ref={chatEndRef} style={{ height: 12 }} />
@@ -996,12 +1035,12 @@ export default function LabPage() {
           <div style={{ flexShrink: 0, padding: '10px 12px', borderTop: `1px solid ${LAB_THEME.border}`, background: 'rgba(4,10,24,0.55)', display: 'flex', gap: 7, alignItems: 'flex-end' }}>
             <textarea value={chatInput} onChange={e => setChatInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
-              placeholder="Ask anything about your data or pipeline… (Enter to send)"
+              placeholder="Ask anything about your data or pipeline... (Enter to send)"
               rows={2}
               style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '8px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5 }} />
             <button onClick={() => sendChat()} disabled={chatSending || !chatInput.trim()}
               style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: chatInput.trim() ? 'linear-gradient(135deg,rgba(37,99,235,0.86),rgba(8,145,178,0.86))' : 'rgba(255,255,255,0.05)', border: `1px solid ${LAB_THEME.borderStrong}`, color: chatInput.trim() ? '#e2e8f0' : '#475569', cursor: chatInput.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-              {chatSending ? <SpinIcon size={11}/> : '↑'}
+              {chatSending ? <SpinIcon size={11}/> : <Send size={13} />}
             </button>
           </div>
         </div>
@@ -1034,7 +1073,7 @@ function ChatBubble({ msg, onSelectModel, selectedModel, pipelineDisabled, featu
   switch (msg.type) {
     case 'welcome': return (
       <div style={{ marginBottom: 12, padding: 14, borderRadius: 12, background: 'rgba(110,84,200,0.08)', border: '1px solid rgba(110,84,200,0.2)' }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}><span style={{ fontSize: 16 }}>🤖</span><span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>ML Agent</span></div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 6, alignItems: 'center' }}><Bot size={16} /><span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>ML Agent</span></div>
         <p style={{ margin: 0, fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>{msg.text}</p>
       </div>
     );
@@ -1042,7 +1081,7 @@ function ChatBubble({ msg, onSelectModel, selectedModel, pipelineDisabled, featu
     case 'analysis': return (
       <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(110,84,200,0.25)', overflow: 'hidden' }}>
         <div style={{ padding: '8px 12px', background: 'rgba(110,84,200,0.12)', display: 'flex', gap: 6, alignItems: 'center' }}>
-          <span>📊</span><span style={{ fontWeight: 700, fontSize: 12, color: '#c4b5fd' }}>Dataset Analysis</span>
+          <BarChart3 size={13} /><span style={{ fontWeight: 700, fontSize: 12, color: '#c4b5fd' }}>Dataset Analysis</span>
           <span style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px', borderRadius: 20, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>{msg.analysis?.problem_type}</span>
         </div>
         <div style={{ padding: '10px 12px', fontSize: 12, lineHeight: 1.7, color: '#94a3b8' }}>
@@ -1057,7 +1096,7 @@ function ChatBubble({ msg, onSelectModel, selectedModel, pipelineDisabled, featu
     case 'fe': return (
       <div style={{ marginBottom: 12, borderRadius: 10, border: '1px solid rgba(99,102,241,0.25)', overflow: 'hidden' }}>
         <div style={{ padding: '7px 12px', background: 'rgba(99,102,241,0.1)', fontSize: 12, fontWeight: 700, color: '#818cf8', display: 'flex', gap: 6 }}>
-          <span>⚙️</span> Feature Engineering Applied {msg.fe?.error && <span style={{ marginLeft: 'auto', color: '#f87171', fontSize: 11 }}>⚠ error</span>}
+          <Settings size={13} /> Feature Engineering Applied {msg.fe?.error && <span style={{ marginLeft: 'auto', color: '#f87171', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle size={11} /> error</span>}
         </div>
         <pre style={{ margin: 0, padding: '8px 12px', background: 'rgba(0,0,0,0.3)', color: '#e2e8f0', fontSize: 11, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', maxHeight: 160, overflow: 'auto' }}>{msg.fe?.code}</pre>
         {msg.fe?.output && <pre style={{ margin: 0, padding: '5px 12px', background: 'rgba(74,222,128,0.04)', color: '#bbf7d0', fontSize: 11, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', maxHeight: 60, overflow: 'auto', borderTop: '1px solid rgba(255,255,255,0.04)' }}>{msg.fe.output}</pre>}
@@ -1066,19 +1105,19 @@ function ChatBubble({ msg, onSelectModel, selectedModel, pipelineDisabled, featu
     case 'eda_summary': return <EdaSummaryBubble summary={msg.edaSummary?.summary ?? ''} featureImportance={msg.edaSummary?.featureImportance ?? ''} preprocessing={msg.edaSummary?.preprocessing ?? ''} />;
     case 'models': return (
       <div style={{ marginBottom: 12 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#c4b5fd', marginBottom: 8, display: 'flex', gap: 6 }}><span>🏆</span> Top 3 Recommended Models</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#c4b5fd', marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}><Trophy size={13} /> Top 3 Recommended Models</div>
         {(msg.models || []).map((m, i) => <ModelCard key={m.name} model={m} rank={i} isSelected={selectedModel === m.name} onSelect={() => onSelectModel(m.name)} disabled={pipelineDisabled} />)}
       </div>
     );
     case 'pipeline': return (
       <div style={{ marginBottom: 12, borderRadius: 10, border: '1px solid rgba(74,222,128,0.2)', overflow: 'hidden' }}>
-        <div style={{ padding: '7px 12px', background: 'rgba(74,222,128,0.06)', fontSize: 12, fontWeight: 700, color: '#4ade80', display: 'flex', gap: 6 }}><span>🧠</span> Agent Reasoning</div>
+        <div style={{ padding: '7px 12px', background: 'rgba(74,222,128,0.06)', fontSize: 12, fontWeight: 700, color: '#4ade80', display: 'flex', gap: 6, alignItems: 'center' }}><Brain size={13} /> Agent Reasoning</div>
         <div style={{ padding: '10px 12px', fontSize: 12, color: '#94a3b8', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{msg.reasoning}</div>
       </div>
     );
     case 'insight': return (
       <div style={{ marginBottom: 10, display: 'flex', gap: 8 }}>
-        <div style={{ width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#0d9488,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0, marginTop: 2 }}>📈</div>
+        <div style={{ width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#0d9488,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0, marginTop: 2 }}><LineChart size={12} /></div>
         <div style={{ flex: 1, padding: '9px 13px', borderRadius: '2px 12px 12px 12px', background: 'rgba(13,148,136,0.08)', border: '1px solid rgba(13,148,136,0.25)', fontSize: 12, color: '#99f6e4', lineHeight: 1.7 }}>{msg.text}</div>
       </div>
     );
@@ -1091,11 +1130,11 @@ function ChatBubble({ msg, onSelectModel, selectedModel, pipelineDisabled, featu
     );
     case 'ai': return (
       <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-        <div style={{ width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0, marginTop: 2 }}>🤖</div>
+        <div style={{ width: 24, height: 24, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0, marginTop: 2 }}><Bot size={12} /></div>
         <div style={{ flex: 1, padding: '9px 13px', borderRadius: '2px 12px 12px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 12, color: '#cbd5e1', lineHeight: 1.7 }}><MdText text={msg.text || ''} /></div>
       </div>
     );
-    case 'error': return <div style={{ marginBottom: 8, padding: '9px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5', fontSize: 12, display: 'flex', gap: 6 }}>⚠ {msg.text}</div>;
+    case 'error': return <div style={{ marginBottom: 8, padding: '9px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5', fontSize: 12, display: 'flex', gap: 6, alignItems: 'center' }}><AlertTriangle size={12} /> {msg.text}</div>;
     default: return null;
   }
 }
@@ -1104,20 +1143,20 @@ function EdaSummaryBubble({ summary, featureImportance, preprocessing }: { summa
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ summary: true, features: false, preprocessing: false });
   const toggle = (key: string) => setOpenSections(p => ({ ...p, [key]: !p[key] }));
   const sections = [
-    { key: 'summary', icon: '📊', label: 'EDA Summary', content: summary, color: '#22d3ee', bg: 'rgba(34,211,238,0.08)', border: 'rgba(34,211,238,0.25)' },
-    { key: 'features', icon: '⭐', label: 'Feature Importance Notes', content: featureImportance, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)' },
-    { key: 'preprocessing', icon: '🔧', label: 'Preprocessing Recommendations', content: preprocessing, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
+    { key: 'summary', icon: <BarChart3 size={12} />, label: 'EDA Summary', content: summary, color: '#22d3ee', bg: 'rgba(34,211,238,0.08)', border: 'rgba(34,211,238,0.25)' },
+    { key: 'features', icon: <Star size={12} />, label: 'Feature Importance Notes', content: featureImportance, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.25)' },
+    { key: 'preprocessing', icon: <Wrench size={12} />, label: 'Preprocessing Recommendations', content: preprocessing, color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.25)' },
   ].filter(s => s.content);
   if (sections.length === 0) return null;
   return (
     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(34,211,238,0.25)', overflow: 'hidden' }}>
-      <div style={{ padding: '8px 12px', background: 'rgba(34,211,238,0.08)', display: 'flex', gap: 6, alignItems: 'center' }}><span>🔬</span><span style={{ fontWeight: 700, fontSize: 12, color: '#22d3ee' }}>Exploratory Data Analysis</span></div>
+      <div style={{ padding: '8px 12px', background: 'rgba(34,211,238,0.08)', display: 'flex', gap: 6, alignItems: 'center' }}><Microscope size={12} /><span style={{ fontWeight: 700, fontSize: 12, color: '#22d3ee' }}>Exploratory Data Analysis</span></div>
       <div style={{ padding: '6px 0' }}>
         {sections.map(s => (
           <div key={s.key} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
             <button onClick={() => toggle(s.key)} style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '7px 12px', display: 'flex', alignItems: 'center', gap: 6, color: s.color, fontSize: 11.5, fontWeight: 600, fontFamily: 'inherit', textAlign: 'left' }}>
               <span>{s.icon}</span><span style={{ flex: 1 }}>{s.label}</span>
-              <span style={{ fontSize: 10, transform: openSections[s.key] ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}>▾</span>
+              <ChevronDown size={12} style={{ transform: openSections[s.key] ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }} />
             </button>
             {openSections[s.key] && <div style={{ padding: '4px 12px 10px', fontSize: 12, color: '#94a3b8', lineHeight: 1.7 }}><MdText text={s.content} /></div>}
           </div>
@@ -1130,7 +1169,7 @@ function EdaSummaryBubble({ summary, featureImportance, preprocessing }: { summa
 function PredictForm({ featureColumns, inputs, setInputs, onPredict, predicting }: { featureColumns: string[]; inputs: Record<string,string>; setInputs: React.Dispatch<React.SetStateAction<Record<string,string>>>; onPredict(): void; predicting: boolean; }) {
   return (
     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
-      <div style={{ padding: '8px 12px', background: 'rgba(251,191,36,0.08)', fontSize: 12, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><span>🧪</span> Test Your Model<span style={{ marginLeft: 'auto', fontSize: 10, color: '#92400e' }}>Enter values → Predict</span></div>
+      <div style={{ padding: '8px 12px', background: 'rgba(251,191,36,0.08)', fontSize: 12, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><FlaskConical size={12} /> Test Your Model<span style={{ marginLeft: 'auto', fontSize: 10, color: '#92400e' }}>Enter values then predict</span></div>
       <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {featureColumns.map(col => (
           <div key={col} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1141,19 +1180,19 @@ function PredictForm({ featureColumns, inputs, setInputs, onPredict, predicting 
         ))}
         <button onClick={onPredict} disabled={predicting}
           style={{ marginTop: 4, padding: '7px', borderRadius: 8, cursor: predicting ? 'not-allowed' : 'pointer', background: predicting ? 'rgba(251,191,36,0.06)' : 'linear-gradient(135deg,rgba(251,191,36,0.3),rgba(245,158,11,0.3))', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-          {predicting ? <><SpinIcon size={11}/><span>Predicting…</span></> : <><span>▶</span><span>Run Prediction</span></>}
+          {predicting ? <><SpinIcon size={11}/><span>Predicting...</span></> : <><Play size={11} /><span>Run Prediction</span></>}
         </button>
       </div>
     </div>
   );
 }
 
-const GUARD_CONFIG: Record<string, { icon: string; label: string; color: string; bg: string; border: string }> = {
-  analyzing: { icon: '🛡️', label: 'Guard analyzing error',  color: '#fbbf24', bg: 'rgba(251,191,36,0.07)',  border: 'rgba(251,191,36,0.28)' },
-  searching: { icon: '🔍', label: 'Web search',             color: '#60a5fa', bg: 'rgba(96,165,250,0.07)',  border: 'rgba(96,165,250,0.28)'  },
-  fixing:    { icon: '🔧', label: 'Applying fix',           color: '#a78bfa', bg: 'rgba(167,139,250,0.07)', border: 'rgba(167,139,250,0.28)' },
-  success:   { icon: '✅', label: 'Auto-fixed!',            color: '#4ade80', bg: 'rgba(74,222,128,0.07)',  border: 'rgba(74,222,128,0.28)'  },
-  failed:    { icon: '⚠️', label: 'Could not auto-fix',    color: '#f87171', bg: 'rgba(239,68,68,0.07)',   border: 'rgba(239,68,68,0.28)'   },
+const GUARD_CONFIG: Record<string, { icon: React.ReactNode; label: string; color: string; bg: string; border: string }> = {
+  analyzing: { icon: <Shield size={11} />, label: 'Guard analyzing error',  color: '#fbbf24', bg: 'rgba(251,191,36,0.07)',  border: 'rgba(251,191,36,0.28)' },
+  searching: { icon: <Search size={11} />, label: 'Web search',             color: '#60a5fa', bg: 'rgba(96,165,250,0.07)',  border: 'rgba(96,165,250,0.28)'  },
+  fixing:    { icon: <Wrench size={11} />, label: 'Applying fix',           color: '#a78bfa', bg: 'rgba(167,139,250,0.07)', border: 'rgba(167,139,250,0.28)' },
+  success:   { icon: <CheckCircle2 size={11} />, label: 'Auto-fixed!',      color: '#4ade80', bg: 'rgba(74,222,128,0.07)',  border: 'rgba(74,222,128,0.28)'  },
+  failed:    { icon: <AlertTriangle size={11} />, label: 'Could not auto-fix', color: '#f87171', bg: 'rgba(239,68,68,0.07)', border: 'rgba(239,68,68,0.28)' },
 };
 function GuardBubble({ step, text, code }: { step: string; text: string; code?: string }) {
   const cfg = GUARD_CONFIG[step] ?? GUARD_CONFIG.analyzing;
@@ -1166,7 +1205,7 @@ function GuardBubble({ step, text, code }: { step: string; text: string; code?: 
         {code && (
           <div style={{ marginTop: 5 }}>
             <button onClick={() => setCodeOpen(o => !o)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#475569', fontSize: 10.5, padding: 0, display: 'flex', alignItems: 'center', gap: 3 }}>
-              <span style={{ display: 'inline-block', transform: codeOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }}>▾</span>{codeOpen ? 'hide fixed code' : 'view fixed code'}
+              <ChevronDown size={11} style={{ transform: codeOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s' }} />{codeOpen ? 'hide fixed code' : 'view fixed code'}
             </button>
             {codeOpen && <pre style={{ margin: '4px 0 0', padding: '7px 9px', background: 'rgba(0,0,0,0.35)', borderRadius: 6, fontSize: 11, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto', color: '#a5f3fc', border: '1px solid rgba(255,255,255,0.06)' }}>{code}</pre>}
           </div>
@@ -1177,27 +1216,26 @@ function GuardBubble({ step, text, code }: { step: string; text: string; code?: 
 }
 
 function ModelCard({ model, rank, isSelected, onSelect, disabled }: { model: ModelSuggestion; rank: number; isSelected: boolean; onSelect(): void; disabled: boolean; }) {
-  const icons = ['🥇','🥈','🥉'];
   const [open, setOpen] = useState(rank === 0);
   return (
     <div style={{ marginBottom: 8, borderRadius: 10, border: `1px solid ${isSelected ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.08)'}`, background: isSelected ? 'rgba(74,222,128,0.05)' : 'rgba(255,255,255,0.02)', overflow: 'hidden' }}>
       <div style={{ padding: '9px 12px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }} onClick={() => setOpen(o => !o)}>
-        <span style={{ fontSize: 14 }}>{icons[rank]||'•'}</span>
+        {rank === 0 ? <Trophy size={14} /> : rank === 1 ? <Star size={14} /> : <Sparkles size={14} />}
         <span style={{ flex: 1, fontWeight: 700, fontSize: 12, color: isSelected ? '#4ade80' : '#e2e8f0' }}>{model.display_name}</span>
         <span style={{ fontSize: 10, fontFamily: 'monospace', color: '#475569' }}>{model.name}</span>
-        <span style={{ fontSize: 11, color: '#475569', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s' }}>▾</span>
+        <ChevronDown size={12} style={{ color: '#475569', transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
       </div>
       {open && (
         <div style={{ padding: '0 12px 10px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <p style={{ margin: '8px 0 6px', fontSize: 12, color: '#94a3b8', lineHeight: 1.6 }}>{model.reasoning}</p>
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginBottom: 8 }}>
-            <div>{model.pros.map((p,i) => <div key={i} style={{ fontSize: 11, color: '#4ade80', display: 'flex', gap: 4 }}><span>✓</span><span>{p}</span></div>)}</div>
-            <div>{model.cons.map((c,i) => <div key={i} style={{ fontSize: 11, color: '#f87171', display: 'flex', gap: 4 }}><span>✗</span><span>{c}</span></div>)}</div>
+            <div>{model.pros.map((p,i) => <div key={i} style={{ fontSize: 11, color: '#4ade80', display: 'flex', gap: 4 }}><Check size={11} /><span>{p}</span></div>)}</div>
+            <div>{model.cons.map((c,i) => <div key={i} style={{ fontSize: 11, color: '#f87171', display: 'flex', gap: 4 }}><X size={11} /><span>{c}</span></div>)}</div>
           </div>
           {model.expected_performance && <div style={{ fontSize: 11, color: '#64748b', fontStyle: 'italic', marginBottom: 8 }}>Expected: {model.expected_performance}</div>}
           <button onClick={onSelect} disabled={disabled || isSelected}
             style={{ width: '100%', padding: 7, borderRadius: 8, cursor: (disabled||isSelected) ? 'not-allowed' : 'pointer', background: isSelected ? 'rgba(74,222,128,0.12)' : disabled ? 'rgba(255,255,255,0.04)' : 'linear-gradient(135deg,rgba(110,84,200,0.6),rgba(124,92,191,0.6))', border: isSelected ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(110,84,200,0.5)', color: isSelected ? '#4ade80' : disabled ? '#475569' : '#e2e8f0', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-            {isSelected ? <><span>✓</span><span>Selected</span></> : <><span>▶</span><span>Build Pipeline with {model.display_name}</span></>}
+            {isSelected ? <><Check size={12} /><span>Selected</span></> : <><Play size={12} /><span>Build Pipeline with {model.display_name}</span></>}
           </button>
         </div>
       )}
@@ -1281,10 +1319,10 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
     <div style={{ maxWidth: 860, margin: '0 auto' }}>
       <div style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(110,84,200,0.13),rgba(74,222,128,0.05))', border: '1px solid rgba(110,84,200,0.28)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 16px rgba(110,84,200,0.4)' }}>✨</div>
+          <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 16px rgba(110,84,200,0.4)' }}><Sparkles size={18} /></div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 16, color: '#c4b5fd' }}>Easy Mode</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>No code needed — the AI handles everything. Use the panel on the right to upload & analyse.</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 1 }}>No code needed - the AI handles everything. Use the panel on the right to upload and analyse.</div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -1292,7 +1330,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
             <div key={step.label} style={{ display: 'flex', alignItems: 'center', ...(i < steps.length - 1 ? { flex: 1 } : {}) }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, flexShrink: 0, background: step.done ? 'rgba(74,222,128,0.18)' : step.active ? 'rgba(110,84,200,0.28)' : 'rgba(255,255,255,0.05)', border: step.done ? '1.5px solid rgba(74,222,128,0.6)' : step.active ? '1.5px solid rgba(110,84,200,0.7)' : '1.5px solid rgba(255,255,255,0.1)', color: step.done ? '#4ade80' : step.active ? '#c4b5fd' : '#475569' }}>
-                  {step.active ? <SpinIcon size={12}/> : step.done ? '✓' : (i + 1)}
+                  {step.active ? <SpinIcon size={12}/> : step.done ? <Check size={12} /> : (i + 1)}
                 </div>
                 <span style={{ fontSize: 10, whiteSpace: 'nowrap' as const, color: step.done ? '#4ade80' : step.active ? '#c4b5fd' : '#475569', fontWeight: step.active ? 700 : 400 }}>{step.label}</span>
               </div>
@@ -1306,7 +1344,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {metrics.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📊</span> Model Performance</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={12} /> Model Performance</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 8 }}>
             {metrics.map((m, i) => (
               <div key={i} style={{ padding: '12px 10px', borderRadius: 10, background: 'rgba(110,84,200,0.09)', border: '1px solid rgba(110,84,200,0.22)', textAlign: 'center' }}>
@@ -1320,7 +1358,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {allCharts.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LineChart size={12} /> Visualisations</div>
           <div style={{ display: 'grid', gridTemplateColumns: allCharts.length === 1 ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 10 }}>
             {allCharts.map((b64, i) => (
               <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)' }}>
@@ -1333,7 +1371,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {analysisStage === 'pipeline_built' && featureColumns.length > 0 && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
-          <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.07)', fontSize: 13, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><span>🧪</span> Test Your Model</div>
+          <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.07)', fontSize: 13, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><FlaskConical size={13} /> Test Your Model</div>
           <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 8 }}>
               {featureColumns.map(col => (
@@ -1346,7 +1384,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
             </div>
             <button onClick={onPredict} disabled={predicting}
               style={{ padding: '9px', borderRadius: 9, cursor: predicting ? 'not-allowed' : 'pointer', background: predicting ? 'rgba(251,191,36,0.06)' : 'linear-gradient(135deg,rgba(251,191,36,0.28),rgba(245,158,11,0.28))', border: '1px solid rgba(251,191,36,0.4)', color: '#fbbf24', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              {predicting ? <><SpinIcon size={12}/><span>Predicting…</span></> : <><span>▶</span><span>Run Prediction</span></>}
+              {predicting ? <><SpinIcon size={12}/><span>Predicting...</span></> : <><Play size={12} /><span>Run Prediction</span></>}
             </button>
           </div>
         </div>
@@ -1355,8 +1393,8 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
       {uploadedFilename && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(99,102,241,0.22)', overflow: 'hidden' }}>
           <button onClick={() => setShowParams(p => !p)} style={{ width: '100%', padding: '10px 14px', background: 'rgba(99,102,241,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#818cf8', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
-            <span>⚙️</span><span style={{ flex: 1 }}>Adjust Settings</span>
-            <span style={{ transform: showParams ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', fontSize: 12 }}>▾</span>
+            <Settings size={13} /><span style={{ flex: 1 }}>Adjust Settings</span>
+            <ChevronDown size={12} style={{ transform: showParams ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
           </button>
           {showParams && (
             <div style={{ padding: '14px' }}>
@@ -1372,11 +1410,11 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#475569', marginTop: 2 }}><span>3</span><span>10</span></div>
                 </div>
               </div>
-              <textarea value={settingsNote} onChange={e => setSettingsNote(e.target.value)} placeholder="Additional notes…" rows={2}
+              <textarea value={settingsNote} onChange={e => setSettingsNote(e.target.value)} placeholder="Additional notes..." rows={2}
                 style={{ width: '100%', boxSizing: 'border-box' as const, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 10px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5, marginBottom: 10 }} />
               <button onClick={() => { const parts = [`test_size=${testSize}`, `cross_validation_folds=${cvFolds}`]; if (settingsNote.trim()) parts.push(settingsNote.trim()); onSendPrompt(`Please retrain the model using these settings: ${parts.join(', ')}.`); setSettingsNote(''); }} disabled={busy}
                 style={{ width: '100%', padding: '9px', borderRadius: 9, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(110,84,200,0.07)' : 'linear-gradient(135deg,rgba(110,84,200,0.5),rgba(124,92,191,0.5))', border: '1px solid rgba(110,84,200,0.4)', color: busy ? '#475569' : '#e2e8f0', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                {busy ? <><SpinIcon size={12}/><span>Working…</span></> : <><span>✨</span><span>Apply Settings & Retrain</span></>}
+                {busy ? <><SpinIcon size={12}/><span>Working...</span></> : <><Sparkles size={12} /><span>Apply Settings & Retrain</span></>}
               </button>
             </div>
           )}
@@ -1384,15 +1422,15 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
       )}
 
       <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.22)', fontSize: 13, fontWeight: 700, color: '#94a3b8', display: 'flex', gap: 6, alignItems: 'center' }}><span>💬</span> Ask the AI Agent</div>
+        <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.22)', fontSize: 13, fontWeight: 700, color: '#94a3b8', display: 'flex', gap: 6, alignItems: 'center' }}><MessageCircle size={13} /> Ask the AI Agent</div>
         <div style={{ padding: '10px 12px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
           <textarea value={aiPrompt} onChange={e => setAiPrompt(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (aiPrompt.trim()) { onSendPrompt(aiPrompt); setAiPrompt(''); } } }}
-            placeholder="Ask anything: 'Show feature importance', 'Try a different model', 'Explain the results'…" rows={2}
+            placeholder="Ask anything: 'Show feature importance', 'Try a different model', 'Explain the results'..." rows={2}
             style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, padding: '8px 11px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.5 }} />
           <button onClick={() => { if (aiPrompt.trim()) { onSendPrompt(aiPrompt); setAiPrompt(''); } }} disabled={busy || !aiPrompt.trim()}
             style={{ width: 36, height: 36, borderRadius: 9, flexShrink: 0, background: aiPrompt.trim() ? 'linear-gradient(135deg,rgba(110,84,200,0.8),rgba(124,92,191,0.8))' : 'rgba(255,255,255,0.05)', border: '1px solid rgba(110,84,200,0.4)', color: aiPrompt.trim() ? '#e2e8f0' : '#475569', cursor: aiPrompt.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>
-            {busy ? <SpinIcon size={12}/> : '↑'}
+            {busy ? <SpinIcon size={12}/> : <Send size={14} />}
           </button>
         </div>
       </div>
@@ -1415,10 +1453,10 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s',
             }}>
             {downloadingModel
-              ? <><SpinIcon size={14}/><span>Downloading…</span></>
+              ? <><SpinIcon size={14}/><span>Downloading...</span></>
               : modelPaid
-                ? <><span style={{ fontSize: 18 }}>📥</span><span>Download Trained Model (.pkl)</span></>
-                : <><span style={{ fontSize: 18 }}>🔒</span><span>Download Trained Model (.pkl)</span>
+                ? <><Download size={18} /><span>Download Trained Model (.pkl)</span></>
+                : <><Lock size={18} /><span>Download Trained Model (.pkl)</span>
                     <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}>
                       ${modelDownloadPrice}
                     </span>
@@ -1427,7 +1465,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
           </button>
           <button onClick={onOpenScript}
             style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(96,165,250,0.14),rgba(59,130,246,0.14))', border: '1px solid rgba(96,165,250,0.45)', color: '#60a5fa', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
-            <span style={{ fontSize: 18 }}>🐍</span><span>Open Python Script Editor</span>
+            <Code2 size={18} /><span>Open Python Script Editor</span>
           </button>
           <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'center' }}>Run, edit, and export your pipeline as <code style={{ fontFamily: 'monospace' }}>.py</code> or <code style={{ fontFamily: 'monospace' }}>.ipynb</code></p>
         </div>
@@ -1435,9 +1473,9 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {!uploadedFilename && (
         <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
-          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
+          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><FolderOpen size={52} /></div>
           <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
-          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
+          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right.</div>
         </div>
       )}
     </div>
@@ -1445,17 +1483,17 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 }
 
 function EasyStatusCard({ analysisStage, analyzing, buildingPipeline, selectedModel, uploadedFilename }: { analysisStage: 'idle' | 'analyzed' | 'pipeline_built'; analyzing: boolean; buildingPipeline: boolean; selectedModel: string | null; uploadedFilename: string | null; }) {
-  type Cfg = { icon: string; title: string; desc: string; color: string; border: string; bg: string };
-  let cfg: Cfg = { icon: '⏳', title: 'Waiting for dataset', desc: 'Upload a CSV or Excel file using the panel on the right to begin.', color: '#475569', border: 'rgba(255,255,255,0.07)', bg: 'rgba(255,255,255,0.02)' };
-  if (uploadedFilename && analysisStage === 'idle' && !analyzing) cfg = { icon: '📄', title: 'Dataset Ready', desc: `"${uploadedFilename}" is uploaded. Click Analyse in the AI panel to start.`, color: '#60a5fa', border: 'rgba(96,165,250,0.25)', bg: 'rgba(96,165,250,0.06)' };
-  if (analyzing) cfg = { icon: '🔍', title: 'Analysing Dataset…', desc: 'The AI is exploring your data, detecting patterns and recommending models.', color: '#a78bfa', border: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.06)' };
-  if (analysisStage === 'analyzed' && !buildingPipeline) cfg = { icon: '🏆', title: 'Analysis Complete', desc: 'AI has analysed your data and suggested models. Select one in the AI panel to build the pipeline.', color: '#fbbf24', border: 'rgba(251,191,36,0.3)', bg: 'rgba(251,191,36,0.06)' };
-  if (buildingPipeline) cfg = { icon: '🏗️', title: `Training ${selectedModel ?? 'Model'}…`, desc: 'The agent is writing and executing the ML pipeline in the background.', color: '#4ade80', border: 'rgba(74,222,128,0.3)', bg: 'rgba(74,222,128,0.06)' };
-  if (analysisStage === 'pipeline_built' && !buildingPipeline) cfg = { icon: '✅', title: 'Model Trained Successfully!', desc: `Your ${selectedModel ?? 'ML'} model is ready. View results and charts above, or download the model below.`, color: '#4ade80', border: 'rgba(74,222,128,0.38)', bg: 'rgba(74,222,128,0.07)' };
+  type Cfg = { icon: React.ReactNode; title: string; desc: string; color: string; border: string; bg: string };
+  let cfg: Cfg = { icon: <Clock3 size={22} />, title: 'Waiting for dataset', desc: 'Upload a CSV or Excel file using the panel on the right to begin.', color: '#475569', border: 'rgba(255,255,255,0.07)', bg: 'rgba(255,255,255,0.02)' };
+  if (uploadedFilename && analysisStage === 'idle' && !analyzing) cfg = { icon: <FileText size={22} />, title: 'Dataset Ready', desc: `"${uploadedFilename}" is uploaded. Click Analyse in the AI panel to start.`, color: '#60a5fa', border: 'rgba(96,165,250,0.25)', bg: 'rgba(96,165,250,0.06)' };
+  if (analyzing) cfg = { icon: <Search size={22} />, title: 'Analysing Dataset...', desc: 'The AI is exploring your data, detecting patterns and recommending models.', color: '#a78bfa', border: 'rgba(167,139,250,0.3)', bg: 'rgba(167,139,250,0.06)' };
+  if (analysisStage === 'analyzed' && !buildingPipeline) cfg = { icon: <Trophy size={22} />, title: 'Analysis Complete', desc: 'AI has analysed your data and suggested models. Select one in the AI panel to build the pipeline.', color: '#fbbf24', border: 'rgba(251,191,36,0.3)', bg: 'rgba(251,191,36,0.06)' };
+  if (buildingPipeline) cfg = { icon: <Construction size={22} />, title: `Training ${selectedModel ?? 'Model'}...`, desc: 'The agent is writing and executing the ML pipeline in the background.', color: '#4ade80', border: 'rgba(74,222,128,0.3)', bg: 'rgba(74,222,128,0.06)' };
+  if (analysisStage === 'pipeline_built' && !buildingPipeline) cfg = { icon: <CheckCircle2 size={22} />, title: 'Model Trained Successfully!', desc: `Your ${selectedModel ?? 'ML'} model is ready. View results and charts above, or download the model below.`, color: '#4ade80', border: 'rgba(74,222,128,0.38)', bg: 'rgba(74,222,128,0.07)' };
   return (
     <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: cfg.bg, border: `1px solid ${cfg.border}` }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ fontSize: 22, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>{(analyzing || buildingPipeline) ? <SpinIcon size={20}/> : cfg.icon}</div>
+        <div style={{ lineHeight: 1, marginTop: 2, flexShrink: 0 }}>{(analyzing || buildingPipeline) ? <SpinIcon size={20}/> : cfg.icon}</div>
         <div><div style={{ fontSize: 14, fontWeight: 700, color: cfg.color, marginBottom: 3 }}>{cfg.title}</div><div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.55 }}>{cfg.desc}</div></div>
       </div>
     </div>
@@ -1467,7 +1505,7 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
   const isRunning = cell.status === 'running';
   const hasOut    = cell.out !== null;
   const borderColor = isRunning ? 'rgba(99,102,241,0.55)' : cell.status === 'error' ? 'rgba(239,68,68,0.35)' : cell.status === 'done' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)';
-  const statusDot = { idle: { color: '#475569', icon: '○' }, running: { color: '#818cf8', icon: '●' }, done: { color: '#4ade80', icon: '✓' }, error: { color: '#f87171', icon: '✕' } }[cell.status];
+  const statusDot = { idle: { color: '#475569', icon: <span style={{ width: 6, height: 6, borderRadius: '50%', border: '1px solid currentColor', display: 'inline-block' }} /> }, running: { color: '#818cf8', icon: <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} /> }, done: { color: '#4ade80', icon: <Check size={10} /> }, error: { color: '#f87171', icon: <X size={10} /> } }[cell.status];
   const charts = cell.out?.charts ?? [];
   return (
     <div style={{ marginBottom: 10, borderRadius: 12, border: `1px solid ${borderColor}`, background: 'rgba(255,255,255,0.018)', overflow: 'hidden', transition: 'border-color 0.25s' }}>
@@ -1481,13 +1519,13 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
         </div>
         <button onClick={onRun} disabled={isRunning} title="Run (Ctrl+Enter)"
           style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, background: isRunning ? 'rgba(255,255,255,0.04)' : 'rgba(74,222,128,0.08)', border: isRunning ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(74,222,128,0.4)', cursor: isRunning ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isRunning ? '#475569' : '#4ade80', fontSize: 10, fontWeight: 700, boxShadow: isRunning ? 'none' : '0 0 10px rgba(74,222,128,0.15)' }}>
-          {isRunning ? <SpinIcon size={11}/> : '▶'}
+          {isRunning ? <SpinIcon size={11}/> : <Play size={11} />}
         </button>
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index===0}>↑</IBtn></Tip>
-          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index===total-1}>↓</IBtn></Tip>
-          <Tip label="Insert below"><IBtn onClick={onInsert}>+</IBtn></Tip>
+          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index===0}><ArrowUp size={12} /></IBtn></Tip>
+          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index===total-1}><ArrowDown size={12} /></IBtn></Tip>
+          <Tip label="Insert below"><IBtn onClick={onInsert}><Plus size={12} /></IBtn></Tip>
           <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />
           <Tip label="Delete"><DelBtn onClick={onDelete}/></Tip>
         </div>
@@ -1495,7 +1533,7 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
       <div style={{ marginLeft: 56 }}>
         <CodeMirror value={cell.code} height="auto"
           extensions={[python(), Prec.highest(keymap.of([{ key: 'Mod-Enter', run: () => { onRun(); return true; } }, { key: 'Shift-Enter', run: () => { onRun(); onInsert(); return true; } }]))]}
-          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index+1} — Ctrl+Enter to run`}
+          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index+1} - Ctrl+Enter to run`}
           style={{ fontSize: 13.5, fontFamily: "'Fira Code','Cascadia Code','Consolas',monospace" }}
           basicSetup={{ lineNumbers: true, highlightActiveLineGutter: false, highlightSpecialChars: false, foldGutter: false, drawSelection: true, dropCursor: false, allowMultipleSelections: false, indentOnInput: true, syntaxHighlighting: true, bracketMatching: true, closeBrackets: true, autocompletion: false, rectangularSelection: false, crosshairCursor: false, highlightActiveLine: false, highlightSelectionMatches: false, closeBracketsKeymap: true, defaultKeymap: true, historyKeymap: true, history: true }}
         />
@@ -1503,7 +1541,7 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
       {hasOut && (
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <button onClick={onToggleOut} style={{ width: '100%', background: 'rgba(0,0,0,0.18)', border: 'none', padding: '5px 16px 5px 72px', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#64748b', fontSize: 11, textAlign: 'left', borderBottom: cell.outOpen ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-            <span style={{ display: 'inline-block', transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', lineHeight: 1 }}>▾</span>
+            <ChevronDown size={12} style={{ transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
             <span>output</span>
             {cell.out?.error && <span style={{ color: '#f87171', marginLeft: 2 }}>— error</span>}
             {!cell.out?.error && cell.out?.stdout && <span style={{ color: '#4ade80', marginLeft: 2 }}>— ok</span>}
@@ -1532,7 +1570,7 @@ function AddCellBtn({ onClick }: { onClick(): void }) {
   return (
     <button onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{ marginTop: 6, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: h ? 'rgba(110,84,200,0.12)' : 'rgba(110,84,200,0.05)', border: '1px dashed rgba(110,84,200,0.3)', borderRadius: 10, padding: '9px 0', color: h ? '#c4b5fd' : '#7c5cbf', fontSize: 13, cursor: 'pointer', transition: 'all 0.18s', fontFamily: 'inherit' }}>
-      <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Cell
+      <Plus size={14} /> Add Cell
     </button>
   );
 }
@@ -1564,7 +1602,7 @@ function Tip({ children, label }: { children: React.ReactNode; label: string }) 
 function ServiceDot({ label, up }: { label: string; up: boolean | null }) {
   const color = up === null ? '#475569' : up ? '#4ade80' : '#f87171';
   return (
-    <span title={`${label}: ${up===null?'checking…':up?'online':'offline'}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color }}>
+    <span title={`${label}: ${up===null?'checking...':up?'online':'offline'}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block', boxShadow: up ? `0 0 6px ${color}` : 'none' }} />
       {label}
     </span>
@@ -1599,22 +1637,22 @@ function ModelSelector({ models, selectedId, onChange, disabled }: { models: AIM
   const selected = models.find(m => m.id === selectedId) ?? models[0];
   const openaiModels    = models.filter(m => m.provider === 'openai');
   const anthropicModels = models.filter(m => m.provider === 'anthropic');
-  const providerIcon  = (p: string) => p === 'anthropic' ? '◆' : '⬡';
+  const providerIcon = (p: string) => p === 'anthropic' ? <Diamond size={8} /> : <Hexagon size={8} />;
   const providerColor = (p: string) => p === 'anthropic' ? '#d4a0ff' : '#4ade80';
   if (!models.length) return <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>;
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => !disabled && setOpen(o => !o)}
         style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, cursor: disabled ? 'not-allowed' : 'pointer', background: open ? 'rgba(110,84,200,0.28)' : 'rgba(110,84,200,0.18)', border: `1px solid ${open ? 'rgba(110,84,200,0.6)' : 'rgba(110,84,200,0.35)'}`, color: disabled ? '#475569' : '#c4b5fd', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', fontFamily: 'inherit', outline: 'none', transition: 'all 0.15s' }}>
-        <span style={{ color: providerColor(selected?.provider ?? 'openai'), fontSize: 8 }}>{providerIcon(selected?.provider ?? 'openai')}</span>
+        <span style={{ color: providerColor(selected?.provider ?? 'openai'), display: 'inline-flex' }}>{providerIcon(selected?.provider ?? 'openai')}</span>
         <span style={{ textTransform: 'uppercase' as const }}>{selected?.short_name ?? selectedId}</span>
-        <span style={{ fontSize: 8, opacity: 0.7, marginLeft: 1 }}>{open ? '▲' : '▼'}</span>
+        <ChevronDown size={10} style={{ opacity: 0.7, marginLeft: 1, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 9999, background: '#13141f', border: '1px solid rgba(110,84,200,0.35)', borderRadius: 10, padding: '6px 0', minWidth: 220, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
-          {openaiModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#4ade80', opacity: 0.7 }}>⬡ OpenAI</div>{openaiModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
+          {openaiModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#4ade80', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Hexagon size={8} /> OpenAI</div>{openaiModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
           {openaiModels.length > 0 && anthropicModels.length > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '5px 0' }} />}
-          {anthropicModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#d4a0ff', opacity: 0.7 }}>◆ Anthropic</div>{anthropicModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
+          {anthropicModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#d4a0ff', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Diamond size={8} /> Anthropic</div>{anthropicModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
         </div>
       )}
     </div>
@@ -1634,7 +1672,7 @@ function ModelOption({ m, selectedId, onChange }: { m: AIModel; selectedId: stri
       <span style={{ fontSize: 12, fontWeight: isSelected ? 700 : 400, flex: 1 }}>{m.display_name}</span>
       <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
         {remaining !== null && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700, background: exhausted ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)', color: exhausted ? '#ef4444' : '#4ade80', border: `1px solid ${exhausted ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)'}` }}>{exhausted ? 'used up' : `${remaining} left`}</span>}
-        {isSelected && <span style={{ fontSize: 10, color: '#a87edf' }}>✓</span>}
+        {isSelected && <Check size={10} color="#a87edf" />}
       </span>
     </button>
   );
