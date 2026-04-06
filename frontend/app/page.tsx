@@ -98,7 +98,7 @@ export default function Home() {
             <>
               <Link
                 href="/login"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 hover:-translate-y-0.5 backdrop-blur-sm tracking-wide"
+                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
               >
                 Sign In
               </Link>
@@ -110,13 +110,13 @@ export default function Home() {
               </Link>
               <Link
                 href="/tutorial"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 hover:-translate-y-0.5 backdrop-blur-sm tracking-wide"
+                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
               >
                 Tutorial
               </Link>
               <Link
                 href="/help"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 border border-[#a87edf]/30 bg-[#a87edf]/10 hover:bg-[#a87edf]/18 hover:border-[#a87edf]/45 hover:-translate-y-0.5 backdrop-blur-sm tracking-wide text-[#efe7ff]"
+                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
               >
                 Help
               </Link>
