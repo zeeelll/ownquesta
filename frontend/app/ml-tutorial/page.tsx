@@ -615,7 +615,7 @@ function SectionContainer({
 
 			<article className="mt-6 rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/45 p-5">
 				<h3 className="text-lg font-semibold text-slate-100">Visual Analytics</h3>
-				<div className="mt-4 [&_.bg-white]:!bg-slate-900/88 [&_.bg-slate-50]:!bg-slate-900/72 [&_.bg-slate-100]:!bg-slate-800 [&_.bg-sky-50]:!bg-sky-950/30 [&_.bg-emerald-50]:!bg-emerald-950/30 [&_.bg-amber-50]:!bg-amber-950/30 [&_.bg-red-50]:!bg-red-950/30 [&_.bg-blue-50]:!bg-blue-950/30 [&_.from-white]:!from-slate-900 [&_.to-slate-50]:!to-slate-900 [&_.text-white]:!text-slate-100 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.text-sky-900]:!text-sky-200 [&_.text-emerald-900]:!text-emerald-200 [&_.text-amber-900]:!text-amber-200 [&_.text-red-900]:!text-red-200 [&_.text-blue-900]:!text-blue-200 [&_.text-sky-700]:!text-sky-300 [&_.text-emerald-700]:!text-emerald-300 [&_.text-amber-700]:!text-amber-300 [&_.text-red-700]:!text-red-300 [&_.text-blue-700]:!text-blue-300 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_.border-sky-200]:!border-sky-700/45 [&_.border-emerald-200]:!border-emerald-700/45 [&_.border-amber-200]:!border-amber-700/45 [&_.border-red-200]:!border-red-700/45 [&_.border-blue-200]:!border-blue-700/45 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
+				<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
 			</article>
 
 			<div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-sky-400/55 to-transparent" />
@@ -686,28 +686,8 @@ export default function MLTutorialPage() {
 	}, []);
 
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_16%,rgba(14,165,233,0.22),transparent_36%),radial-gradient(circle_at_86%_10%,rgba(56,189,248,0.16),transparent_32%),radial-gradient(circle_at_74%_76%,rgba(34,197,94,0.12),transparent_38%),linear-gradient(180deg,#02030a_0%,#050d1f_46%,#0a1426_100%)] text-slate-100">
-			<div className="pointer-events-none absolute inset-0 z-0">
-				<motion.div
-					className="absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-400/16 blur-3xl"
-					animate={{ x: [0, 40, 0], y: [0, -16, 0], scale: [1, 1.08, 1] }}
-					transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
-				/>
-				<motion.div
-					className="absolute right-[-4rem] top-40 h-80 w-80 rounded-full bg-sky-400/12 blur-3xl"
-					animate={{ x: [0, -30, 0], y: [0, 24, 0], scale: [1, 1.06, 1] }}
-					transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-				/>
-				<motion.div
-					className="absolute bottom-[-4rem] left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl"
-					animate={{ y: [0, -20, 0], opacity: [0.4, 0.68, 0.4] }}
-					transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-				/>
-				<div className="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.035)_1px,transparent_1px)] bg-[size:42px_42px]" />
-			</div>
-
-			<div className="relative z-10">
-			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-700/80 bg-slate-950/82 backdrop-blur-md">
+		<div className="min-h-screen bg-[radial-gradient(circle_at_14%_18%,rgba(14,165,233,0.28),transparent_40%),radial-gradient(circle_at_88%_8%,rgba(56,189,248,0.2),transparent_32%),radial-gradient(circle_at_78%_72%,rgba(34,197,94,0.14),transparent_38%),linear-gradient(180deg,#030712_0%,#020617_45%,#0f172a_100%)] text-slate-100">
+			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-700/80 bg-slate-950/80 backdrop-blur-md">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
 					<div className="flex items-center gap-2.5">
 						<Logo href="/home" size="md" showText={false} />
@@ -726,7 +706,7 @@ export default function MLTutorialPage() {
 			</header>
 
 			<div className="relative pt-16 md:grid md:grid-cols-[18rem_minmax(0,1fr)]">
-				<aside className="sticky top-16 z-40 max-h-[46vh] overflow-y-auto border-b border-slate-800/80 bg-slate-950/70 px-4 py-4 backdrop-blur-md md:h-[calc(100vh-4rem)] md:max-h-none md:border-b-0 md:border-r md:py-6 xl:px-5">
+				<aside className="hidden border-r border-slate-800/80 bg-slate-950/60 px-4 py-6 backdrop-blur-md md:sticky md:top-16 md:block md:h-[calc(100vh-4rem)] md:overflow-y-auto xl:px-5">
 					<div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 shadow-sm">
 						<p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">
 							Tutorial Topics
@@ -2011,7 +1991,6 @@ export default function MLTutorialPage() {
 						</footer>
 					</div>
 				</main>
-			</div>
 			</div>
 		</div>
 	);
