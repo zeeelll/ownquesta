@@ -314,7 +314,12 @@ export default function MLTutorialPage() {
 		<div className="min-h-screen bg-[radial-gradient(circle_at_10%_20%,rgba(56,189,248,0.18),transparent_40%),radial-gradient(circle_at_90%_10%,rgba(14,165,233,0.16),transparent_35%),linear-gradient(180deg,#eff6ff_0%,#f8fafc_45%,#e2e8f0_100%)] text-slate-900">
 			<header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
 				<div className="mx-auto flex h-16 w-full max-w-none items-center justify-between px-4 md:px-6 xl:px-10">
-					<Logo href="/home" size="md" />
+					<div className="flex items-center gap-2.5">
+						<Logo href="/home" size="md" showText={false} />
+						<Link href="/home" className="text-xl font-bold tracking-tight text-slate-900">
+							Ownquesta
+						</Link>
+					</div>
 					<Link
 						href="/dashboard"
 						className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
@@ -418,19 +423,22 @@ export default function MLTutorialPage() {
 								index={1}
 								title={sectionMap.history.title}
 								icon={sectionMap.history.icon}
-								simpleExplanation="Machine Learning did not appear overnight. It evolved over decades from simple ideas about teaching machines to a modern technology that can understand images, language, and behavior patterns."
+								simpleExplanation="Machine Learning grew step by step over many years. People first had small ideas about teaching computers, and now we have systems that can read text, hear speech, and spot patterns in big data."
 								deepExplanation={[
-									"Early researchers asked if machines could imitate human decision-making and pattern recognition.",
-									"Mathematics and statistics helped create algorithms that improve based on examples instead of fixed rules.",
-									"As computers became faster, ML methods moved from theory to practical business and science applications.",
-									"The rise of cloud computing, GPUs, and large datasets accelerated deep learning and modern AI.",
+									"In the 1950s, researchers asked a simple question: can a machine learn like a person?",
+									"In the early years, computers were slow, so models were small and could only solve basic tasks.",
+									"As math methods improved, models became better at learning from examples instead of fixed rules.",
+									"In the 1990s and 2000s, businesses started using ML for email filtering, search, and risk checks.",
+									"Around the 2010s, faster chips and larger datasets made deep learning much more powerful.",
+									"Today, ML runs inside apps we use daily, from maps and shopping to chat and voice tools.",
 								]}
-								realLifeExample="Your phone's voice assistant understands your speech because decades of ML progress improved language and audio models."
+								realLifeExample="When you speak to your phone assistant, it turns your voice into text, understands your question, and gives an answer. That full flow became possible only after many years of ML progress."
 								keyPoints={[
-									"ML evolved from foundational AI research in the 1950s.",
-									"Better compute and data unlocked practical ML adoption.",
-									"Deep learning became mainstream in the 2010s.",
-									"Today, ML is core infrastructure in products and services.",
+									"ML history is a long journey, not a single invention.",
+									"Better computers and more data made ML useful at scale.",
+									"Deep learning gave big jumps in image, speech, and language tasks.",
+									"Modern products often depend on ML in the background.",
+									"Understanding history helps you choose tools wisely today.",
 								]}
 								visualBlock={
 									<div className="space-y-5">
@@ -474,19 +482,22 @@ export default function MLTutorialPage() {
 								index={2}
 								title={sectionMap["why-ml"].title}
 								icon={sectionMap["why-ml"].icon}
-								simpleExplanation="Traditional coding requires explicit instructions for every case. ML learns patterns from data, so it can handle complex situations that are hard to manually program."
+								simpleExplanation="Normal coding works well when rules are clear. ML helps when rules are too many or keep changing, because the model learns patterns directly from data."
 								deepExplanation={[
-									"In traditional coding, developers write fixed rules like 'if this, then that'.",
-									"For complex problems like spam detection, there are too many rules to write manually.",
-									"ML algorithms learn from examples and detect hidden patterns by themselves.",
-									"As new data comes in, ML models can be retrained and improved without rewriting all logic.",
+									"In rule-based coding, you must write every step by hand.",
+									"Some tasks, like fraud detection, have thousands of changing patterns.",
+									"Writing all those rules is slow and often misses edge cases.",
+									"ML learns from old examples and builds its own decision pattern.",
+									"When new data appears, you can retrain the model instead of rewriting the full system.",
+									"This makes ML very useful for real-world problems that change over time.",
 								]}
-								realLifeExample="Email spam filters cannot rely on a few hardcoded keywords because spam constantly changes. ML models learn evolving patterns from millions of emails."
+								realLifeExample="A spam filter cannot just block the word 'free' because normal emails may also use it. ML studies many signals together, like sender behavior, links, and writing style, to decide better."
 								keyPoints={[
-									"Traditional coding is precise but rigid.",
-									"ML is data-driven and adapts to changing patterns.",
-									"ML works best when explicit rules are too many or unknown.",
-									"Retraining allows systems to improve over time.",
+									"Rule-based code is strict and can break when patterns change.",
+									"ML is flexible because it learns from examples.",
+									"ML shines when manual rules are too hard to maintain.",
+									"Retraining keeps model quality fresh over time.",
+									"Good data quality is still important for good results.",
 								]}
 								visualBlock={
 									<div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -532,19 +543,22 @@ export default function MLTutorialPage() {
 								index={3}
 								title={sectionMap.types.title}
 								icon={sectionMap.types.icon}
-								simpleExplanation="Machine Learning has different learning styles depending on the type of data and the goal: predicting known labels, finding hidden groups, or learning by rewards."
+								simpleExplanation="There is no single type of ML. You choose the learning style based on your data and your goal, like prediction, grouping, or learning from rewards."
 								deepExplanation={[
-									"Supervised learning uses labeled data where the correct answer is already known.",
-									"Unsupervised learning finds structure in data without labeled answers.",
-									"Semi-supervised learning combines a small labeled dataset with a larger unlabeled one.",
-									"Reinforcement learning improves by trying actions and receiving rewards or penalties.",
+									"Supervised learning uses labeled examples, like past emails marked spam or not spam.",
+									"Unsupervised learning uses unlabeled data and finds natural groups on its own.",
+									"Semi-supervised learning mixes a few labeled rows with many unlabeled rows.",
+									"Reinforcement learning learns by trying actions and getting rewards or penalties.",
+									"Self-supervised learning is also common today, where data creates its own training signal.",
+									"In practice, teams often combine multiple learning types in one product.",
 								]}
-								realLifeExample="Movie recommendation starts with supervised and unsupervised approaches: one model predicts your rating while another groups users with similar tastes."
+								realLifeExample="In a movie app, one model predicts the score you might give a film, another groups users with similar taste, and a third model learns which recommendations get more clicks."
 								keyPoints={[
-									"Supervised is common for classification and regression.",
-									"Unsupervised is useful for segmentation and pattern discovery.",
-									"Semi-supervised helps when labeling data is expensive.",
-									"Reinforcement is powerful for control and strategy tasks.",
+									"Pick ML type based on business goal and data availability.",
+									"Supervised is best when you already know past answers.",
+									"Unsupervised helps discover groups you did not know before.",
+									"Semi-supervised saves time when labeling is costly.",
+									"Reinforcement fits decision systems that improve with feedback.",
 								]}
 								visualBlock={
 									<div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
@@ -637,20 +651,22 @@ export default function MLTutorialPage() {
 								index={4}
 								title={sectionMap["data-preprocessing"].title}
 								icon={sectionMap["data-preprocessing"].icon}
-								simpleExplanation="Good data is more important than a fancy algorithm. Data collection and preprocessing prepare raw information so models can learn correctly and reliably."
+								simpleExplanation="Data preparation is the most important step in many ML projects. Clean, clear, and well-structured data helps even simple models perform very well."
 								deepExplanation={[
-									"Collect data from reliable sources such as product logs, forms, sensors, or public datasets.",
-									"Clean missing, duplicate, and inconsistent values to avoid misleading patterns.",
-									"Transform categorical and textual features into numerical representations.",
-									"Normalize numerical values so models treat features fairly and training becomes stable.",
-									"Split data into train, validation, and test sets to evaluate performance honestly.",
+									"Start by collecting data from trusted sources with clear meaning.",
+									"Remove duplicates and fix missing values before any model training.",
+									"Standardize formats, such as dates, units, and text labels.",
+									"Convert categories and text into numeric form so models can use them.",
+									"Scale numbers when needed so one feature does not dominate others.",
+									"Split into train, validation, and test to measure real performance fairly.",
 								]}
-								realLifeExample="In healthcare prediction, if patient ages are missing or stored in different formats, the model can learn wrong relationships. Preprocessing standardizes everything before training."
+								realLifeExample="Imagine patient data where some ages are in years, some in months, and some missing. If you train directly, results can be wrong. After cleaning and standardizing, the model learns the right medical pattern."
 								keyPoints={[
-									"Garbage in, garbage out: poor data leads to poor models.",
-									"Cleaning and transformation prevent hidden bias and leakage.",
-									"Feature engineering can improve accuracy significantly.",
-									"Proper data split protects against over-optimistic results.",
+									"Bad data creates bad models, even with advanced algorithms.",
+									"Cleaning and format checks prevent many silent errors.",
+									"Feature engineering often boosts quality more than model changes.",
+									"Correct data split avoids fake high scores.",
+									"Keep preprocessing steps saved so training is repeatable.",
 								]}
 								visualBlock={
 									<div className="space-y-4">
@@ -683,20 +699,22 @@ export default function MLTutorialPage() {
 								index={5}
 								title={sectionMap["model-building"].title}
 								icon={sectionMap["model-building"].icon}
-								simpleExplanation="Model building is choosing the right algorithm for your problem and data. Different models learn in different ways, so understanding their behavior helps you pick wisely."
+								simpleExplanation="Model building means selecting, training, and comparing different algorithms to find the best fit for your problem, data size, and business needs."
 								deepExplanation={[
-									"Linear Regression fits a straight-line relationship between input features and a continuous output.",
-									"Decision Tree splits data into branches using feature-based questions to reach a prediction.",
-									"KNN finds the closest examples in the dataset and predicts based on nearby neighbors.",
-									"Neural Networks stack layers of learned weights to capture complex non-linear patterns.",
-									"Model selection depends on data size, explainability needs, speed, and expected accuracy.",
+									"Linear Regression is a good first baseline for number prediction tasks.",
+									"Decision Trees are easy to explain because they follow clear yes or no paths.",
+									"KNN is simple to start but can get slow when your dataset is large.",
+									"Neural Networks can learn complex patterns but need more data and tuning.",
+									"Always train more than one model and compare using the same metric.",
+									"Pick the model that balances quality, speed, and explainability for your users.",
 								]}
-								realLifeExample="House price prediction can start with Linear Regression for explainability, then move to Decision Trees or Neural Networks if relationships become more complex."
+								realLifeExample="For house prices, start with Linear Regression to understand key factors, then test tree-based models if data has complex effects like neighborhood and season interactions."
 								keyPoints={[
-									"Linear Regression is simple and interpretable.",
-									"Decision Trees are intuitive and handle non-linearity.",
-									"KNN is easy to understand but slower with huge datasets.",
-									"Neural Networks are powerful but require more data and tuning.",
+									"Start with a baseline model before complex models.",
+									"Compare models using the same dataset split.",
+									"Simple models are often easier to trust and debug.",
+									"Complex models can improve score but cost more to run.",
+									"Final choice should match real product constraints.",
 								]}
 								visualBlock={
 									<div className="space-y-5">
@@ -769,20 +787,22 @@ export default function MLTutorialPage() {
 								index={6}
 								title={sectionMap["training-prediction"].title}
 								icon={sectionMap["training-prediction"].icon}
-								simpleExplanation="Training teaches a model from historical data. Prediction is when the trained model makes decisions for new unseen inputs. Testing checks if it generalizes well."
+								simpleExplanation="Training is the learning stage, prediction is the usage stage, and testing is the reality check. A strong model must work well on new data, not just old data."
 								deepExplanation={[
-									"Training phase: the model sees labeled examples and adjusts parameters to reduce error.",
-									"Validation phase: hyperparameters are tuned without touching test data.",
-									"Testing phase: final performance is measured on unseen data to estimate real-world behavior.",
-									"Overfitting means model memorizes training data and fails on new data.",
-									"Underfitting means model is too simple and misses important patterns.",
+									"During training, the model updates internal weights to reduce mistakes.",
+									"Validation data helps choose settings like depth, learning rate, or number of neighbors.",
+									"Test data is used once at the end to estimate real-world quality.",
+									"Overfitting happens when training score is high but test score is weak.",
+									"Underfitting happens when both training and test scores are poor.",
+									"Good training aims for stable performance across train, validation, and test.",
 								]}
-								realLifeExample="If a student memorizes old exam questions but cannot solve new ones, that is overfitting. If they never understood the topic at all, that is underfitting."
+								realLifeExample="Think of a student: if they only memorize old exam papers, they fail on new questions (overfitting). If they barely study, they fail everywhere (underfitting). Good learning means understanding concepts, not memorizing answers."
 								keyPoints={[
-									"Separate train/validation/test is essential.",
-									"Low train error alone is not enough.",
-									"Generalization on unseen data is the real goal.",
-									"Balance model complexity to avoid overfit and underfit.",
+									"Keep train, validation, and test sets separate.",
+									"Do not trust training score alone.",
+									"Real success is strong test performance.",
+									"Watch learning curves to detect overfit early.",
+									"Tune complexity to get the best balance.",
 								]}
 								visualBlock={
 									<div className="h-72 rounded-xl border border-slate-200 bg-white p-3">
@@ -818,19 +838,22 @@ export default function MLTutorialPage() {
 								index={7}
 								title={sectionMap["evaluation-metrics"].title}
 								icon={sectionMap["evaluation-metrics"].icon}
-								simpleExplanation="Evaluation metrics tell you how good your model is from different angles. One number is not enough because each metric answers a different performance question."
+								simpleExplanation="Metrics are score cards for your model. Each metric answers a different question, so you should check more than one before making decisions."
 								deepExplanation={[
-									"Accuracy: overall percentage of correct predictions.",
-									"Precision: when model predicts positive, how often is it correct?",
-									"Recall: of all real positives, how many did the model find?",
-									"F1 Score: balance between precision and recall, useful when classes are imbalanced.",
+									"Accuracy shows total correct predictions out of all predictions.",
+									"Precision shows how many predicted positives are truly positive.",
+									"Recall shows how many real positives your model actually found.",
+									"F1 score balances precision and recall in one value.",
+									"ROC-AUC checks ranking quality across multiple decision thresholds.",
+									"Choose metrics based on business risk, not only technical preference.",
 								]}
-								realLifeExample="In disease screening, recall is crucial because missing a sick patient is dangerous. Precision also matters to reduce unnecessary panic from false alarms."
+								realLifeExample="In medical screening, missing a truly sick person can be very risky, so recall is very important. But if too many healthy people are flagged, hospitals waste time, so precision also matters."
 								keyPoints={[
-									"Accuracy can be misleading on imbalanced data.",
-									"Precision controls false positives.",
-									"Recall controls false negatives.",
-									"F1 is a strong balanced metric for many practical tasks.",
+									"No single metric explains full model quality.",
+									"Accuracy may look good even when minority class is missed.",
+									"Precision helps reduce false alarms.",
+									"Recall helps catch more true important cases.",
+									"F1 is useful when both precision and recall matter.",
 								]}
 								visualBlock={
 									<div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
@@ -881,20 +904,22 @@ export default function MLTutorialPage() {
 								index={8}
 								title={sectionMap["real-world"].title}
 								icon={sectionMap["real-world"].icon}
-								simpleExplanation="Machine Learning is the engine that enables many modern AI systems. AI is the broad goal of intelligent behavior, and ML is the practical way many systems learn that behavior from data."
+								simpleExplanation="ML is the practical engine behind many AI products. It turns raw data into useful predictions, suggestions, and automated actions used in daily life."
 								deepExplanation={[
-									"Streaming platforms use ML to rank content and personalize recommendations.",
-									"E-commerce uses ML for product ranking, demand forecasting, and fraud detection.",
-									"Healthcare uses ML for medical image analysis, risk prediction, and treatment support.",
-									"Self-driving systems combine vision, planning, and control models for safe navigation.",
-									"Generative AI relies on large-scale ML models to produce text, images, and audio.",
+									"Video and music apps use ML to recommend content you are likely to enjoy.",
+									"Shopping apps use ML to rank products and predict customer demand.",
+									"Banks use ML to detect unusual transactions and reduce fraud.",
+									"Hospitals use ML to support diagnosis and estimate health risk.",
+									"Generative AI uses large ML models to create text, images, and audio.",
+									"Most AI products improve over time through feedback loops and new data.",
 								]}
-								realLifeExample="Netflix predicts what you want to watch next, Amazon predicts what you may buy, hospitals predict disease risk, and autonomous vehicles predict movement in traffic scenes."
+								realLifeExample="When you open a streaming app, the first row you see is selected by ML. In shopping apps, ML suggests products, predicts delivery demand, and helps stop payment fraud in the background."
 								keyPoints={[
-									"ML powers personalization, prediction, and automation.",
-									"AI products often combine multiple ML models together.",
-									"Better data loops make AI systems improve continuously.",
-									"Responsible ML design is essential for fairness and trust.",
+									"ML is now used in many everyday digital products.",
+									"Real products usually combine many smaller models.",
+									"Monitoring and retraining keep quality stable in production.",
+									"Data privacy and fairness must be part of design.",
+									"Simple user-facing explanations build trust in AI systems.",
 								]}
 								visualBlock={
 									<div className="space-y-5">
