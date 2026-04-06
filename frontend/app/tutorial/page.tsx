@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import Logo from '../components/Logo';
 
 const BACKEND_URL = 'http://127.0.0.1:8000';
@@ -1229,6 +1230,7 @@ function Step9Content({ accentColor }: { accentColor: string }) {
 // TUTORIAL PAGE
 // ─────────────────────────────────────────────
 export default function TutorialPage() {
+  const shouldReduceMotion = useReducedMotion();
   const steps = [
     { number: 1, title: 'Open Ownquesta & Explore the Home Page', icon: '🌟', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Getting Started' },
     { number: 2, title: 'Sign In or Create Your Account', icon: '🔐', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Authentication' },
@@ -1280,6 +1282,18 @@ export default function TutorialPage() {
     }
   };
 
+  const topicDescriptions: Record<number, string> = {
+    1: 'Understand the platform vision, navbar actions, and the no-code AI workflow at a glance.',
+    2: 'Sign in securely, create your account, and access your personal workspace in minutes.',
+    3: 'Review the post-login welcome flow and identify your fastest path to start building.',
+    4: 'Learn dashboard zones, key controls, and where each major action lives.',
+    5: 'Create your first project and choose between guided automation or code-first workflow.',
+    6: 'Compare Easy Mode and Code Mode so you can pick the right style for each dataset.',
+    7: 'Interpret generated analytics, model hints, and AI recommendations with confidence.',
+    8: 'Select an algorithm and launch a reproducible training pipeline with one action.',
+    9: 'Read performance metrics, validate outputs, and run live predictions with test inputs.',
+  };
+
   return (
     <div className="relative text-[#e6eef8] overflow-x-hidden font-chillax bg-[#060812]">
       <div className="fixed inset-0 pointer-events-none">
@@ -1303,24 +1317,29 @@ export default function TutorialPage() {
 
       <div className="relative z-10">
         {/* Sidebar */}
-        <div className="hidden lg:block fixed left-0 top-0 h-screen w-[260px] bg-[rgba(6,8,18,0.7)] backdrop-blur-xl border-r border-white/[0.06] overflow-y-auto z-40">
-          <div className="p-5 pt-20">
-            <div className="mb-5"><p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-1">Tutorial</p><h3 className="text-sm font-semibold text-white/60">Ownquesta Workflow</h3></div>
+        <aside className="hidden lg:block fixed left-0 top-0 h-screen w-[300px] bg-[linear-gradient(170deg,rgba(10,12,30,0.95)_0%,rgba(7,9,21,0.88)_100%)] backdrop-blur-2xl border-r border-violet-400/15 overflow-y-auto z-40">
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-violet-500/10 to-transparent pointer-events-none" />
+          <div className="p-6 pt-20">
+            <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+              <p className="text-[10px] font-bold text-violet-300/80 uppercase tracking-[0.2em] mb-1">Learning Path</p>
+              <h3 className="text-sm font-semibold text-white/80">Ownquesta Tutorial Topics</h3>
+              <p className="mt-2 text-[11px] leading-relaxed text-white/45">Choose a topic and jump directly to that section in the main content.</p>
+            </div>
             <div className="space-y-1">
               {steps.map((step) => {
                 const isActive = currentStep === step.number;
                 const isPast = currentStep > step.number;
                 return (
-                  <button key={step.number} onClick={() => scrollToStep(step.number)} className={`w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-3 ${isActive ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}>
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0 transition-all ${isActive ? 'bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30' : isPast ? 'bg-white/10' : 'bg-white/[0.04] border border-white/10'}`}>{isPast && !isActive ? '✓' : step.icon}</div>
-                    <div className="min-w-0"><div className="text-[10px] text-white/30 font-medium">Step {step.number}</div><div className="text-xs font-medium truncate">{step.title}</div></div>
+                  <button key={step.number} onClick={() => scrollToStep(step.number)} className={`w-full text-left px-3.5 py-3 rounded-2xl border transition-all duration-300 flex items-center gap-3.5 ${isActive ? 'bg-violet-500/15 border-violet-400/35 text-white shadow-[0_0_24px_rgba(124,92,191,0.28)]' : 'border-white/10 text-white/45 hover:text-white/80 hover:bg-white/[0.04] hover:border-white/20'}`}>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm flex-shrink-0 transition-all ${isActive ? 'bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30' : isPast ? 'bg-white/10' : 'bg-white/[0.04] border border-white/10'}`}>{isPast && !isActive ? '✓' : step.icon}</div>
+                    <div className="min-w-0"><div className="text-[10px] text-white/35 font-medium">Topic {step.number}</div><div className="text-xs font-medium line-clamp-2 leading-snug">{step.title}</div></div>
                     {isActive && <div className="ml-auto w-1 h-4 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400 flex-shrink-0" />}
                   </button>
                 );
               })}
             </div>
           </div>
-        </div>
+        </aside>
 
         {/* Mobile Bottom Nav */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[rgba(6,8,18,0.95)] backdrop-blur-xl border-t border-white/[0.06] z-40">
@@ -1339,12 +1358,60 @@ export default function TutorialPage() {
         </div>
 
         {/* Steps */}
-        <div className="lg:ml-[260px] pb-24 lg:pb-0">
+        <main className="lg:ml-[300px] pb-24 lg:pb-0">
+          <section className="relative border-b border-white/[0.04] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.09] via-fuchsia-500/[0.06] to-transparent pointer-events-none" />
+            <div className="relative px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-28 pb-14 lg:pt-32 lg:pb-16">
+              <motion.div
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+                animate={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+                className="max-w-5xl"
+              >
+                <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase font-semibold text-violet-300/80 mb-3">Tutorial Overview</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Learn Ownquesta Like a Modern Learning Platform</h1>
+                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">Use the left topic list for quick navigation. On the right, each topic card gives a focused objective and direct action to jump into the full tutorial section.</p>
+              </motion.div>
+
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
+                {steps.map((step, index) => (
+                  <motion.button
+                    key={`topic-card-${step.number}`}
+                    onClick={() => scrollToStep(step.number)}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 14, scale: 0.98 }}
+                    whileInView={shouldReduceMotion ? {} : { opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.35, delay: shouldReduceMotion ? 0 : index * 0.04, ease: 'easeOut' }}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.02, y: -4 }}
+                    whileTap={shouldReduceMotion ? {} : { scale: 0.99 }}
+                    className="group text-left rounded-3xl border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.06)_0%,rgba(124,92,191,0.07)_45%,rgba(255,255,255,0.03)_100%)] p-5 shadow-[0_8px_25px_rgba(0,0,0,0.35)] hover:border-violet-300/35 hover:shadow-[0_14px_40px_rgba(124,92,191,0.28)] transition-all duration-300"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-xl group-hover:shadow-[0_0_24px_rgba(124,92,191,0.5)] transition-shadow">{step.icon}</div>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">Topic {step.number}</span>
+                    </div>
+                    <h3 className="mt-4 text-base font-semibold text-white leading-snug min-h-[48px]">{step.title}</h3>
+                    <p className="mt-2 text-[13px] text-white/60 leading-relaxed min-h-[58px]">{topicDescriptions[step.number]}</p>
+                    <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-violet-200 group-hover:text-white transition-colors">
+                      <span className="px-2.5 py-1 rounded-full border border-violet-300/30 bg-violet-500/10">Start Learning</span>
+                      <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 pt-8 pb-4 border-b border-white/[0.04]">
+            <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">Detailed Step-by-Step Lessons</h2>
+            <p className="mt-2 text-sm text-white/55">Each lesson below includes an interface walkthrough, context notes, and action checklist to complete the workflow end-to-end.</p>
+          </section>
+
           {steps.map((step, index) => (
             <section key={step.number} data-step={step.number} ref={(el) => { sectionRefs.current[index] = el; }} className="min-h-screen w-full flex items-start border-b border-white/[0.04] relative overflow-hidden bg-[#060810]">
               <div className={`absolute inset-0 bg-gradient-to-br ${step.color} pointer-events-none`} />
               <div className="absolute inset-0 pointer-events-none"><div className="absolute top-1/2 right-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-20 -translate-y-1/2" style={{ background: step.accentColor }} /></div>
-              <div className="relative w-full px-8 sm:px-12 md:px-16 lg:px-20 py-20 lg:py-24">
+              <div className="relative w-full px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 py-16 lg:py-20">
                 <div className="mb-6"><span className={`inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full border ${step.borderColor} bg-white/5`}><span className="w-1.5 h-1.5 rounded-full" style={{ background: step.accentColor }} />{step.badge}</span></div>
                 <div className="flex items-center gap-4 mb-5"><div className="text-6xl md:text-7xl" style={{ filter: `drop-shadow(0 0 20px ${step.accentColor}60)` }}>{step.icon}</div><div className="flex-1 h-px bg-gradient-to-r from-white/10 to-transparent" /><span className="text-4xl font-black text-white/5 tabular-nums tracking-tight">{String(step.number).padStart(2, '0')}</span></div>
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 leading-tight tracking-tight">{step.title}</h2>
@@ -1379,7 +1446,7 @@ export default function TutorialPage() {
               </div>
             </div>
           </section>
-        </div>
+        </main>
 
         <QuestaAgent />
       </div>
