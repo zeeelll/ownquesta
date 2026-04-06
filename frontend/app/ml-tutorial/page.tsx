@@ -253,11 +253,6 @@ export default function MLTutorialPage() {
 				<header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-[#0f1430]/90 px-4 py-3 backdrop-blur-xl sm:px-6">
 					<div className="flex items-center gap-4">
 						<Logo href="/home" size="md" showText={true} variant="light" />
-						<div className="hidden h-8 w-px bg-white/20 sm:block" />
-						<div>
-							<p className="text-xs uppercase tracking-[0.16em] text-cyan-300/90">AutoML Playground</p>
-							<h1 className="text-lg font-semibold text-white sm:text-xl">Machine Learning Tutorial Roadmap</h1>
-						</div>
 					</div>
 
 					<Link
