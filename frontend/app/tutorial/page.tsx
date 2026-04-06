@@ -1249,7 +1249,7 @@ export default function TutorialPage() {
     { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
     { number: 3, title: 'Welcome Page (Profile Update)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
     { number: 4, title: 'Dashboard (Create Project)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
-    { number: 5, title: 'Lab Playground (Easy Mode / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
+    { number: 5, title: 'AutoML Playground (Easy Mode / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
     { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
     { number: 7, title: 'Auto Analysis -> Model Generation', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
     { number: 8, title: 'Real Values -> Prediction + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
@@ -1459,11 +1459,6 @@ export default function TutorialPage() {
         <aside className="hidden lg:block fixed left-0 top-0 h-screen w-[300px] bg-[linear-gradient(170deg,rgba(10,12,30,0.95)_0%,rgba(7,9,21,0.88)_100%)] backdrop-blur-2xl border-r border-violet-400/15 overflow-y-auto z-40">
           <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-violet-500/10 to-transparent pointer-events-none" />
           <div className="p-6 pt-20">
-            <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-              <p className="text-[10px] font-bold text-violet-300/80 uppercase tracking-[0.2em] mb-1">Learning Path</p>
-              <h3 className="text-sm font-semibold text-white/80">Ownquesta Tutorial Topics</h3>
-              <p className="mt-2 text-[11px] leading-relaxed text-white/45">Choose a topic and jump directly to that section in the main content.</p>
-            </div>
             <div className="space-y-1">
               {steps.map((step) => {
                 const isActive = currentStep === step.number;
