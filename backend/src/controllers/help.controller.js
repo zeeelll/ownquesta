@@ -82,6 +82,7 @@ exports.createHelpTicket = async (req, res) => {
     return res.status(201).json({
       success: true,
       ticketId,
+      status: "underprocess",
       proofCount: proofFiles.length,
       message:
         proofFiles.length > 0
@@ -132,5 +133,46 @@ exports.getHelpTickets = async (req, res) => {
   } catch (error) {
     console.error("Error fetching help tickets:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.getHelpTicketStatus = async (req, res) => {
+  try {
+    const ticketId = normalizeText(req.query.ticketId, 80);
+    const email = normalizeText(req.query.email, 160).toLowerCase();
+
+    if (!ticketId || !email) {
+      return res.status(400).json({
+        success: false,
+        error: "Please provide ticket ID and email.",
+      });
+    }
+
+    const ticket = await HelpTicket.findOne({ ticketId, email })
+      .select("ticketId name email issueType pageArea severity subject description status stepsTried proofFiles createdAt updatedAt")
+      .lean();
+
+    if (!ticket) {
+      return res.status(404).json({
+        success: false,
+        error: "Complaint not found for the provided ticket ID and email.",
+      });
+    }
+
+    const complaintStatus = ticket.status === "resolved" ? "complete" : "underprocess";
+
+    return res.json({
+      success: true,
+      complaint: {
+        ...ticket,
+        complaintStatus,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching complaint status:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to fetch complaint status right now.",
+    });
   }
 };

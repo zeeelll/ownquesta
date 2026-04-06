@@ -28,7 +28,23 @@ import Logo from '../components/Logo';
 type HelpApiResponse = {
   success: boolean;
   ticketId?: string;
+  status?: string;
   message?: string;
+  complaint?: {
+    ticketId: string;
+    name: string;
+    email: string;
+    issueType: string;
+    pageArea: string;
+    severity: string;
+    subject: string;
+    description: string;
+    status?: string;
+    complaintStatus?: string;
+    proofFiles?: Array<{ name: string; size: number; type: string }>;
+    createdAt?: string;
+    updatedAt?: string;
+  };
   error?: string;
 };
 
@@ -233,7 +249,19 @@ export default function HelpPage() {
   const [submitError, setSubmitError] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
   const [ticketId, setTicketId] = useState('');
+  const [statusTicketId, setStatusTicketId] = useState('');
+  const [statusEmail, setStatusEmail] = useState('');
+  const [statusError, setStatusError] = useState('');
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [complaintDetails, setComplaintDetails] = useState<HelpApiResponse['complaint'] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const displayComplaintStatus = useMemo(() => {
+    const raw = complaintDetails?.complaintStatus || complaintDetails?.status || '';
+    if (!raw) return '';
+    if (raw === 'complete' || raw === 'resolved') return 'Complete';
+    return 'UnderProcess';
+  }, [complaintDetails]);
 
   const totalProofSizeMb = useMemo(() => {
     const totalBytes = proofFiles.reduce((sum, file) => sum + file.size, 0);
@@ -313,6 +341,8 @@ export default function HelpPage() {
       }
 
       setTicketId(data.ticketId ?? '');
+      setStatusTicketId(data.ticketId ?? '');
+      setStatusEmail(email.trim());
       setSubmitMessage(data.message || 'Your help request was submitted successfully.');
       setName('');
       setEmail('');
@@ -324,6 +354,42 @@ export default function HelpPage() {
       setSubmitError(error?.message || 'Unable to submit your help request right now.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCheckComplaintStatus = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const tid = statusTicketId.trim();
+    const em = statusEmail.trim();
+
+    if (!tid || !em) {
+      setStatusError('Please enter ticket ID and email.');
+      setComplaintDetails(null);
+      return;
+    }
+
+    setIsCheckingStatus(true);
+    setStatusError('');
+
+    try {
+      const params = new URLSearchParams({ ticketId: tid, email: em });
+      const response = await fetch(`/api/help/status?${params.toString()}`, {
+        method: 'GET',
+      });
+
+      const data = (await response.json()) as HelpApiResponse;
+
+      if (!response.ok || !data.success || !data.complaint) {
+        throw new Error(data.error || 'Unable to fetch complaint status right now.');
+      }
+
+      setComplaintDetails(data.complaint);
+    } catch (error: any) {
+      setComplaintDetails(null);
+      setStatusError(error?.message || 'Unable to fetch complaint status right now.');
+    } finally {
+      setIsCheckingStatus(false);
     }
   };
 
@@ -554,6 +620,83 @@ export default function HelpPage() {
               </Button>
             </div>
           </form>
+        </section>
+
+        <section className="w-full px-6 pb-16 lg:px-16" id="complaint-status-check">
+          <div className="mb-5 flex items-center gap-3">
+            <ScanSearch className="h-5 w-5 text-[#80f6d8]" />
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">Complaint Status Check</h2>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-[#0b152b]/85 p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] sm:p-7">
+            <form onSubmit={handleCheckComplaintStatus} className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-[#d9e6ff]">Ticket ID</span>
+                <input
+                  value={statusTicketId}
+                  onChange={(event) => setStatusTicketId(event.target.value)}
+                  placeholder="Example: OQ-HELP-ABC123"
+                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-[#d9e6ff]">Email</span>
+                <input
+                  value={statusEmail}
+                  onChange={(event) => setStatusEmail(event.target.value)}
+                  type="email"
+                  placeholder="Enter the same email used in complaint"
+                  className="h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50"
+                />
+              </label>
+
+              <div className="md:self-end">
+                <Button
+                  type="submit"
+                  disabled={isCheckingStatus}
+                  icon={<ScanSearch className="h-4 w-4" />}
+                  className="h-12 px-6 text-sm"
+                >
+                  {isCheckingStatus ? 'Checking...' : 'Check Status'}
+                </Button>
+              </div>
+            </form>
+
+            {statusError && (
+              <div className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                {statusError}
+              </div>
+            )}
+
+            {complaintDetails && (
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-white/15 bg-[#0a1328] px-3 py-1 text-xs font-semibold text-[#d7e4ff]">
+                    {complaintDetails.ticketId}
+                  </span>
+                  <span className="rounded-full border border-white/15 bg-[#0a1328] px-3 py-1 text-xs font-semibold text-[#d7e4ff]">
+                    {complaintDetails.issueType}
+                  </span>
+                  <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${displayComplaintStatus === 'Complete' ? 'border-emerald-300/30 bg-emerald-500/10 text-emerald-100' : 'border-amber-300/30 bg-amber-500/10 text-amber-100'}`}>
+                    {displayComplaintStatus || 'UnderProcess'}
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-semibold text-white">{complaintDetails.subject}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#b8c9e9]">{complaintDetails.description}</p>
+
+                <div className="mt-4 grid gap-2 text-xs font-mono text-[#9ec2dd] sm:grid-cols-2 lg:grid-cols-4">
+                  <div>Name: {complaintDetails.name}</div>
+                  <div>Email: {complaintDetails.email}</div>
+                  <div>Area: {complaintDetails.pageArea}</div>
+                  <div>Severity: {(complaintDetails.severity || 'medium').toUpperCase()}</div>
+                  {complaintDetails.createdAt && <div>Created: {new Date(complaintDetails.createdAt).toLocaleString()}</div>}
+                  {complaintDetails.updatedAt && <div>Updated: {new Date(complaintDetails.updatedAt).toLocaleString()}</div>}
+                </div>
+              </div>
+            )}
+          </div>
         </section>
 
       </main>
