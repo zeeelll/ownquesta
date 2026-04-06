@@ -308,13 +308,61 @@ const STYLES = `
   /* ── Nav pill ── */
   .nav-pill {
     display:inline-flex; align-items:center; gap:6px;
-    padding:6px 13px; border-radius:100px;
+    min-height:34px;
+    padding:7px 14px; border-radius:100px;
     background:rgba(255,255,255,0.03); border:1px solid var(--rim1);
     font-size:11px; font-weight:600; color:var(--txt1);
     cursor:pointer; font-family:var(--font-body); transition:all 0.18s;
     letter-spacing:-0.01em;
   }
-  .nav-pill:hover { background:rgba(255,255,255,0.07); color:var(--txt0); border-color:var(--rim2); }
+  .nav-pill:hover { background:rgba(255,255,255,0.07); color:var(--txt0); border-color:var(--rim2); transform:translateY(-1px); }
+  .nav-pill:focus-visible {
+    outline:none;
+    box-shadow:0 0 0 3px rgba(99,102,241,0.16);
+    border-color:rgba(99,102,241,0.36);
+  }
+
+  .nav-pill-accent {
+    background:linear-gradient(135deg, rgba(99,102,241,0.20) 0%, rgba(139,92,246,0.16) 55%, rgba(192,132,252,0.18) 100%);
+    border-color:rgba(192,132,252,0.22);
+    color:#ffffff;
+    box-shadow:0 8px 24px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.08);
+    position:relative;
+    overflow:hidden;
+  }
+  .nav-pill-accent::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(120deg, transparent 18%, rgba(255,255,255,0.12) 50%, transparent 82%);
+    transform:translateX(-120%);
+    transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  }
+  .nav-pill-accent:hover {
+    background:linear-gradient(135deg, rgba(99,102,241,0.28) 0%, rgba(139,92,246,0.22) 55%, rgba(192,132,252,0.24) 100%);
+    border-color:rgba(192,132,252,0.34);
+    box-shadow:0 12px 30px rgba(99,102,241,0.26), 0 0 0 1px rgba(192,132,252,0.12), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .nav-pill-accent:hover::before { transform:translateX(120%); }
+  .nav-pill-accent:focus-visible {
+    box-shadow:0 0 0 3px rgba(192,132,252,0.18), 0 12px 30px rgba(99,102,241,0.24);
+    border-color:rgba(192,132,252,0.4);
+  }
+
+  .nav-pill-home {
+    background:rgba(255,255,255,0.025);
+    border-color:rgba(255,255,255,0.08);
+    color:var(--txt0);
+  }
+  .nav-pill-home:hover {
+    background:rgba(255,255,255,0.06);
+    border-color:rgba(255,255,255,0.14);
+    box-shadow:0 8px 20px rgba(0,0,0,0.14);
+  }
+  .nav-pill-home:focus-visible {
+    box-shadow:0 0 0 3px rgba(255,255,255,0.08), 0 10px 22px rgba(0,0,0,0.16);
+    border-color:rgba(255,255,255,0.18);
+  }
 
   /* ── Activity row ── */
   .activity-row { transition:background 0.15s; cursor:pointer; }
@@ -1189,24 +1237,17 @@ export default function DashboardPage() {
       {/* ML Tutorial button - NEW */}
       <button 
         onClick={() => router.push("/ml-tutorial")}
-        className="nav-pill"
-        style={{
-          background:"rgba(192,132,252,0.06)",
-          borderColor:"rgba(192,132,252,0.15)",
-          cursor: "pointer"
-        }}
+        className="nav-pill nav-pill-accent"
+        aria-label="Open ML Tutorial"
       >
-        <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4} aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
         </svg>
         ML Tutorial
       </button>
 
           {/* Back to home */}
-          <button onClick={() => router.push("/home")} className="nav-pill">
-            <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-            </svg>
+          <button onClick={() => router.push("/home")} className="nav-pill nav-pill-home">
             Home
           </button>
 
