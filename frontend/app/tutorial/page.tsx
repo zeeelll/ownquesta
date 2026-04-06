@@ -1395,6 +1395,294 @@ export default function TutorialPage() {
     const labels = guideSectionLabels[stepNumber];
     if (!guide) return null;
 
+    const buttonCards = guide.buttons.map((btn, idx) => (
+      <div key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <p className="text-sm font-semibold text-white">{btn.name}</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-white/65"><span className="text-white/85">Action:</span> {btn.behavior}</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-white/65"><span className="text-white/85">Result:</span> {btn.outcome}</p>
+      </div>
+    ));
+
+    const actionCards = guide.actions.map((action, idx) => (
+      <div key={idx} className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3">
+        <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold" style={{ background: `${accentColor}33`, color: accentColor }}>{idx + 1}</span>
+        <p className="text-sm leading-relaxed text-white/70">{action}</p>
+      </div>
+    ));
+
+    const detailPill = (
+      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-white/45">
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: accentColor }} />
+        {labels.note}
+      </div>
+    );
+
+    switch (stepNumber) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.05),rgba(124,92,191,0.10))] p-6 md:p-7">
+              {detailPill}
+              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">{labels.actions}</h4>
+                <div className="grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-violet-400/15 bg-violet-500/5 p-6 md:p-7 space-y-3">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Primary links</h4>
+                <div className="space-y-3">{buttonCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <div className="rounded-3xl border border-blue-400/15 bg-blue-500/5 p-6 md:p-7 space-y-4">
+              {detailPill}
+              <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+              <div className="space-y-3">
+                {actionCards}
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75 mb-3">Auth controls</h4>
+                <div className="grid gap-3">{buttonCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-5">
+                <div className="text-[11px] uppercase tracking-[0.14em] text-white/40 mb-2">Route outcome</div>
+                <p className="text-sm leading-relaxed text-white/70">{guide.note}</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="rounded-3xl border border-orange-400/15 bg-orange-500/5 p-6 md:p-7 space-y-4">
+                {detailPill}
+                <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+                <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { title: 'Name check', text: 'Confirms the account name is correct.' },
+                    { title: 'Profile menu', text: 'Opens account settings or sign out.' },
+                    { title: 'Next step', text: 'Moves you directly to the dashboard.' },
+                  ].map((item) => (
+                    <div key={item.title} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <p className="text-sm font-semibold text-white">{item.title}</p>
+                      <p className="mt-2 text-[13px] leading-relaxed text-white/60">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Workspace controls</h4>
+                {buttonCards}
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 md:p-7">
+              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">What to do next</h4>
+              <div className="mt-4 grid gap-3">{actionCards}</div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-purple-400/15 bg-purple-500/5 p-6 md:p-7">
+              {detailPill}
+              <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div>
+                  <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+                  <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Projects', value: '0' },
+                    { label: 'Active', value: '0' },
+                    { label: 'Completed', value: '2' },
+                    { label: 'Stages', value: '4' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center min-w-[92px]">
+                      <div className="text-xl font-black text-white">{stat.value}</div>
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/35 mt-1">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">How to read the dashboard</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Project controls</h4>
+                <div className="mt-4 grid gap-3">{buttonCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className="rounded-3xl border border-pink-400/15 bg-pink-500/5 p-6 md:p-7 space-y-4">
+              {detailPill}
+              <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-sm font-semibold text-white">Easy Mode</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-white/60">Guided no-code flow. Best when you want the AI to do the work step by step.</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                  <p className="text-sm font-semibold text-white">Code Mode</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-white/60">Notebook workflow. Best when you want to inspect or edit Python directly.</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
+              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Mode switch</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {buttonCards}
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <h5 className="text-sm font-semibold text-white">How to choose</h5>
+                <div className="mt-3 grid gap-3">{actionCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-yellow-400/15 bg-yellow-500/5 p-6 md:p-7">
+              {detailPill}
+              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[1fr_0.95fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Upload sequence</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Data controls</h4>
+                <div className="grid gap-3">{buttonCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-3xl border border-cyan-400/15 bg-cyan-500/5 p-6 md:p-7 space-y-4">
+              {detailPill}
+              <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h5 className="text-sm font-semibold text-white">Analysis timeline</h5>
+                <div className="mt-3 space-y-2">
+                  {['Missing values check', 'Feature engineering', 'Model ranking', 'Training handoff'].map((item, idx) => (
+                    <div key={item} className="flex items-center gap-3 text-[13px] text-white/65">
+                      <span className="w-6 h-6 rounded-lg bg-white/[0.06] border border-white/10 flex items-center justify-center text-[11px] font-bold" style={{ color: accentColor }}>{idx + 1}</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Analysis controls</h4>
+                <div className="mt-4 grid gap-3">{buttonCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">What to watch</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-emerald-400/15 bg-emerald-500/5 p-6 md:p-7">
+              {detailPill}
+              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+            </div>
+            <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Validation review</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7 space-y-3">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Test controls</h4>
+                <div className="grid gap-3">{buttonCards}</div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 mt-2">
+                  <p className="text-sm text-white/70 leading-relaxed">Use the model output to decide whether to retrain, change the test split, or move on to export.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 9:
+        return (
+          <div className="grid gap-4 xl:grid-cols-[1fr_0.95fr]">
+            <div className="rounded-3xl border border-teal-400/15 bg-teal-500/5 p-6 md:p-7 space-y-4">
+              {detailPill}
+              <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h5 className="text-sm font-semibold text-white">Payment sequence</h5>
+                <div className="mt-3 space-y-2">{actionCards}</div>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
+              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Checkout controls</h4>
+              <div className="grid gap-3">{buttonCards}</div>
+            </div>
+          </div>
+        );
+
+      case 10:
+        return (
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-sky-400/15 bg-sky-500/5 p-6 md:p-7">
+              {detailPill}
+              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">What gets downloaded</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Export controls</h4>
+                <div className="grid gap-3">{buttonCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+    }
+
     return (
       <div className="space-y-6">
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
