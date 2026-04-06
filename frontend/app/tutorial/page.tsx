@@ -1245,16 +1245,16 @@ function Step9Content({ accentColor }: { accentColor: string }) {
 export default function TutorialPage() {
   const shouldReduceMotion = useReducedMotion();
   const steps = [
-    { number: 1, title: 'Home Page (About, Help)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
+    { number: 1, title: 'Home Page (About / Help / Sign In)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
     { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
-    { number: 3, title: 'Welcome Page (Profile Update)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
+    { number: 3, title: 'Authenticated Home', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
     { number: 4, title: 'Dashboard (Create Project)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
-    { number: 5, title: 'AutoML Playground (Easy Mode / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
+    { number: 5, title: 'Lab Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
     { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
-    { number: 7, title: 'Auto Analysis -> Model Generation', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
-    { number: 8, title: 'Real Values -> Prediction + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
-    { number: 9, title: 'Payment', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
-    { number: 10, title: 'Download Model / Python Script (.py)', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
+    { number: 7, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
+    { number: 8, title: 'Prediction Test + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
+    { number: 9, title: 'Payment / Checkout', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
+    { number: 10, title: 'Model / Python Script Export', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1283,113 +1283,127 @@ export default function TutorialPage() {
 
   const stepGuides: Record<number, { summary: string; actions: string[]; buttons: { name: string; behavior: string; outcome: string }[]; note: string }> = {
     1: {
-      summary: 'Home is the discovery page. Users check product value first, then decide whether to read About/Help or move directly to account access.',
-      actions: ['Open Home page and review top navigation and hero actions.', 'Visit About/Help when user needs feature or support context.', 'Continue to Login/Register to start authenticated flow.'],
+      summary: 'The public home page is the front door. It shows the product story first, then routes people toward About, Help, Sign In, or Get Started Free.',
+      actions: ['Read the hero to understand the no-code promise and the three-step workflow.', 'Use About or Help if you want product details or support before signing in.', 'Click Sign In or Get Started Free to move into the auth flow.'],
       buttons: [
-        { name: 'About', behavior: 'Opens product overview.', outcome: 'User understands capabilities before signup.' },
-        { name: 'Help', behavior: 'Opens support and FAQs.', outcome: 'User can resolve doubts before proceeding.' },
-        { name: 'Sign In / Get Started', behavior: 'Routes to authentication page.', outcome: 'Starts user onboarding process.' },
+        { name: 'About', behavior: 'Opens the feature overview page.', outcome: 'You can review what Ownquesta does before creating an account.' },
+        { name: 'Help', behavior: 'Opens support and FAQ guidance.', outcome: 'You can clear up questions before continuing.' },
+        { name: 'Sign In / Get Started Free', behavior: 'Routes to the authentication page.', outcome: 'You enter the login and registration flow.' },
       ],
       note: 'Transition: Home -> Login / Register.',
     },
     2: {
-      summary: 'Login/Register validates identity and creates user session. This is the secure gateway to all project and lab actions.',
-      actions: ['Choose Login for existing account or Register for new account.', 'Submit credentials/details and complete verification.', 'System redirects to Welcome page on success.'],
+      summary: 'The auth page handles both returning users and new users. It supports sign in, registration, Google auth, and password reset from one place.',
+      actions: ['Use Sign In when you already have an account, or switch to Register to create one.', 'Fill the form and complete any verification that is required for your account.', 'After success, the app redirects to the authenticated home page.'],
       buttons: [
-        { name: 'Login', behavior: 'Authenticates existing user.', outcome: 'Access to protected workspace is granted.' },
-        { name: 'Register', behavior: 'Creates a new user account.', outcome: 'New user enters platform workflow.' },
-        { name: 'Forgot Password', behavior: 'Starts reset flow.', outcome: 'User regains account access.' },
+        { name: 'Login', behavior: 'Authenticates an existing user.', outcome: 'You move into the private workspace after the backend session is created.' },
+        { name: 'Register', behavior: 'Creates a new user account.', outcome: 'A fresh account is ready to use the platform.' },
+        { name: 'Forgot Password', behavior: 'Starts the reset flow.', outcome: 'You can recover access without creating a new account.' },
       ],
-      note: 'Transition: Login/Register -> Welcome page.',
+      note: 'Transition: Login / Register -> Authenticated Home.',
     },
     3: {
-      summary: 'Welcome page confirms successful entry and prompts profile completion for cleaner project ownership and account settings.',
-      actions: ['Review welcome instructions and next-step guidance.', 'Open profile settings and complete required fields.', 'Continue to Dashboard for project operations.'],
+      summary: 'The authenticated home page replaces the public hero with your name and a direct path to the dashboard. It is a quick confirmation that sign in worked.',
+      actions: ['Check that your name is shown correctly in the welcome heading.', 'Open the profile menu if you need to update account details.', 'Click Go to Dashboard when you are ready to start a project.'],
       buttons: [
-        { name: 'Update Profile', behavior: 'Navigates to profile edit section.', outcome: 'Account details become complete and usable.' },
-        { name: 'Continue to Dashboard', behavior: 'Moves to main workspace.', outcome: 'User can create and manage projects.' },
+        { name: 'Profile dropdown', behavior: 'Opens your account menu.', outcome: 'You can reach Profile or sign out from here.' },
+        { name: 'Go to Dashboard', behavior: 'Moves to the main workspace.', outcome: 'You enter the project management area.' },
       ],
-      note: 'Transition: Welcome -> Profile update -> Dashboard.',
+      note: 'Transition: Authenticated Home -> Dashboard.',
     },
     4: {
-      summary: 'Dashboard is the command center for projects. Users create a new project or continue an existing one from here.',
-      actions: ['Inspect project cards/status and available quick actions.', 'Create a new project or open existing project.', 'Proceed into Lab Playground with selected project context.'],
+      summary: 'The dashboard is the project control room. It shows workspace stats, pipeline stages, and the entry point for creating or resuming projects.',
+      actions: ['Scan the project counters and pipeline stages to understand the current workspace state.', 'Use New Project when you want to start fresh, or open an existing project if one already exists.', 'Continue into Lab Playground once the project context is selected.'],
       buttons: [
-        { name: 'Create Project', behavior: 'Opens project creation flow.', outcome: 'New workspace is initialized.' },
-        { name: 'Open Project', behavior: 'Loads project details.', outcome: 'User continues model work in lab.' },
+        { name: 'New Project', behavior: 'Opens the project creation modal.', outcome: 'You can name the project and set the prediction goal.' },
+        { name: 'Open Project', behavior: 'Loads an existing project.', outcome: 'You continue the model workflow from the saved state.' },
       ],
       note: 'Transition: Dashboard -> Lab Playground.',
     },
     5: {
-      summary: 'Lab Playground starts model workflow. User chooses Easy Mode for guided flow or Code Mode for advanced control.',
-      actions: ['Open Lab from dashboard for selected project.', 'Choose Easy Mode or Code Mode based on expertise.', 'Enter data input stage after mode selection.'],
+      summary: 'The Lab Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
+      actions: ['Open the lab from your chosen project on the dashboard.', 'Choose the mode that matches how you want to work.', 'Move to dataset upload and analysis after the mode is active.'],
       buttons: [
-        { name: 'Easy Mode', behavior: 'Starts guided visual workflow.', outcome: 'Fast setup for no-code users.' },
-        { name: 'Code Mode', behavior: 'Starts advanced technical workflow.', outcome: 'More control over processing and training.' },
+        { name: 'Easy Mode', behavior: 'Starts the guided visual workflow.', outcome: 'The AI handles the model pipeline step by step.' },
+        { name: 'Code Mode', behavior: 'Starts the notebook workflow.', outcome: 'You can inspect and edit the generated Python cells.' },
       ],
       note: 'Transition: Mode selection -> Upload dataset step.',
     },
     6: {
-      summary: 'User uploads dataset and selects the target column. Target selection defines what the model should predict.',
-      actions: ['Upload dataset and confirm successful parsing.', 'Select target column from available columns.', 'Start analysis after data and target are validated.'],
+      summary: 'This is the data setup stage. You upload the dataset, pick the target column, and let the lab know what the model should learn.',
+      actions: ['Upload a CSV or Excel file and confirm that the file appears in the right panel.', 'Set the target column when you already know the label you want to predict.', 'Click Analyse so Ownquesta can start the automated data check and model prep.'],
       buttons: [
-        { name: 'Upload Dataset', behavior: 'Ingests dataset file.', outcome: 'Data becomes available for training workflow.' },
-        { name: 'Select Target Column', behavior: 'Sets prediction objective.', outcome: 'Model goal is configured.' },
-        { name: 'Analyse', behavior: 'Starts automated analysis pipeline.', outcome: 'Auto analysis/model generation begins.' },
+        { name: 'Upload CSV / Excel', behavior: 'Ingests the dataset file.', outcome: 'Your data is ready for analysis.' },
+        { name: 'Target column field', behavior: 'Sets the prediction target.', outcome: 'The system knows which value to learn.' },
+        { name: 'Analyse', behavior: 'Starts the automated analysis pipeline.', outcome: 'Feature checks and model suggestions begin.' },
       ],
       note: 'Transition: Upload + target -> Auto analysis.',
     },
     7: {
-      summary: 'Auto analysis performs preprocessing, insight generation, and model candidate creation. This step prepares training-ready model options.',
-      actions: ['System checks missing values and feature quality.', 'System generates model recommendations and training options.', 'User selects model option to continue.'],
+      summary: 'Analysis is where Ownquesta does the heavy lifting. It checks the data, applies preprocessing, and recommends models that fit the problem type.',
+      actions: ['Watch the missing-value and feature-engineering checks run automatically.', 'Review the generated insights and the three recommended models.', 'Pick one model to launch training with the pipeline builder.'],
       buttons: [
-        { name: 'Run Analysis', behavior: 'Executes automated data analysis.', outcome: 'Insights and candidate models are produced.' },
-        { name: 'Build Pipeline / Train', behavior: 'Launches selected model training.', outcome: 'Trained model and metrics are generated.' },
+        { name: 'Build Pipeline', behavior: 'Launches training for the selected model.', outcome: 'The pipeline moves from analysis into training.' },
+        { name: 'Ask the AI Agent', behavior: 'Opens the chat-style helper.', outcome: 'You can ask why a model was recommended or what preprocessing happened.' },
       ],
-      note: 'Transition: Auto analysis -> Prediction testing.',
+      note: 'Transition: Analysis -> Training and evaluation.',
     },
     8: {
-      summary: 'User enters real-world feature values and tests model output. Accuracy and metrics confirm prediction reliability.',
-      actions: ['Fill prediction form with practical input values.', 'Run prediction using trained model.', 'Review predicted class/value and accuracy metrics.'],
+      summary: 'After training finishes, this page is about validation. You check the metrics, then test the trained model with real values to see what it predicts.',
+      actions: ['Read the accuracy score and the classification report or success banner.', 'Enter realistic values into the Test Your Model form.', 'Run prediction and compare the output with the expected class or value.'],
       buttons: [
-        { name: 'Run Prediction', behavior: 'Performs inference on entered values.', outcome: 'Returns prediction result.' },
-        { name: 'View Accuracy', behavior: 'Shows accuracy and evaluation scores.', outcome: 'User validates model performance.' },
+        { name: 'Run Prediction', behavior: 'Performs inference on the entered values.', outcome: 'The model returns a live prediction.' },
+        { name: 'Adjust Settings', behavior: 'Lets you change the test split or cross-validation setup.', outcome: 'You can retrain with different settings if accuracy is weak.' },
       ],
-      note: 'Transition: Prediction verified -> Payment (if feature/export requires).',
+      note: 'Transition: Prediction verified -> Payment or export, depending on access.',
     },
     9: {
-      summary: 'Payment step unlocks subscription-based features and export permissions when required by selected plan.',
-      actions: ['Open payment page and compare plan options.', 'Complete transaction with selected plan.', 'Confirm unlock status in app.'],
+      summary: 'Payment only appears when an export is protected. It is the checkout layer for downloads, not part of the core training flow.',
+      actions: ['Open the payment page from a locked download action.', 'Choose the payment method and fill the required details.', 'Confirm payment so the download can start.'],
       buttons: [
-        { name: 'Choose Plan', behavior: 'Selects pricing tier.', outcome: 'Correct entitlement is assigned.' },
-        { name: 'Pay Now', behavior: 'Completes payment processing.', outcome: 'Restricted features become available.' },
+        { name: 'Choose Plan', behavior: 'Selects the checkout option.', outcome: 'The right download entitlement is prepared.' },
+        { name: 'Pay Now', behavior: 'Completes the checkout flow.', outcome: 'The export becomes available after confirmation.' },
       ],
-      note: 'Transition: Payment success -> Download step.',
+      note: 'Transition: Payment success -> Export download.',
     },
     10: {
-      summary: 'Final step exports model artifacts and generated Python script for external use, deployment, or reproducibility.',
-      actions: ['Open export/download options.', 'Download trained model and .py script.', 'Store files with version naming for reuse.'],
+      summary: 'The final step is export. You take the trained artifact out of Ownquesta as either a model file or a Python script that reproduces the workflow.',
+      actions: ['Use the download buttons after the payment or access check is complete.', 'Save the .pkl model if you want to deploy the trained artifact.', 'Save the .py script if you want the generated pipeline code for reuse or review.'],
       buttons: [
-        { name: 'Download Model', behavior: 'Exports trained model artifact.', outcome: 'Model can be used outside the app.' },
-        { name: 'Download Python Script (.py)', behavior: 'Exports runnable generated script.', outcome: 'Pipeline is reproducible in external environment.' },
+        { name: 'Download Model', behavior: 'Exports the trained model artifact.', outcome: 'The model can be reused outside the app.' },
+        { name: 'Download Python Script (.py)', behavior: 'Exports the generated pipeline script.', outcome: 'You get a reproducible runnable version of the workflow.' },
       ],
       note: 'Transition: Download complete -> App user flow finished.',
     },
   };
 
+  const guideSectionLabels: Record<number, { summary: string; actions: string; buttons: string; note: string }> = {
+    1: { summary: 'Snapshot', actions: 'What to notice', buttons: 'Primary links', note: 'Why this page matters' },
+    2: { summary: 'Decision path', actions: 'How auth moves', buttons: 'Auth controls', note: 'Route outcome' },
+    3: { summary: 'Handshake check', actions: 'What changes after sign in', buttons: 'Workspace controls', note: 'Route outcome' },
+    4: { summary: 'Workspace map', actions: 'How to read the dashboard', buttons: 'Project controls', note: 'Route outcome' },
+    5: { summary: 'Mode comparison', actions: 'How to choose a mode', buttons: 'Mode switch', note: 'Route outcome' },
+    6: { summary: 'Field guide', actions: 'Upload sequence', buttons: 'Data controls', note: 'Route outcome' },
+    7: { summary: 'Analysis timeline', actions: 'What the agent does', buttons: 'Analysis controls', note: 'Route outcome' },
+    8: { summary: 'Validation review', actions: 'How to check results', buttons: 'Test controls', note: 'Route outcome' },
+    9: { summary: 'Checkout guide', actions: 'Payment sequence', buttons: 'Checkout controls', note: 'Route outcome' },
+    10: { summary: 'Export guide', actions: 'What gets downloaded', buttons: 'Export controls', note: 'Route outcome' },
+  };
+
   const renderStepContent = (stepNumber: number, accentColor: string) => {
     const guide = stepGuides[stepNumber];
+    const labels = guideSectionLabels[stepNumber];
     if (!guide) return null;
 
     return (
       <div className="space-y-6">
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
-          <h3 className="text-lg md:text-xl font-semibold text-white">How This Page Works</h3>
+          <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
           <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-[linear-gradient(140deg,rgba(255,255,255,0.04),rgba(124,92,191,0.08))] p-6 md:p-7">
-          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Process Flow</h4>
+          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">{labels.actions}</h4>
           <div className="mt-4 space-y-3">
             {guide.actions.map((action, idx) => (
               <div key={idx} className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3">
@@ -1401,7 +1415,7 @@ export default function TutorialPage() {
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
-          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Buttons and What They Do</h4>
+          <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">{labels.buttons}</h4>
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             {guide.buttons.map((btn, idx) => (
               <div key={idx} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
@@ -1414,6 +1428,7 @@ export default function TutorialPage() {
         </div>
 
         <div className="rounded-2xl border px-4 py-3" style={{ borderColor: `${accentColor}55`, background: `${accentColor}14` }}>
+          <div className="text-[11px] uppercase tracking-[0.14em] text-white/40 mb-1">{labels.note}</div>
           <p className="text-sm font-medium text-white/80">{guide.note}</p>
         </div>
       </div>
@@ -1421,16 +1436,16 @@ export default function TutorialPage() {
   };
 
   const topicDescriptions: Record<number, string> = {
-    1: 'Home entry with About and Help guidance.',
-    2: 'Authenticate using Login or Register.',
-    3: 'Complete Welcome onboarding and profile update.',
-    4: 'Use dashboard to create and manage projects.',
-    5: 'Choose Easy Mode or Code Mode in Lab Playground.',
+    1: 'Start on the public landing page and decide whether to read, sign in, or get help.',
+    2: 'Use the same auth flow to sign in, register, or recover access.',
+    3: 'See the authenticated home page and jump straight to your workspace.',
+    4: 'Create projects, inspect stats, and move into the lab.',
+    5: 'Switch between guided Easy Mode and notebook-style Code Mode.',
     6: 'Upload dataset and set prediction target column.',
-    7: 'Run auto analysis and generate model options.',
-    8: 'Enter real values and check prediction + accuracy.',
-    9: 'Complete payment for required access.',
-    10: 'Download model artifact and Python script (.py).',
+    7: 'Run automated analysis and review model suggestions.',
+    8: 'Validate the trained model with real values and metrics.',
+    9: 'Use checkout only when an export is locked.',
+    10: 'Export the model artifact or the generated Python script.',
   };
 
   return (
@@ -1504,7 +1519,7 @@ export default function TutorialPage() {
               >
                 <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase font-semibold text-violet-300/80 mb-3">Tutorial Overview</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Ownquesta App User Flow</h1>
-                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, Lab, Payment, and final downloads.</p>
+                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, the authenticated Home page, Dashboard, Lab, payment, and final downloads.</p>
               </motion.div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
