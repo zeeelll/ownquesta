@@ -175,6 +175,58 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Coming Soon */}
+        <section className="mb-16 sm:mb-20">
+          <div className="mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase border border-[rgba(110,84,200,0.16)] bg-[rgba(110,84,200,0.08)] text-[#a87edf] mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c7a7f1] animate-pulse" />
+              Coming Soon
+            </div>
+            <p className="text-[#8fa3c4] mt-6 leading-relaxed font-[350] max-w-[700px]">
+              Two major upgrades are in development to extend Ownquesta from intelligent model creation into deeper automation and production-ready delivery.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-10">
+            {[
+              {
+                badge: 'Feature 01',
+                title: 'AutoDL',
+                description:
+                  'AutoDL will automatically test deep learning architectures, tune hyperparameters, and select the strongest pipeline for your dataset with minimal manual setup.',
+                includes:
+                  'Includes: architecture search, GPU-aware training plans, and one-click model promotion to production candidates.',
+                icon: <><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M10 6h4"/><path d="M6 10v4"/><path d="M14 18h-4"/><path d="M18 10v4"/></>,
+              },
+              {
+                badge: 'Feature 02',
+                title: 'Cloud Deployment',
+                description:
+                  'Cloud Deployment will publish trained models as managed APIs with secure endpoints, usage monitoring, and scalable inference without infrastructure setup.',
+                includes:
+                  'Includes: environment templates, endpoint keys, rollout controls, and live deployment health visibility.',
+                icon: <><path d="M20 17.5a4.5 4.5 0 0 0-1.2-8.84A6.5 6.5 0 0 0 6 9.5a4 4 0 0 0 .5 8h13z"/><path d="M12 11v8"/><path d="m8.8 15.2 3.2 3.2 3.2-3.2"/></>,
+              },
+            ].map((item, i) => (
+              <div key={i} className="group card-premium rounded-3xl p-7 sm:p-8">
+                <div className="flex items-start justify-between gap-4 mb-5">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-[#a87edf] font-semibold mb-2">{item.badge}</p>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{item.title}</h3>
+                  </div>
+                  <div className="w-12 h-12 rounded-2xl border border-[rgba(110,84,200,0.18)] bg-[rgba(110,84,200,0.10)] flex items-center justify-center text-[#a87edf] group-hover:bg-[rgba(110,84,200,0.18)] transition-colors duration-300">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">{item.icon}</svg>
+                  </div>
+                </div>
+                <p className="text-sm sm:text-[15px] text-[#8fa3c4] leading-loose font-[350] mb-5">{item.description}</p>
+                <div className="glass-purple rounded-2xl border border-[rgba(110,84,200,0.14)] px-4 py-3 text-xs text-[#9cb0cc] font-[350]">
+                  {item.includes}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Stats + Mission */}
         <section className="mb-16">
           <div className="mb-10">
