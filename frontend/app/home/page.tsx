@@ -153,7 +153,7 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 sm:px-5 md:px-8 pt-28 sm:pt-36 md:pt-44 pb-20">
-        <div className="w-full max-w-[860px] text-center relative z-10 rounded-[2rem] border border-white/[0.08] bg-[rgba(6,8,18,0.42)] backdrop-blur-xl px-5 sm:px-8 md:px-12 py-10 sm:py-12 md:py-14 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+        <div className="w-full max-w-[860px] text-center relative z-10 px-5 sm:px-8 md:px-12 py-10 sm:py-12 md:py-14">
 
           {/* Greeting badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-widest uppercase mb-8 border border-white/10 bg-white/[0.08] backdrop-blur-sm text-[#d8ccff] animate-fade-in-up shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
