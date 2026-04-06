@@ -182,47 +182,85 @@ const missingDataStrategies = [
 	{ method: "Model Predict", dataLoss: 0, biasRisk: 15, speed: 20 },
 ];
 
-// Model building comparison - expanded
+// Model building comparison by model family
 const modelComparisonData = [
 	{
-		model: "Linear Regression",
-		simplicity: 95,
-		interpretability: 90,
-		nonlinearPower: 35,
-		scalability: 90,
-		trainingSpeed: 95,
+		model: "Regression",
+		simplicity: 90,
+		interpretability: 88,
+		nonlinearPower: 45,
+		scalability: 84,
+		trainingSpeed: 92,
 	},
 	{
-		model: "Decision Tree",
+		model: "Classification",
 		simplicity: 80,
-		interpretability: 85,
-		nonlinearPower: 70,
-		scalability: 60,
-		trainingSpeed: 75,
+		interpretability: 76,
+		nonlinearPower: 74,
+		scalability: 78,
+		trainingSpeed: 72,
 	},
 	{
-		model: "Random Forest",
-		simplicity: 60,
-		interpretability: 55,
-		nonlinearPower: 85,
-		scalability: 70,
-		trainingSpeed: 50,
+		model: "Clustering",
+		simplicity: 72,
+		interpretability: 68,
+		nonlinearPower: 62,
+		scalability: 74,
+		trainingSpeed: 66,
 	},
 	{
-		model: "Neural Network",
+		model: "Association",
+		simplicity: 65,
+		interpretability: 80,
+		nonlinearPower: 52,
+		scalability: 58,
+		trainingSpeed: 60,
+	},
+	{
+		model: "Neural Networks",
 		simplicity: 35,
-		interpretability: 30,
-		nonlinearPower: 95,
-		scalability: 85,
-		trainingSpeed: 30,
+		interpretability: 28,
+		nonlinearPower: 96,
+		scalability: 86,
+		trainingSpeed: 38,
+	},
+];
+
+const modelBuildingCards = [
+	{
+		name: "Regression",
+		math: "Predict continuous values (house price, sales)",
+		models: "Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net, SVR",
+		strength: "Best for numeric prediction with clear trends",
+		weakness: "Struggles when relationship is highly non-linear",
 	},
 	{
-		model: "XGBoost",
-		simplicity: 50,
-		interpretability: 50,
-		nonlinearPower: 90,
-		scalability: 75,
-		trainingSpeed: 55,
+		name: "Classification",
+		math: "Predict labels/classes (spam, fraud, disease)",
+		models: "Logistic Regression, Naive Bayes, KNN, Decision Tree, Random Forest, SVM, XGBoost",
+		strength: "Strong for yes/no or multi-class decisions",
+		weakness: "Needs balanced classes and careful metrics",
+	},
+	{
+		name: "Clustering",
+		math: "Group similar samples without labels",
+		models: "K-Means, Hierarchical Clustering, DBSCAN, Gaussian Mixture Models, Mean Shift",
+		strength: "Useful for customer segmentation and discovery",
+		weakness: "Cluster quality depends on distance assumptions",
+	},
+	{
+		name: "Association",
+		math: "Find co-occurrence rules (A => B)",
+		models: "Apriori, FP-Growth, ECLAT",
+		strength: "Excellent for basket analysis and recommendations",
+		weakness: "Can produce too many weak/spurious rules",
+	},
+	{
+		name: "Neural Networks",
+		math: "Layered neurons learn complex non-linear patterns",
+		models: "MLP, CNN, RNN, LSTM, GRU, Autoencoder, Transformer",
+		strength: "Best for image, NLP, speech, and deep features",
+		weakness: "Needs more data, compute, and tuning",
 	},
 ];
 
@@ -295,6 +333,7 @@ function SectionContainer({
 	realLifeExample,
 	keyPoints,
 	visualBlock,
+	showVisual = true,
 	technicalNote,
 }: {
 	id: SectionId;
@@ -306,7 +345,8 @@ function SectionContainer({
 	deepExplanation: string[];
 	realLifeExample: string;
 	keyPoints: string[];
-	visualBlock: JSX.Element;
+	visualBlock?: JSX.Element;
+	showVisual?: boolean;
 	technicalNote?: string;
 }) {
 	const styleCopy: Record<
@@ -791,10 +831,12 @@ function SectionContainer({
 				</div>
 			</article>
 
-			<article className={`mt-6 rounded-2xl border p-5 ${theme.visualCard}`}>
-				<h3 className={`text-lg font-semibold ${theme.visualTitle}`}>Visual Analytics</h3>
-				<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
-			</article>
+			{showVisual && visualBlock ? (
+				<article className={`mt-6 rounded-2xl border p-5 ${theme.visualCard}`}>
+					<h3 className={`text-lg font-semibold ${theme.visualTitle}`}>Visual Analytics</h3>
+					<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
+				</article>
+			) : null}
 
 			<div className={`mt-8 h-px w-full bg-gradient-to-r from-transparent to-transparent ${theme.divider}`} />
 		</motion.section>
@@ -1117,6 +1159,7 @@ export default function MLTutorialPage() {
 								index={2}
 								title={sectionMap["why-ml"].title}
 								icon={sectionMap["why-ml"].icon}
+								showVisual={false}
 								teachingStyle="problem-solution"
 								simpleExplanation="Traditional programming works when rules are known and fixed. Machine Learning shines when patterns are complex, hidden in data, or change over time. ML automatically discovers these patterns instead of requiring programmers to code every rule manually."
 								deepExplanation={[
@@ -1241,27 +1284,33 @@ export default function MLTutorialPage() {
 								index={3}
 								title={sectionMap.types.title}
 								icon={sectionMap.types.icon}
+								showVisual={false}
 								teachingStyle="comparison-table"
-								simpleExplanation="Machine Learning isn't one technique—it's a family of approaches. The type you choose depends on your data (labeled vs unlabeled), your goal (prediction vs discovery), and your feedback mechanism (historical answers vs trial-and-error rewards)."
+								simpleExplanation="Machine Learning has three foundational types: Supervised Learning predicts known targets from labeled data, Unsupervised Learning discovers hidden structure in unlabeled data, and Reinforcement Learning learns optimal actions through rewards over time. Choosing the correct type depends on whether labels exist, whether decisions are one-shot or sequential, and how success is measured."
 								deepExplanation={[
-									"Supervised Learning uses labeled historical data where you already know the correct answer. The model learns to map inputs to outputs by minimizing prediction errors.",
-									"Common supervised tasks include classification (predicting categories like spam/not spam) and regression (predicting numbers like house prices or temperatures).",
-									"Unsupervised Learning finds hidden patterns in unlabeled data. It's used for customer segmentation, anomaly detection, and discovering natural groupings you didn't know existed.",
-									"Clustering algorithms group similar items together, while dimensionality reduction techniques find lower-dimensional representations of complex data.",
-									"Semi-Supervised Learning combines small amounts of labeled data with large amounts of unlabeled data, reducing labeling costs while maintaining accuracy.",
-									"Reinforcement Learning trains agents through trial and error. The model receives rewards or penalties for actions, learning optimal strategies over time.",
-									"Self-Supervised Learning creates its own training labels from data structure (like predicting the next word in a sentence), enabling models to learn from unlabeled text.",
-									"Real-world systems often combine multiple types: supervised for predictions, unsupervised for feature discovery, and reinforcement for decision optimization.",
+									"Supervised Learning - Data format: each row has features X and a correct label/target y. Goal: learn a mapping f(X) -> y that generalizes to unseen samples.",
+									"Supervised Learning - Task types: Classification (spam/not spam, disease class, sentiment class) and Regression (sales forecast, price prediction, demand estimation).",
+									"Supervised Learning - Algorithms: Linear/Logistic Regression, Decision Tree, Random Forest, XGBoost, SVM, MLP. Selection depends on interpretability, scale, and latency constraints.",
+									"Supervised Learning - Evaluation: Classification uses precision, recall, F1, ROC-AUC; Regression uses MAE, RMSE, R2. Always validate with leakage-safe train/validation/test splits.",
+									"Unsupervised Learning - Data format: only features X, no labels. Goal: uncover structure that is useful for insight, feature design, or downstream prediction.",
+									"Unsupervised Learning - Core patterns: clustering (groups), dimensionality reduction (compact representation), anomaly detection (rare behavior), and similarity search.",
+									"Unsupervised Learning - Algorithms: K-Means, Hierarchical Clustering, DBSCAN, Gaussian Mixture Models, PCA, UMAP. Each assumes different cluster shapes/density behavior.",
+									"Unsupervised Learning - Evaluation: internal scores (silhouette, Davies-Bouldin) are helpful, but business interpretability and actionability are the real success criteria.",
+									"Reinforcement Learning - Data format: interaction trajectory (state, action, reward, next state). Goal: maximize long-term return instead of immediate one-step accuracy.",
+									"Reinforcement Learning - Components: agent, environment, policy, reward function, value function, and exploration strategy (epsilon-greedy, entropy-based exploration).",
+									"Reinforcement Learning - Algorithms: Q-Learning, Deep Q Networks, SARSA, Policy Gradient, Actor-Critic. Deep RL handles high-dimensional state spaces.",
+									"Reinforcement Learning - Challenges: sparse rewards, unstable training, and reward hacking. Practical systems need safety constraints, offline evaluation, and staged rollout.",
 								]}
-								realLifeExample="Netflix uses multiple ML types together: supervised learning predicts your rating for movies based on past ratings, unsupervised clustering groups users with similar tastes, and reinforcement learning optimizes which recommendations to show first based on click-through rewards. Each type solves a different part of the recommendation problem."
+								realLifeExample="An e-learning platform combines all three: Supervised Learning predicts whether a student will complete a lesson, Unsupervised Learning segments learners by pace and topic preference, and Reinforcement Learning optimizes which lesson to recommend next for long-term retention and engagement."
 								keyPoints={[
-									"Supervised learning requires labeled data but provides the most accurate predictions when labels are available.",
-									"Unsupervised learning discovers unexpected patterns but requires domain expertise to interpret results.",
-									"Semi-supervised bridges the gap when labeling is expensive—common in medical imaging or specialized domains.",
-									"Reinforcement learning excels at sequential decision-making but requires careful reward function design.",
-									"The 'best' ML type depends on your data availability, business goal, and evaluation criteria.",
-									"Transfer learning allows models trained on one task to accelerate learning on related tasks.",
-									"Active learning strategically selects which unlabeled examples to label next, maximizing learning efficiency.",
+									"Supervised = labeled data + direct target prediction; best for forecasting and classification decisions.",
+									"Unsupervised = unlabeled data + structure discovery; best for segmentation, anomaly discovery, and representation learning.",
+									"Reinforcement = sequential actions + delayed rewards; best for recommendation ordering, control systems, and adaptive decision policies.",
+									"If labels are available and trustworthy, start with supervised baselines first.",
+									"If labels are unavailable, use unsupervised outputs to create features or pseudo-labeling strategies.",
+									"If action now changes future context, reinforcement learning is often more appropriate than static supervised prediction.",
+									"Teams commonly combine all three in production pipelines for stronger end-to-end performance.",
+									"Model success should be measured by business impact, not only technical metrics.",
 								]}
 								visualBlock={
 									<div className="space-y-5">
@@ -1401,7 +1450,7 @@ export default function MLTutorialPage() {
 										</div>
 									</div>
 								}
-								technicalNote="Modern deep learning blurs these boundaries. Self-supervised pretraining (unsupervised) followed by fine-tuning (supervised) is now standard for large language models. This two-stage approach learns general representations from unlabeled data, then specializes to specific tasks with minimal labeled examples."
+								technicalNote="A strong practical workflow is: (1) use unsupervised methods to understand and structure raw data, (2) train supervised models for high-accuracy prediction tasks, and (3) apply reinforcement learning only where decision sequences and delayed outcomes are central to the product objective."
 							/>
 
 							{/* Section 4: Data Preprocessing - Area Chart + Radar */}
@@ -1541,33 +1590,33 @@ export default function MLTutorialPage() {
 								title={sectionMap["model-building"].title}
 								icon={sectionMap["model-building"].icon}
 								teachingStyle="mini-examples"
-								simpleExplanation="Model building is the art and science of selecting algorithms that match your problem's characteristics. Simple models offer interpretability and speed but may underfit complex patterns. Complex models capture intricate relationships but risk overfitting and require more data and computational resources."
+								simpleExplanation="Model building starts by choosing the right family for the task: Regression for numeric prediction, Classification for labeled decisions, Clustering for unlabeled grouping, Association for rule mining, and Neural Networks for complex pattern learning."
 								deepExplanation={[
-									"Linear models (Linear/Logistic Regression) assume a straight-line relationship between features and outcomes. They're fast, interpretable, and work well when this assumption holds.",
-									"Decision Trees split data using yes/no questions about features. They handle non-linear patterns and don't require feature scaling, but single trees can overfit easily.",
-									"Ensemble methods combine multiple weak models into a strong predictor. Random Forests use many trees with random feature subsets, while XGBoost adds trees sequentially to correct previous errors.",
-									"K-Nearest Neighbors makes predictions by averaging the K most similar training examples. It's simple and requires no training, but becomes slow with large datasets.",
-									"Support Vector Machines find the optimal boundary separating classes by maximizing the margin. They work well in high dimensions but can be computationally expensive.",
-									"Neural Networks learn hierarchical representations through layers of connected neurons. Shallow networks suit tabular data, while deep networks excel at images, text, and sequences.",
-									"Gradient Boosting builds an ensemble by sequentially adding models that focus on examples the previous models got wrong, achieving state-of-the-art results on many tasks.",
-									"Model selection requires comparing multiple algorithms using cross-validation, considering accuracy, training time, inference speed, and interpretability requirements.",
+									"Regression predicts continuous values such as demand, revenue, and risk score. Common algorithms are Linear Regression, Ridge/Lasso, and tree-based regressors.",
+									"Classification predicts categories such as spam/not-spam or fraud/not-fraud. Popular models include Logistic Regression, SVM, Decision Trees, Random Forest, and boosting.",
+									"Clustering finds hidden groups in unlabeled data, for example customer segments. K-Means, DBSCAN, and Hierarchical Clustering are standard choices.",
+									"Association learning discovers rule patterns like customers who buy bread often buy butter. Apriori and FP-Growth are typical algorithms.",
+									"Neural Networks learn complex non-linear representations. MLP works for tabular data, while CNN/RNN/Transformers are used for images, sequences, and language.",
+									"Start with a baseline inside each family, then tune hyperparameters and compare with cross-validation.",
+									"Choose by problem type first, then by constraints: interpretability, latency, available data, and compute budget.",
+									"Final model selection should balance business impact, explainability, stability, and deployment cost.",
 								]}
-								realLifeExample="For predicting credit defaults, a bank might test multiple models: Logistic Regression provides baseline interpretability for regulators, Random Forest improves accuracy while maintaining some explainability through feature importances, and XGBoost achieves the best performance. The final choice balances performance gains against the regulatory need to explain why specific loan applications were denied."
+								realLifeExample="In e-commerce, teams use all five families together: Regression to forecast next-month sales, Classification to predict churn, Clustering to segment users, Association rules for 'frequently bought together' recommendations, and Neural Networks for image search and personalized ranking."
 								keyPoints={[
-									"Start with a simple baseline model (like logistic regression) before trying complex algorithms.",
-									"Use cross-validation to compare models fairly on the same data splits and avoid lucky/unlucky random splits.",
-									"Simple models generalize better with small datasets; complex models need thousands or millions of examples.",
-									"Ensemble methods usually outperform single models but take longer to train and deploy.",
-									"Interpretability matters for regulated industries, high-stakes decisions, and debugging model failures.",
-									"Consider inference speed for real-time applications—neural networks may be too slow for millisecond requirements.",
-									"No Free Lunch Theorem: no single algorithm is best for all problems—always test multiple approaches.",
-									"Domain knowledge guides feature engineering, which often matters more than algorithm choice.",
+									"Regression -> continuous target; Classification -> class label; Clustering -> no label; Association -> co-occurrence rules; Neural Networks -> high-complexity patterns.",
+									"Use family-specific metrics: RMSE/MAE for regression, F1/AUC for classification, silhouette score for clustering, support-confidence-lift for association.",
+									"Start with simpler models in each family before moving to heavy neural architectures.",
+									"Association rules are descriptive, not predictive; combine them with predictive models for better product decisions.",
+									"Clustering output should be validated with business meaning, not only mathematical score.",
+									"Neural networks require stronger regularization and monitoring to avoid overfitting.",
+									"Always compare alternatives within the same problem family before deployment.",
+									"Select the final model by accuracy, explainability, inference latency, and maintenance cost.",
 								]}
 								visualBlock={
 									<div className="space-y-5">
 										<div className="h-96 rounded-xl border border-slate-200 bg-white p-4">
 											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Multi-dimensional Model Comparison
+												Model Family Comparison
 											</p>
 											<ResponsiveContainer width="100%" height="92%">
 												<RadarChart data={modelComparisonData}>
@@ -1615,39 +1664,8 @@ export default function MLTutorialPage() {
 											</ResponsiveContainer>
 										</div>
 
-										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-											{[
-												{
-													name: "Linear Regression",
-													math: "y = β₀ + β₁x₁ + ... + βₙxₙ",
-													strength: "Fast, interpretable coefficients",
-													weakness: "Assumes linear relationships",
-												},
-												{
-													name: "Decision Tree",
-													math: "if-else rules on features",
-													strength: "Handles non-linearity, no scaling needed",
-													weakness: "Prone to overfitting",
-												},
-												{
-													name: "Random Forest",
-													math: "Ensemble of decision trees",
-													strength: "Robust, handles complex patterns",
-													weakness: "Slower inference, harder to interpret",
-												},
-												{
-													name: "Neural Network",
-													math: "Layered transformations: h = σ(Wx + b)",
-													strength: "Learns hierarchical features",
-													weakness: "Needs lots of data, black-box",
-												},
-												{
-													name: "XGBoost",
-													math: "Gradient-boosted trees",
-													strength: "State-of-the-art tabular performance",
-													weakness: "Sensitive to hyperparameters",
-												},
-											].map((model) => (
+										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+											{modelBuildingCards.map((model) => (
 												<div
 													key={model.name}
 													className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-sky-400 hover:shadow-md"
@@ -1656,6 +1674,9 @@ export default function MLTutorialPage() {
 													<div className="mt-2 rounded bg-slate-100 px-2 py-1">
 														<p className="text-[11px] font-mono text-slate-700">{model.math}</p>
 													</div>
+													<p className="mt-2 text-[11px] leading-5 text-sky-800">
+														<span className="font-semibold">Models:</span> {model.models}
+													</p>
 													<p className="mt-3 text-xs leading-5 text-emerald-700">
 														<span className="font-semibold">✓</span> {model.strength}
 													</p>
@@ -1676,6 +1697,7 @@ export default function MLTutorialPage() {
 								index={6}
 								title={sectionMap["training-prediction"].title}
 								icon={sectionMap["training-prediction"].icon}
+								showVisual={false}
 								teachingStyle="student-analogy"
 								simpleExplanation="Training optimizes model parameters to minimize errors on historical data. Validation guides hyperparameter tuning. Testing measures real-world performance. The goal is generalization—models that perform well on new, unseen data, not just memorization of training examples."
 								deepExplanation={[
