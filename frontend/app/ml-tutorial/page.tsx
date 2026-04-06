@@ -265,8 +265,8 @@ export default function MLTutorialPage() {
 				</header>
 
 				<section className="grid flex-1 gap-0 lg:min-h-0 lg:grid-cols-[380px_minmax(0,1fr)]">
-					<aside className="border-r border-white/10 bg-[#0d1230]/90 p-4 backdrop-blur-xl lg:h-full lg:overflow-y-auto">
-						<div className="mb-5 rounded-xl border border-cyan-300/25 bg-[#131a3d]/80 p-4">
+					<aside className="flex flex-col border-r border-white/10 bg-[#0d1230]/90 p-3 backdrop-blur-xl lg:h-full lg:overflow-hidden">
+						<div className="mb-3 rounded-xl border border-cyan-300/25 bg-[#131a3d]/80 p-3">
 							<div className="mb-2 flex items-center justify-between text-sm">
 								<span className="text-cyan-200">Progress</span>
 								<span className="font-semibold text-white">{completedSteps.length}/8 completed</span>
@@ -280,7 +280,7 @@ export default function MLTutorialPage() {
 							</div>
 						</div>
 
-						<div className="space-y-3">
+						<div className="grid flex-1 grid-cols-1 gap-2 content-start">
 							{TUTORIAL_STEPS.map((step) => {
 								const StepIcon = step.icon;
 								const isCompleted = completedSteps.includes(step.id);
@@ -305,13 +305,13 @@ export default function MLTutorialPage() {
 										}}
 									>
 										<div
-											className={`relative rounded-[11px] px-3 py-3 ${
+											className={`relative rounded-[11px] px-3 py-2 ${
 												isActive
 													? 'bg-gradient-to-br from-[#19305a] to-[#24153b]'
 													: 'bg-gradient-to-br from-[#121935] to-[#0d142e]'
 											}`}
 										>
-											<div className="mb-2 flex items-center justify-between">
+											<div className="mb-1 flex items-center justify-between">
 												<span className="text-xs font-semibold tracking-[0.2em] text-cyan-200">{String(step.id).padStart(2, '0')}</span>
 
 												{isCompleted ? (
@@ -323,11 +323,21 @@ export default function MLTutorialPage() {
 												)}
 											</div>
 
-											<h3 className="text-sm font-semibold text-white">{step.title}</h3>
-											<p className="mt-1 text-xs leading-relaxed text-[#b9c8ef]">{step.shortDescription}</p>
+											<h3 className="text-[13px] font-semibold leading-snug text-white">{step.title}</h3>
+											<p
+												className="mt-1 text-[11px] leading-tight text-[#b9c8ef]"
+												style={{
+													display: '-webkit-box',
+													WebkitLineClamp: 2,
+													WebkitBoxOrient: 'vertical',
+													overflow: 'hidden',
+												}}
+											>
+												{step.shortDescription}
+											</p>
 
 											{!isLocked && (
-												<span className="mt-2 inline-flex rounded-full border border-white/15 px-2 py-0.5 text-[10px] tracking-wide text-cyan-100">
+												<span className="mt-1.5 inline-flex rounded-full border border-white/15 px-2 py-0.5 text-[10px] tracking-wide text-cyan-100">
 													{isCompleted ? 'Completed' : isActive ? 'Active' : 'Unlocked'}
 												</span>
 											)}
