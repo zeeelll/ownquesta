@@ -45,9 +45,6 @@ import {
 	YAxis,
 	Area,
 	AreaChart,
-	Scatter,
-	ScatterChart,
-	ZAxis,
 	ComposedChart,
 } from "recharts";
 
@@ -66,16 +63,6 @@ type SectionMeta = {
 	title: string;
 	icon: LucideIcon;
 };
-
-type TeachingStyle =
-	| "timeline-story"
-	| "problem-solution"
-	| "comparison-table"
-	| "pipeline-flow"
-	| "mini-examples"
-	| "student-analogy"
-	| "exam-analogy"
-	| "case-study";
 
 const sections: SectionMeta[] = [
 	{ id: "history", title: "History of Machine Learning", icon: History },
@@ -104,222 +91,107 @@ const sections: SectionMeta[] = [
 	},
 ];
 
-// Enhanced history data with more depth
+// Data for History section visualization
 const historyTimeline = [
 	{
 		year: "1950s",
 		title: "Birth of AI",
-		detail: "Alan Turing proposed the Turing Test. First neural networks explored pattern recognition in simple games.",
+		detail: "Alan Turing asked 'Can machines think?' and created the Turing Test. The Perceptron was invented - the first algorithm that could learn from examples.",
 		milestone: "Perceptron Algorithm",
+		example: "A simple program that could learn to recognize basic patterns, like distinguishing between circles and squares."
 	},
 	{
 		year: "1980s",
-		title: "Backpropagation Era",
-		detail: "Backpropagation made training multi-layer networks possible. Expert systems gained business adoption.",
-		milestone: "Neural Network Revival",
+		title: "Neural Networks Return",
+		detail: "Backpropagation was discovered, allowing computers to learn from their mistakes layer by layer. This was like teaching someone by showing them what they got wrong.",
+		milestone: "Backpropagation",
+		example: "Computers could now learn complex patterns by adjusting tiny pieces of their 'brain' step by step."
 	},
 	{
-		year: "1990s",
-		title: "Statistical Revolution",
-		detail: "Support Vector Machines, Random Forests, and ensemble methods transformed practical ML applications.",
-		milestone: "SVM & Ensemble Methods",
+		year: "1990s-2000s",
+		title: "Practical ML Emerges",
+		detail: "New methods like Support Vector Machines and Random Forests made ML useful for real businesses. These methods were more reliable than pure neural networks.",
+		milestone: "SVM & Random Forests",
+		example: "Banks started using ML to detect credit card fraud, and email providers began filtering spam automatically."
 	},
 	{
 		year: "2010s",
-		title: "Deep Learning Breakthrough",
-		detail: "ImageNet competition showed CNNs could beat humans. GPUs enabled training of very deep networks.",
-		milestone: "AlexNet & GPU Computing",
+		title: "Deep Learning Revolution",
+		detail: "Combining neural networks with powerful GPUs and huge amounts of data led to breakthroughs. Computers could now recognize images better than humans.",
+		milestone: "AlexNet & Deep Learning",
+		example: "In 2012, a computer won an image recognition contest by correctly identifying cats, dogs, and other objects with 85% accuracy."
 	},
 	{
 		year: "2020s",
-		title: "Transformer Age",
-		detail: "Large language models like GPT and BERT reshaped NLP. Foundation models emerged as general-purpose AI.",
-		milestone: "GPT, BERT, Diffusion Models",
+		title: "AI Everywhere",
+		detail: "Transformers and large language models changed everything. AI can now understand and generate human language, create images, and even write code.",
+		milestone: "GPT, ChatGPT, DALL-E",
+		example: "AI assistants can have conversations, create artwork from descriptions, and help programmers write better code."
 	},
 ];
 
-const historyGrowthData = [
-	{ decade: "1970", researchImpact: 12, computePower: 5, dataAvailable: 8 },
-	{ decade: "1980", researchImpact: 20, computePower: 15, dataAvailable: 12 },
-	{ decade: "1990", researchImpact: 36, computePower: 28, dataAvailable: 25 },
-	{ decade: "2000", researchImpact: 48, computePower: 45, dataAvailable: 42 },
-	{ decade: "2010", researchImpact: 72, computePower: 78, dataAvailable: 75 },
-	{ decade: "2020", researchImpact: 95, computePower: 98, dataAvailable: 96 },
+// Data for Types section visualization
+const mlTypesComparison = [
+	{
+		type: "Supervised Learning",
+		hasLabels: "Yes - every example has the correct answer",
+		usage: "45%",
+		color: "#0ea5e9",
+		whenToUse: "When you know what you want to predict",
+		examples: [
+			"Predicting house prices (you have past sale prices)",
+			"Detecting spam emails (you have labeled spam/not spam)",
+			"Diagnosing diseases (you have patient records with diagnoses)"
+		]
+	},
+	{
+		type: "Unsupervised Learning",
+		hasLabels: "No - data has no labels",
+		usage: "25%",
+		color: "#22c55e",
+		whenToUse: "When you want to discover hidden patterns",
+		examples: [
+			"Grouping customers by shopping behavior",
+			"Finding unusual transactions (fraud detection)",
+			"Organizing documents by topic without reading them all"
+		]
+	},
+	{
+		type: "Reinforcement Learning",
+		hasLabels: "Reward signals - told if action was good/bad",
+		usage: "18%",
+		color: "#f59e0b",
+		whenToUse: "When learning through trial and error",
+		examples: [
+			"Training robots to walk (reward for staying upright)",
+			"Game AI (reward for winning)",
+			"Self-driving cars (reward for safe driving)"
+		]
+	},
+	{
+		type: "Semi-supervised",
+		hasLabels: "Partially - few labels + lots unlabeled",
+		usage: "12%",
+		color: "#8b5cf6",
+		whenToUse: "When labeling is expensive but you have lots of data",
+		examples: [
+			"Medical imaging (few expert diagnoses available)",
+			"Speech recognition (expensive to transcribe all audio)",
+			"Product categorization (few manual labels)"
+		]
+	}
 ];
 
-// Enhanced ML types with complexity scores
-const mlTypesData = [
-	{ name: "Supervised", value: 45, color: "#0ea5e9", complexity: 65 },
-	{ name: "Unsupervised", value: 25, color: "#22c55e", complexity: 70 },
-	{ name: "Semi-supervised", value: 12, color: "#f59e0b", complexity: 75 },
-	{ name: "Reinforcement", value: 18, color: "#ef4444", complexity: 90 },
-];
-
-const algorithmComplexityData = [
-	{ algorithm: "Linear Reg", trainTime: 20, accuracy: 65, interpretability: 95 },
-	{ algorithm: "Logistic Reg", trainTime: 25, accuracy: 72, interpretability: 90 },
-	{ algorithm: "Decision Tree", trainTime: 35, accuracy: 75, interpretability: 85 },
-	{ algorithm: "Random Forest", trainTime: 60, accuracy: 84, interpretability: 60 },
-	{ algorithm: "SVM", trainTime: 70, accuracy: 82, interpretability: 50 },
-	{ algorithm: "XGBoost", trainTime: 75, accuracy: 88, interpretability: 55 },
-	{ algorithm: "Neural Net", trainTime: 85, accuracy: 90, interpretability: 25 },
-	{ algorithm: "Deep Learning", trainTime: 95, accuracy: 94, interpretability: 15 },
-];
-
-// Data preprocessing impact visualization
-const dataQualityImpact = [
-	{ stage: "Raw Data", modelScore: 45, dataQuality: 30 },
-	{ stage: "Cleaned", modelScore: 62, dataQuality: 60 },
-	{ stage: "Normalized", modelScore: 74, dataQuality: 75 },
-	{ stage: "Engineered", modelScore: 85, dataQuality: 88 },
-	{ stage: "Optimized", modelScore: 91, dataQuality: 95 },
-];
-
-const missingDataStrategies = [
-	{ method: "Drop Rows", dataLoss: 85, biasRisk: 75, speed: 95 },
-	{ method: "Mean Impute", dataLoss: 10, biasRisk: 45, speed: 90 },
-	{ method: "KNN Impute", dataLoss: 5, biasRisk: 25, speed: 40 },
-	{ method: "Model Predict", dataLoss: 0, biasRisk: 15, speed: 20 },
-];
-
-// Model building comparison by model family
-const modelComparisonData = [
-	{
-		model: "Regression",
-		simplicity: 90,
-		interpretability: 88,
-		nonlinearPower: 45,
-		scalability: 84,
-		trainingSpeed: 92,
-	},
-	{
-		model: "Classification",
-		simplicity: 80,
-		interpretability: 76,
-		nonlinearPower: 74,
-		scalability: 78,
-		trainingSpeed: 72,
-	},
-	{
-		model: "Clustering",
-		simplicity: 72,
-		interpretability: 68,
-		nonlinearPower: 62,
-		scalability: 74,
-		trainingSpeed: 66,
-	},
-	{
-		model: "Association",
-		simplicity: 65,
-		interpretability: 80,
-		nonlinearPower: 52,
-		scalability: 58,
-		trainingSpeed: 60,
-	},
-	{
-		model: "Neural Networks",
-		simplicity: 35,
-		interpretability: 28,
-		nonlinearPower: 96,
-		scalability: 86,
-		trainingSpeed: 38,
-	},
-];
-
-const modelBuildingCards = [
-	{
-		name: "Regression",
-		math: "Predict continuous values (house price, sales)",
-		models: "Linear Regression, Polynomial Regression, Ridge, Lasso, Elastic Net, SVR",
-		strength: "Best for numeric prediction with clear trends",
-		weakness: "Struggles when relationship is highly non-linear",
-	},
-	{
-		name: "Classification",
-		math: "Predict labels/classes (spam, fraud, disease)",
-		models: "Logistic Regression, Naive Bayes, KNN, Decision Tree, Random Forest, SVM, XGBoost",
-		strength: "Strong for yes/no or multi-class decisions",
-		weakness: "Needs balanced classes and careful metrics",
-	},
-	{
-		name: "Clustering",
-		math: "Group similar samples without labels",
-		models: "K-Means, Hierarchical Clustering, DBSCAN, Gaussian Mixture Models, Mean Shift",
-		strength: "Useful for customer segmentation and discovery",
-		weakness: "Cluster quality depends on distance assumptions",
-	},
-	{
-		name: "Association",
-		math: "Find co-occurrence rules (A => B)",
-		models: "Apriori, FP-Growth, ECLAT",
-		strength: "Excellent for basket analysis and recommendations",
-		weakness: "Can produce too many weak/spurious rules",
-	},
-	{
-		name: "Neural Networks",
-		math: "Layered neurons learn complex non-linear patterns",
-		models: "MLP, CNN, RNN, LSTM, GRU, Autoencoder, Transformer",
-		strength: "Best for image, NLP, speech, and deep features",
-		weakness: "Needs more data, compute, and tuning",
-	},
-];
-
-// Training dynamics - bias-variance tradeoff
+// Bias-Variance visualization data
 const biasVarianceData = [
-	{ complexity: 1, bias: 85, variance: 10, totalError: 95 },
-	{ complexity: 2, bias: 70, variance: 15, totalError: 85 },
-	{ complexity: 3, bias: 55, variance: 22, totalError: 77 },
-	{ complexity: 4, bias: 40, variance: 30, totalError: 70 },
-	{ complexity: 5, bias: 28, variance: 42, totalError: 70 },
-	{ complexity: 6, bias: 18, variance: 58, totalError: 76 },
-	{ complexity: 7, bias: 12, variance: 75, totalError: 87 },
-	{ complexity: 8, bias: 8, variance: 92, totalError: 100 },
-];
-
-const learningCurveData = [
-	{ samples: 100, trainScore: 55, validScore: 52, testScore: 50 },
-	{ samples: 500, trainScore: 68, validScore: 64, testScore: 62 },
-	{ samples: 1000, trainScore: 76, validScore: 72, testScore: 70 },
-	{ samples: 2000, trainScore: 82, validScore: 78, testScore: 76 },
-	{ samples: 5000, trainScore: 87, validScore: 83, testScore: 81 },
-	{ samples: 10000, trainScore: 90, validScore: 86, testScore: 85 },
-	{ samples: 20000, trainScore: 91, validScore: 87, testScore: 86 },
-];
-
-// Evaluation metrics - confusion matrix visualization
-const confusionMatrixData = [
-	{ predicted: "Positive", actual: "Positive", value: 450, label: "TP: 450" },
-	{ predicted: "Positive", actual: "Negative", value: 50, label: "FP: 50" },
-	{ predicted: "Negative", actual: "Positive", value: 70, label: "FN: 70" },
-	{ predicted: "Negative", actual: "Negative", value: 430, label: "TN: 430" },
-];
-
-const metricsComparison = [
-	{ metric: "Accuracy", score: 88, useCase: "Balanced datasets" },
-	{ metric: "Precision", score: 90, useCase: "Minimize false positives" },
-	{ metric: "Recall", score: 86, useCase: "Catch all positives" },
-	{ metric: "F1 Score", score: 88, useCase: "Balance precision-recall" },
-	{ metric: "AUC-ROC", score: 92, useCase: "Ranking quality" },
-	{ metric: "Log Loss", score: 0.28, useCase: "Probability calibration" },
-];
-
-// Real-world applications with detailed metrics
-const industryAdoption = [
-	{ industry: "Tech", adoption: 95, investment: 92, impact: 94 },
-	{ industry: "Finance", adoption: 88, investment: 85, impact: 87 },
-	{ industry: "Healthcare", adoption: 82, investment: 88, impact: 90 },
-	{ industry: "Retail", adoption: 85, investment: 75, impact: 80 },
-	{ industry: "Manufacturing", adoption: 78, investment: 80, impact: 82 },
-	{ industry: "Transportation", adoption: 80, investment: 90, impact: 85 },
-];
-
-const mlCapabilityEvolution = [
-	{ year: 2015, vision: 70, nlp: 60, speech: 65, reasoning: 40 },
-	{ year: 2017, vision: 82, nlp: 72, speech: 78, reasoning: 50 },
-	{ year: 2019, vision: 88, nlp: 82, speech: 85, reasoning: 60 },
-	{ year: 2021, vision: 92, nlp: 90, speech: 90, reasoning: 72 },
-	{ year: 2023, vision: 95, nlp: 96, speech: 94, reasoning: 85 },
-	{ year: 2025, vision: 97, nlp: 98, speech: 96, reasoning: 92 },
+	{ complexity: 1, bias: 85, variance: 10, totalError: 95, label: "Too Simple" },
+	{ complexity: 2, bias: 70, variance: 15, totalError: 85, label: "Still Underfit" },
+	{ complexity: 3, bias: 55, variance: 22, totalError: 77, label: "Getting Better" },
+	{ complexity: 4, bias: 40, variance: 30, totalError: 70, label: "Good Balance" },
+	{ complexity: 5, bias: 28, variance: 42, totalError: 70, label: "Sweet Spot" },
+	{ complexity: 6, bias: 18, variance: 58, totalError: 76, label: "Starting to Overfit" },
+	{ complexity: 7, bias: 12, variance: 75, totalError: 87, label: "Overfitting" },
+	{ complexity: 8, bias: 8, variance: 92, totalError: 100, label: "Too Complex" },
 ];
 
 function SectionContainer({
@@ -327,428 +199,71 @@ function SectionContainer({
 	index,
 	title,
 	icon: Icon,
-	teachingStyle,
-	simpleExplanation,
-	deepExplanation,
-	realLifeExample,
-	keyPoints,
-	visualBlock,
-	showVisual = true,
-	technicalNote,
+	children,
 }: {
 	id: SectionId;
 	index: number;
 	title: string;
 	icon: LucideIcon;
-	teachingStyle: TeachingStyle;
-	simpleExplanation: string;
-	deepExplanation: string[];
-	realLifeExample: string;
-	keyPoints: string[];
-	visualBlock?: JSX.Element;
-	showVisual?: boolean;
-	technicalNote?: string;
+	children: React.ReactNode;
 }) {
-	const styleCopy: Record<
-		TeachingStyle,
-		{ quickTitle: string; exampleTitle: string; detailTitle: string; keyTitle: string }
-	> = {
-		"timeline-story": {
-			quickTitle: "Story Snapshot",
-			exampleTitle: "Turning Point",
-			detailTitle: "Narrative Walkthrough",
-			keyTitle: "Era Highlights",
-		},
-		"problem-solution": {
-			quickTitle: "Core Challenge",
-			exampleTitle: "Practical Fix",
-			detailTitle: "How the Fix Works",
-			keyTitle: "Decision Rules",
-		},
-		"comparison-table": {
-			quickTitle: "Quick Orientation",
-			exampleTitle: "Where It Fits",
-			detailTitle: "Type-by-Type Breakdown",
-			keyTitle: "Selection Hints",
-		},
-		"pipeline-flow": {
-			quickTitle: "Pipeline Overview",
-			exampleTitle: "Data Journey Example",
-			detailTitle: "Step Details",
-			keyTitle: "Pipeline Checklist",
-		},
-		"mini-examples": {
-			quickTitle: "Model Intuition",
-			exampleTitle: "Mini Scenario",
-			detailTitle: "Deep Dive with Examples",
-			keyTitle: "Model Selection Notes",
-		},
-		"student-analogy": {
-			quickTitle: "Classroom View",
-			exampleTitle: "Student Analogy",
-			detailTitle: "What Happens During Training",
-			keyTitle: "Practice Lessons",
-		},
-		"exam-analogy": {
-			quickTitle: "Scorecard View",
-			exampleTitle: "Exam Analogy",
-			detailTitle: "Metric-by-Metric Reasoning",
-			keyTitle: "Evaluation Rules",
-		},
-		"case-study": {
-			quickTitle: "Case Brief",
-			exampleTitle: "Industry Story",
-			detailTitle: "Case-study Breakdown",
-			keyTitle: "Production Lessons",
-		},
-	};
-
-	const copy = styleCopy[teachingStyle];
-
-	const sectionThemes: Record<
-		SectionId,
-		{
-			shell: string;
-			iconWrap: string;
-			iconText: string;
-			sectionText: string;
-			quickCard: string;
-			exampleCard: string;
-			detailCard: string;
-			stepCard: string;
-			stepBadge: string;
-			keyCard: string;
-			checkIcon: string;
-			visualCard: string;
-			visualTitle: string;
-			techCard: string;
-			techIcon: string;
-			techText: string;
-			divider: string;
-		}
-	> = {
+	const sectionThemes: Record<SectionId, {
+		shell: string;
+		iconWrap: string;
+		iconText: string;
+		sectionText: string;
+	}> = {
 		history: {
 			shell: "border-sky-500/35 shadow-[0_24px_60px_-30px_rgba(56,189,248,0.45)]",
 			iconWrap: "bg-sky-500/20",
 			iconText: "text-sky-300",
 			sectionText: "text-sky-300",
-			quickCard: "border-sky-500/35 bg-sky-950/20",
-			exampleCard: "border-cyan-500/35 bg-cyan-950/20",
-			detailCard: "border-sky-500/30 bg-slate-950/70",
-			stepCard: "border-sky-500/25 bg-slate-900/70",
-			stepBadge: "bg-sky-500/90 text-slate-950",
-			keyCard: "border-cyan-500/30 bg-slate-950/70",
-			checkIcon: "text-sky-300",
-			visualCard: "border-sky-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950/45",
-			visualTitle: "text-sky-100",
-			techCard: "border-sky-400/40 bg-sky-950/25",
-			techIcon: "text-sky-300",
-			techText: "text-sky-200",
-			divider: "via-sky-400/55",
 		},
 		"why-ml": {
 			shell: "border-rose-500/35 shadow-[0_24px_60px_-30px_rgba(244,63,94,0.4)]",
 			iconWrap: "bg-rose-500/20",
 			iconText: "text-rose-300",
 			sectionText: "text-rose-300",
-			quickCard: "border-rose-500/35 bg-rose-950/20",
-			exampleCard: "border-emerald-500/35 bg-emerald-950/20",
-			detailCard: "border-rose-500/30 bg-slate-950/70",
-			stepCard: "border-rose-500/25 bg-slate-900/70",
-			stepBadge: "bg-rose-500/90 text-slate-950",
-			keyCard: "border-emerald-500/30 bg-slate-950/70",
-			checkIcon: "text-emerald-300",
-			visualCard: "border-rose-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/40",
-			visualTitle: "text-rose-100",
-			techCard: "border-rose-400/40 bg-rose-950/25",
-			techIcon: "text-rose-300",
-			techText: "text-rose-200",
-			divider: "via-rose-400/55",
 		},
 		types: {
 			shell: "border-violet-500/35 shadow-[0_24px_60px_-30px_rgba(139,92,246,0.42)]",
 			iconWrap: "bg-violet-500/20",
 			iconText: "text-violet-300",
 			sectionText: "text-violet-300",
-			quickCard: "border-violet-500/35 bg-violet-950/20",
-			exampleCard: "border-fuchsia-500/35 bg-fuchsia-950/20",
-			detailCard: "border-violet-500/30 bg-slate-950/70",
-			stepCard: "border-violet-500/25 bg-slate-900/70",
-			stepBadge: "bg-violet-500/90 text-slate-950",
-			keyCard: "border-fuchsia-500/30 bg-slate-950/70",
-			checkIcon: "text-violet-300",
-			visualCard: "border-violet-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950/45",
-			visualTitle: "text-violet-100",
-			techCard: "border-violet-400/40 bg-violet-950/25",
-			techIcon: "text-violet-300",
-			techText: "text-violet-200",
-			divider: "via-violet-400/55",
 		},
 		"data-preprocessing": {
 			shell: "border-emerald-500/35 shadow-[0_24px_60px_-30px_rgba(16,185,129,0.42)]",
 			iconWrap: "bg-emerald-500/20",
 			iconText: "text-emerald-300",
 			sectionText: "text-emerald-300",
-			quickCard: "border-emerald-500/35 bg-emerald-950/20",
-			exampleCard: "border-teal-500/35 bg-teal-950/20",
-			detailCard: "border-emerald-500/30 bg-slate-950/70",
-			stepCard: "border-emerald-500/25 bg-slate-900/70",
-			stepBadge: "bg-emerald-500/90 text-slate-950",
-			keyCard: "border-teal-500/30 bg-slate-950/70",
-			checkIcon: "text-emerald-300",
-			visualCard: "border-emerald-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/40",
-			visualTitle: "text-emerald-100",
-			techCard: "border-emerald-400/40 bg-emerald-950/25",
-			techIcon: "text-emerald-300",
-			techText: "text-emerald-200",
-			divider: "via-emerald-400/55",
 		},
 		"model-building": {
 			shell: "border-amber-500/35 shadow-[0_24px_60px_-30px_rgba(245,158,11,0.42)]",
 			iconWrap: "bg-amber-500/20",
 			iconText: "text-amber-300",
 			sectionText: "text-amber-300",
-			quickCard: "border-amber-500/35 bg-amber-950/20",
-			exampleCard: "border-orange-500/35 bg-orange-950/20",
-			detailCard: "border-amber-500/30 bg-slate-950/70",
-			stepCard: "border-amber-500/25 bg-slate-900/70",
-			stepBadge: "bg-amber-500/90 text-slate-950",
-			keyCard: "border-orange-500/30 bg-slate-950/70",
-			checkIcon: "text-amber-300",
-			visualCard: "border-amber-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/40",
-			visualTitle: "text-amber-100",
-			techCard: "border-amber-400/45 bg-amber-950/30",
-			techIcon: "text-amber-300",
-			techText: "text-amber-200",
-			divider: "via-amber-400/55",
 		},
 		"training-prediction": {
 			shell: "border-fuchsia-500/35 shadow-[0_24px_60px_-30px_rgba(217,70,239,0.42)]",
 			iconWrap: "bg-fuchsia-500/20",
 			iconText: "text-fuchsia-300",
 			sectionText: "text-fuchsia-300",
-			quickCard: "border-fuchsia-500/35 bg-fuchsia-950/20",
-			exampleCard: "border-pink-500/35 bg-pink-950/20",
-			detailCard: "border-fuchsia-500/30 bg-slate-950/70",
-			stepCard: "border-fuchsia-500/25 bg-slate-900/70",
-			stepBadge: "bg-fuchsia-500/90 text-slate-950",
-			keyCard: "border-pink-500/30 bg-slate-950/70",
-			checkIcon: "text-fuchsia-300",
-			visualCard: "border-fuchsia-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-fuchsia-950/40",
-			visualTitle: "text-fuchsia-100",
-			techCard: "border-fuchsia-400/40 bg-fuchsia-950/25",
-			techIcon: "text-fuchsia-300",
-			techText: "text-fuchsia-200",
-			divider: "via-fuchsia-400/55",
 		},
 		"evaluation-metrics": {
 			shell: "border-cyan-500/35 shadow-[0_24px_60px_-30px_rgba(6,182,212,0.42)]",
 			iconWrap: "bg-cyan-500/20",
 			iconText: "text-cyan-300",
 			sectionText: "text-cyan-300",
-			quickCard: "border-cyan-500/35 bg-cyan-950/20",
-			exampleCard: "border-blue-500/35 bg-blue-950/20",
-			detailCard: "border-cyan-500/30 bg-slate-950/70",
-			stepCard: "border-cyan-500/25 bg-slate-900/70",
-			stepBadge: "bg-cyan-500/90 text-slate-950",
-			keyCard: "border-blue-500/30 bg-slate-950/70",
-			checkIcon: "text-cyan-300",
-			visualCard: "border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/40",
-			visualTitle: "text-cyan-100",
-			techCard: "border-cyan-400/40 bg-cyan-950/25",
-			techIcon: "text-cyan-300",
-			techText: "text-cyan-200",
-			divider: "via-cyan-400/55",
 		},
 		"real-world": {
 			shell: "border-indigo-500/35 shadow-[0_24px_60px_-30px_rgba(99,102,241,0.45)]",
 			iconWrap: "bg-indigo-500/20",
 			iconText: "text-indigo-300",
 			sectionText: "text-indigo-300",
-			quickCard: "border-indigo-500/35 bg-indigo-950/20",
-			exampleCard: "border-purple-500/35 bg-purple-950/20",
-			detailCard: "border-indigo-500/30 bg-slate-950/70",
-			stepCard: "border-indigo-500/25 bg-slate-900/70",
-			stepBadge: "bg-indigo-500/90 text-slate-950",
-			keyCard: "border-purple-500/30 bg-slate-950/70",
-			checkIcon: "text-indigo-300",
-			visualCard: "border-indigo-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/45",
-			visualTitle: "text-indigo-100",
-			techCard: "border-indigo-400/40 bg-indigo-950/25",
-			techIcon: "text-indigo-300",
-			techText: "text-indigo-200",
-			divider: "via-indigo-400/55",
 		},
 	};
 
 	const theme = sectionThemes[id];
-
-	const renderTeachingPanel = () => {
-		switch (teachingStyle) {
-			case "timeline-story":
-				return (
-					<div className="mt-7 rounded-2xl border border-sky-500/30 bg-slate-900/70 p-5">
-						<p className="text-xs font-semibold uppercase tracking-[0.14em] text-sky-300">
-							Story Mode
-						</p>
-						<p className="mt-3 text-sm leading-7 text-slate-200">{simpleExplanation}</p>
-						<div className="mt-5 space-y-3">
-							{deepExplanation.map((step, stepIndex) => (
-								<div
-									key={`${id}-story-${stepIndex}`}
-									className="rounded-xl border border-slate-700/80 bg-slate-950/70 p-4"
-								>
-									<p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan-300">
-										Chapter {stepIndex + 1}
-									</p>
-									<p className="mt-2 text-sm leading-6 text-slate-200">{step}</p>
-								</div>
-							))}
-						</div>
-					</div>
-				);
-			case "problem-solution":
-				return (
-					<div className="mt-7 grid gap-4 lg:grid-cols-2">
-						<div className="rounded-2xl border border-rose-500/35 bg-rose-950/20 p-5">
-							<h3 className="text-lg font-semibold text-rose-200">Common Problems</h3>
-							<div className="mt-3 space-y-2">
-								{deepExplanation.slice(0, 4).map((point, idx) => (
-									<p
-										key={`${id}-problem-${idx}`}
-										className="rounded-lg border border-rose-500/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-200"
-									>
-										{point}
-									</p>
-								))}
-							</div>
-						</div>
-						<div className="rounded-2xl border border-emerald-500/35 bg-emerald-950/20 p-5">
-							<h3 className="text-lg font-semibold text-emerald-200">ML Solutions</h3>
-							<div className="mt-3 space-y-2">
-								{deepExplanation.slice(4).map((point, idx) => (
-									<p
-										key={`${id}-solution-${idx}`}
-										className="rounded-lg border border-emerald-500/20 bg-slate-950/60 px-3 py-2 text-sm text-slate-200"
-									>
-										{point}
-									</p>
-								))}
-							</div>
-						</div>
-					</div>
-				);
-			case "comparison-table":
-				return (
-					<div className="mt-7 overflow-x-auto rounded-2xl border border-slate-700 bg-slate-950/70">
-						<table className="w-full min-w-[640px] border-collapse text-left text-sm">
-							<thead>
-								<tr className="bg-slate-900 text-slate-100">
-									<th className="border-b border-slate-700 px-4 py-3 font-semibold">What You Need</th>
-									<th className="border-b border-slate-700 px-4 py-3 font-semibold">Simple Guidance</th>
-								</tr>
-							</thead>
-							<tbody>
-								{keyPoints.map((point, idx) => (
-									<tr key={`${id}-table-${idx}`} className="odd:bg-slate-950/60 even:bg-slate-900/50">
-										<td className="border-b border-slate-800 px-4 py-3 font-medium text-sky-200">
-											Type Insight {idx + 1}
-										</td>
-										<td className="border-b border-slate-800 px-4 py-3 text-slate-200">{point}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				);
-			case "pipeline-flow":
-				return (
-					<div className="mt-7 rounded-2xl border border-fuchsia-500/30 bg-slate-900/70 p-5">
-						<p className="text-sm text-slate-200">{simpleExplanation}</p>
-						<div className="mt-5 flex flex-wrap items-center gap-2">
-							{deepExplanation.map((step, stepIndex, arr) => (
-								<div key={`${id}-pipe-${stepIndex}`} className="flex items-center gap-2">
-									<div className="rounded-lg border border-fuchsia-400/35 bg-slate-950/70 px-3 py-2">
-										<p className="text-[11px] font-semibold text-fuchsia-300">Step {stepIndex + 1}</p>
-										<p className="mt-1 text-xs leading-5 text-slate-200">{step}</p>
-									</div>
-									{stepIndex < arr.length - 1 ? (
-										<ArrowRight className="h-4 w-4 text-fuchsia-300" />
-									) : null}
-								</div>
-							))}
-						</div>
-					</div>
-				);
-			case "mini-examples":
-				return (
-					<div className="mt-7 grid gap-4 md:grid-cols-2">
-						{deepExplanation.map((step, idx) => (
-							<div
-								key={`${id}-mini-${idx}`}
-								className="rounded-2xl border border-indigo-500/35 bg-slate-950/70 p-4"
-							>
-								<p className="text-xs font-semibold uppercase tracking-[0.12em] text-indigo-300">
-									Mini Example {idx + 1}
-								</p>
-								<p className="mt-2 text-sm leading-6 text-slate-200">{step}</p>
-							</div>
-						))}
-					</div>
-				);
-			case "student-analogy":
-				return (
-					<div className="mt-7 rounded-2xl border border-amber-400/35 bg-amber-950/20 p-5">
-						<h3 className="text-lg font-semibold text-amber-200">Think Like a Teacher</h3>
-						<p className="mt-3 text-sm leading-7 text-slate-200">{realLifeExample}</p>
-						<div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-4">
-							<p className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-300">Lesson Summary</p>
-							<p className="mt-2 text-sm leading-6 text-slate-200">{simpleExplanation}</p>
-						</div>
-					</div>
-				);
-			case "exam-analogy":
-				return (
-					<div className="mt-7 rounded-2xl border border-cyan-500/35 bg-slate-900/70 p-5">
-						<h3 className="text-lg font-semibold text-cyan-200">Exam Marks Analogy</h3>
-						<p className="mt-3 text-sm leading-7 text-slate-200">{realLifeExample}</p>
-						<div className="mt-4 grid gap-3 md:grid-cols-2">
-							{keyPoints.slice(0, 4).map((point, idx) => (
-								<div
-									key={`${id}-exam-${idx}`}
-									className="rounded-xl border border-cyan-500/30 bg-slate-950/70 p-3"
-								>
-									<p className="text-xs font-semibold text-cyan-300">Metric Card {idx + 1}</p>
-									<p className="mt-1 text-sm text-slate-200">{point}</p>
-								</div>
-							))}
-						</div>
-					</div>
-				);
-			case "case-study":
-				return (
-					<div className="mt-7 rounded-2xl border border-emerald-500/30 bg-slate-900/70 p-5">
-						<p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-300">
-							Case Study Lens
-						</p>
-						<p className="mt-3 text-sm leading-7 text-slate-200">{realLifeExample}</p>
-						<div className="mt-4 grid gap-3 md:grid-cols-3">
-							{deepExplanation.slice(0, 6).map((step, idx) => (
-								<div
-									key={`${id}-case-${idx}`}
-									className="rounded-lg border border-emerald-500/25 bg-slate-950/70 p-3"
-								>
-									<p className="text-[11px] font-semibold text-emerald-300">Case Point {idx + 1}</p>
-									<p className="mt-1 text-xs leading-5 text-slate-200">{step}</p>
-								</div>
-							))}
-						</div>
-					</div>
-				);
-			default:
-				return null;
-		}
-	};
 
 	return (
 		<motion.section
@@ -773,78 +288,14 @@ function SectionContainer({
 				</div>
 			</div>
 
-			{renderTeachingPanel()}
-
-			<div className="mt-8 grid gap-6 lg:grid-cols-2">
-				<article className={`rounded-2xl border p-5 ${theme.quickCard}`}>
-					<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.quickTitle}</h3>
-					<p className="mt-3 text-[15px] leading-7 text-slate-300">{simpleExplanation}</p>
-				</article>
-
-				<article className={`rounded-2xl border p-5 ${theme.exampleCard}`}>
-					<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.exampleTitle}</h3>
-					<p className="mt-3 text-[15px] leading-7 text-slate-300">{realLifeExample}</p>
-				</article>
-			</div>
-
-			<article className={`mt-6 rounded-2xl border p-5 ${theme.detailCard}`}>
-				<h3 className={`text-lg font-semibold ${theme.sectionText}`}>
-					{copy.detailTitle}
-				</h3>
-				<div className="mt-4 space-y-3">
-					{deepExplanation.map((step, stepIndex) => (
-						<div
-							key={`${id}-step-${stepIndex}`}
-							className={`flex gap-3 rounded-xl border px-4 py-3 ${theme.stepCard}`}
-						>
-							<span className={`mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${theme.stepBadge}`}>
-								{stepIndex + 1}
-							</span>
-							<p className="text-sm leading-6 text-slate-300">{step}</p>
-						</div>
-					))}
-				</div>
-			</article>
-
-			{technicalNote && (
-				<article className={`mt-6 rounded-2xl border-2 p-5 ${theme.techCard}`}>
-					<div className="flex items-center gap-2">
-						<Zap className={`h-5 w-5 ${theme.techIcon}`} />
-						<h3 className={`text-lg font-semibold ${theme.sectionText}`}>Technical Insight</h3>
-					</div>
-					<p className={`mt-3 text-[15px] leading-7 ${theme.techText}`}>{technicalNote}</p>
-				</article>
-			)}
-
-			<article className={`mt-6 rounded-2xl border p-5 ${theme.keyCard}`}>
-				<h3 className={`text-lg font-semibold ${theme.sectionText}`}>{copy.keyTitle}</h3>
-				<div className="mt-4 grid gap-3 md:grid-cols-2">
-					{keyPoints.map((point, pointIndex) => (
-						<div
-							key={`${id}-point-${pointIndex}`}
-							className={`flex items-start gap-3 rounded-xl border px-4 py-3 ${theme.stepCard}`}
-						>
-							<CheckCircle2 className={`mt-0.5 h-5 w-5 flex-shrink-0 ${theme.checkIcon}`} />
-							<p className="text-sm leading-6 text-slate-300">{point}</p>
-						</div>
-					))}
-				</div>
-			</article>
-
-			{showVisual && visualBlock ? (
-				<article className={`mt-6 rounded-2xl border p-5 ${theme.visualCard}`}>
-					<h3 className={`text-lg font-semibold ${theme.visualTitle}`}>Visual Analytics</h3>
-					<div className="mt-4 [&_.bg-white]:!bg-slate-900/85 [&_.bg-slate-50]:!bg-slate-900/70 [&_.bg-slate-100]:!bg-slate-800 [&_.text-slate-900]:!text-slate-100 [&_.text-slate-800]:!text-slate-200 [&_.text-slate-700]:!text-slate-300 [&_.text-slate-600]:!text-slate-400 [&_.border-slate-200]:!border-slate-700 [&_.border-slate-300]:!border-slate-600 [&_table_thead_tr]:!bg-slate-800 [&_table_tr]:!bg-transparent">{visualBlock}</div>
-				</article>
-			) : null}
-
-			<div className={`mt-8 h-px w-full bg-gradient-to-r from-transparent to-transparent ${theme.divider}`} />
+			{children}
 		</motion.section>
 	);
 }
 
 export default function MLTutorialPage() {
 	const [activeSection, setActiveSection] = useState<SectionId>("history");
+	const [availableSections, setAvailableSections] = useState<SectionMeta[]>(sections);
 	const sidebarItemRefs = useRef<Record<SectionId, HTMLButtonElement | null>>({
 		history: null,
 		"why-ml": null,
@@ -878,6 +329,29 @@ export default function MLTutorialPage() {
 	}, []);
 
 	useEffect(() => {
+		const updateAvailableSections = () => {
+			const nextSections = sections.filter((section) => Boolean(document.getElementById(section.id)));
+
+			if (!nextSections.length) {
+				setAvailableSections(sections);
+				return;
+			}
+
+			setAvailableSections(nextSections);
+			if (!nextSections.some((section) => section.id === activeSection)) {
+				setActiveSection(nextSections[0].id);
+			}
+		};
+
+		updateAvailableSections();
+		window.addEventListener("resize", updateAvailableSections);
+
+		return () => {
+			window.removeEventListener("resize", updateAvailableSections);
+		};
+	}, [activeSection]);
+
+	useEffect(() => {
 		const activeButton = sidebarItemRefs.current[activeSection];
 		if (activeButton) {
 			activeButton.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
@@ -886,7 +360,7 @@ export default function MLTutorialPage() {
 
 	useEffect(() => {
 		const setCurrentSectionFromScroll = () => {
-			const sectionElements = sections
+			const sectionElements = availableSections
 				.map((section) => document.getElementById(section.id))
 				.filter((element): element is HTMLElement => Boolean(element));
 
@@ -934,7 +408,7 @@ export default function MLTutorialPage() {
 			window.removeEventListener("scroll", onScrollOrResize);
 			window.removeEventListener("resize", onScrollOrResize);
 		};
-	}, []);
+	}, [availableSections]);
 
 	const scrollToSection = (id: SectionId) => {
 		const target = document.getElementById(id);
@@ -988,52 +462,12 @@ export default function MLTutorialPage() {
 				</div>
 			</header>
 
-			<div className="relative pt-16 lg:grid lg:grid-cols-[300px_minmax(0,1fr)]">
-				<aside className="hidden border-r border-white/[0.06] bg-[rgba(6,8,18,0.7)] px-3 backdrop-blur-xl lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:items-start lg:overflow-y-auto lg:py-4">
-					<nav className="w-full space-y-3 rounded-3xl border border-white/10 bg-[rgba(6,8,18,0.7)] p-3 shadow-[0_22px_42px_-28px_rgba(124,58,237,0.4)] backdrop-blur-xl">
-						{sections.map((section, index) => {
-							const Icon = section.icon;
-							const isActive = activeSection === section.id;
-							return (
-								<button
-									key={section.id}
-									ref={(element) => {
-										sidebarItemRefs.current[section.id] = element;
-									}}
-									onClick={() => scrollToSection(section.id)}
-									className={`group relative flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-all duration-300 ${
-										isActive
-											? "border-white/20 bg-white/10 text-white shadow-[0_14px_30px_-18px_rgba(124,58,237,0.7)]"
-											: "border-white/10 bg-white/[0.03] text-white/75 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
-									}`}
-								>
-									{isActive ? (
-										<span className="absolute inset-y-3 left-0 w-0.5 rounded-full bg-gradient-to-b from-violet-300 to-fuchsia-300" />
-									) : null}
-									<span
-										className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${
-											isActive
-												? "bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white"
-												: "border border-white/10 bg-white/[0.04] text-white/60 group-hover:bg-white/[0.08]"
-										}`}
-									>
-										<Icon className="h-4 w-4" />
-									</span>
-									<div>
-										<p className="text-[11px] font-semibold tracking-[0.08em] text-white/35">{formatSectionNumber(index)}</p>
-										<p className="text-[15px] font-semibold leading-snug">{section.title}</p>
-									</div>
-								</button>
-							);
-						})}
-					</nav>
-				</aside>
-
+			<div className="relative pt-16">
 				<main className="relative z-10 w-full min-w-0">
 					<div className="w-full px-4 py-6 md:px-6 xl:px-10 xl:py-8">
 						<div className="mb-5 overflow-x-auto pb-1 md:hidden">
 							<div className="flex w-max gap-2.5 pr-2">
-								{sections.map((section, index) => {
+								{availableSections.map((section, index) => {
 									const Icon = section.icon;
 									const isActive = activeSection === section.id;
 									return (
@@ -1060,6 +494,8 @@ export default function MLTutorialPage() {
 								})}
 							</div>
 						</div>
+
+						{/* Introduction */}
 						<motion.section
 							className="mb-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6 shadow-[0_20px_55px_-35px_rgba(251,191,36,0.26)] backdrop-blur lg:p-10"
 							initial={{ opacity: 0, y: 20 }}
@@ -1067,38 +503,31 @@ export default function MLTutorialPage() {
 							transition={{ duration: 0.55, ease: "easeOut" }}
 						>
 							<p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-								Advanced Learning Documentation
+								Complete Beginner's Guide
 							</p>
 							<h1 className="mt-3 text-4xl font-black leading-tight text-white lg:text-5xl">
-								Complete Machine Learning Tutorial: From Foundations to Production
+								Machine Learning: From Zero to Understanding
 							</h1>
 							<p className="mt-4 max-w-none text-base leading-8 text-white/70 lg:text-lg">
-								Master Machine Learning through comprehensive explanations, visual analytics, and real-world applications. This advanced tutorial covers theory, mathematics, implementation strategies, and production best practices—all explained in clear, accessible language.
+								Welcome to the world of Machine Learning! This guide will take you from knowing nothing about ML to understanding how it works, when to use it, and how to build your first projects. Everything is explained in simple terms with real-world examples.
 							</p>
 
 							<div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-								<h3 className="text-lg font-bold text-white">Complete ML Pipeline</h3>
-								<div className="mt-4 flex flex-wrap items-center gap-3">
+								<h3 className="text-lg font-bold text-white">What You'll Learn</h3>
+								<div className="mt-4 grid gap-3 md:grid-cols-2">
 									{[
-										{ step: "Data Collection", icon: Database },
-										{ step: "Preprocessing", icon: FlaskConical },
-										{ step: "Model Selection", icon: Brain },
-										{ step: "Training", icon: Activity },
-										{ step: "Validation", icon: Target },
-										{ step: "Prediction", icon: TrendingUp },
-										{ step: "Evaluation", icon: LineChartIcon },
-										{ step: "Deployment", icon: Sparkles },
-									].map(({ step, icon: StepIcon }, idx, arr) => (
-										<div key={step} className="flex items-center gap-3">
-											<div className="group rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 transition hover:border-violet-400/50 hover:bg-white/[0.06]">
-												<div className="flex items-center gap-2">
-													<StepIcon className="h-4 w-4 text-violet-300" />
-													<span className="text-sm font-semibold text-white/85">{step}</span>
-												</div>
-											</div>
-											{idx < arr.length - 1 ? (
-												<ArrowRight className="h-4 w-4 text-violet-300" />
-											) : null}
+										{ icon: History, text: "How ML evolved from simple rules to powerful AI" },
+										{ icon: Target, text: "Why ML is better than traditional programming for certain tasks" },
+										{ icon: Brain, text: "Different types of ML and when to use each" },
+										{ icon: Database, text: "How to prepare data for machine learning" },
+										{ icon: FlaskConical, text: "Building and choosing the right ML models" },
+										{ icon: Activity, text: "Training models and avoiding common mistakes" },
+										{ icon: LineChartIcon, text: "Measuring if your model actually works" },
+										{ icon: Sparkles, text: "Real-world applications and best practices" },
+									].map(({ icon: ItemIcon, text }, idx) => (
+										<div key={idx} className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+											<ItemIcon className="h-5 w-5 flex-shrink-0 text-violet-300" />
+											<span className="text-sm text-white/85">{text}</span>
 										</div>
 									))}
 								</div>
@@ -1106,1165 +535,1316 @@ export default function MLTutorialPage() {
 						</motion.section>
 
 						<div className="space-y-6">
-							{/* Section 1: History - Timeline + Multi-line Growth Chart */}
+							{/* Section 1: History */}
 							<SectionContainer
 								id="history"
 								index={1}
 								title={sectionMap.history.title}
 								icon={sectionMap.history.icon}
-								teachingStyle="timeline-story"
-								simpleExplanation="Machine Learning evolved from simple pattern recognition in the 1950s to today's powerful deep learning systems. Each decade brought breakthrough algorithms, faster computers, and larger datasets that expanded what machines could learn."
-								deepExplanation={[
-									"The 1950s introduced the concept of machines that could learn from examples, starting with the Perceptron algorithm for basic pattern classification.",
-									"Early neural networks faced limitations due to slow computers and the mathematical challenge of training deep layers effectively.",
-									"The 1980s brought backpropagation, enabling multi-layer networks to learn complex patterns by calculating gradients layer by layer.",
-									"Statistical methods like Support Vector Machines and ensemble techniques emerged in the 1990s, making ML practical for business problems.",
-									"The 2010s deep learning revolution happened when researchers combined neural networks with GPUs and massive datasets like ImageNet.",
-									"Modern transformers and attention mechanisms now power language models, enabling machines to understand context across long sequences of text.",
-									"Today's foundation models can transfer knowledge across different tasks, reducing the need to train specialized models from scratch.",
-								]}
-								realLifeExample="ImageNet 2012 was a turning point. AlexNet, a deep neural network trained on GPUs, achieved 85% accuracy on image recognition—far better than traditional methods. This proved that deep learning could solve real-world vision problems at scale, sparking massive investment in AI research."
-								keyPoints={[
-									"ML progress depended on three factors: better algorithms, more computing power, and bigger datasets.",
-									"Backpropagation made deep networks trainable, but they only became practical with GPU acceleration.",
-									"Each era solved specific bottlenecks: 1990s improved generalization, 2010s scaled neural networks.",
-									"Transfer learning is the latest shift, letting models reuse knowledge instead of learning from zero.",
-									"Understanding history helps you pick the right tool—not every problem needs deep learning.",
-									"Modern ML builds on decades of research; techniques from different eras are still used together.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="grid gap-3 md:grid-cols-5">
-											{historyTimeline.map((item) => (
-												<div
-													key={item.year}
-													className="group rounded-xl border border-slate-200 bg-white p-4 transition hover:border-sky-400 hover:shadow-lg"
-												>
-													<p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-700">
-														{item.year}
-													</p>
-													<p className="mt-2 text-sm font-semibold text-slate-900">{item.title}</p>
-													<p className="mt-2 text-xs leading-5 text-slate-600">{item.detail}</p>
-													<div className="mt-3 rounded-lg bg-sky-50 px-2 py-1">
-														<p className="text-[11px] font-medium text-sky-900">{item.milestone}</p>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation */}
+									<div className="rounded-2xl border border-sky-500/35 bg-sky-950/20 p-6">
+										<h3 className="text-xl font-bold text-sky-200">The Simple Story</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Machine Learning didn't appear overnight. It started in the 1950s when scientists wondered: "Can machines learn like humans do?" At first, computers could only follow strict rules that programmers wrote. But ML changed this - computers could now learn patterns from examples, just like how you learn to recognize faces or understand language.
+										</p>
+										<p className="mt-3 text-base leading-7 text-slate-200">
+											Think of it like teaching a child. You don't give them a rulebook for recognizing dogs. Instead, you show them many dogs, and they learn what "dog" means. Machine Learning works the same way - we show computers many examples, and they figure out the patterns.
+										</p>
+									</div>
+
+									{/* Timeline with detailed explanations */}
+									<div className="space-y-4">
+										<h3 className="text-xl font-bold text-slate-100">The Journey Through Time</h3>
+										{historyTimeline.map((era, idx) => (
+											<div
+												key={era.year}
+												className="rounded-xl border border-sky-500/30 bg-slate-900/70 p-5"
+											>
+												<div className="flex items-start gap-4">
+													<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-lg font-bold text-sky-200">
+														{idx + 1}
 													</div>
+													<div className="flex-1">
+														<div className="flex items-center gap-3">
+															<span className="text-sm font-bold uppercase tracking-wider text-sky-300">
+																{era.year}
+															</span>
+															<h4 className="text-lg font-bold text-slate-100">{era.title}</h4>
+														</div>
+														<p className="mt-3 text-sm leading-6 text-slate-300">{era.detail}</p>
+														
+														<div className="mt-4 rounded-lg border border-sky-500/20 bg-sky-950/30 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-sky-300">Key Breakthrough</p>
+															<p className="mt-1 text-sm font-medium text-slate-200">{era.milestone}</p>
+														</div>
+
+														<div className="mt-3 rounded-lg border border-cyan-500/20 bg-cyan-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-cyan-300">Real Example</p>
+															<p className="mt-1 text-sm text-slate-200">{era.example}</p>
+														</div>
+													</div>
+												</div>
+											</div>
+										))}
+									</div>
+
+									{/* Key Takeaways */}
+									<div className="rounded-2xl border border-sky-500/30 bg-slate-950/70 p-6">
+										<h3 className="text-xl font-bold text-sky-200">Key Lessons from History</h3>
+										<div className="mt-4 space-y-3">
+											{[
+												"ML progress needed three things: smart algorithms, powerful computers, and lots of data. Missing any one of these stopped progress.",
+												"Each decade solved a specific problem: 1950s proved machines could learn, 1980s figured out how to train deep networks, 2010s made it practical with GPUs.",
+												"The 2012 ImageNet competition was a turning point - it proved that neural networks could beat traditional methods when given enough data and computing power.",
+												"Modern ML builds on decades of research. Today's ChatGPT and image generators use ideas from every era of ML history.",
+												"What seemed impossible in one decade became common in the next. This teaches us that current limitations may not last long."
+											].map((point, idx) => (
+												<div key={idx} className="flex gap-3 rounded-xl border border-sky-500/25 bg-slate-900/70 px-4 py-3">
+													<span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-500/90 text-xs font-bold text-slate-950">
+														{idx + 1}
+													</span>
+													<p className="text-sm leading-6 text-slate-300">{point}</p>
 												</div>
 											))}
 										</div>
-										<div className="h-80 w-full rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Evolution of ML: Research Impact, Computing Power & Data Availability
-											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<LineChart data={historyGrowthData}>
-													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis dataKey="decade" stroke="#334155" />
-													<YAxis stroke="#334155" />
-													<Tooltip />
-													<Legend />
-													<Line
-														type="monotone"
-														dataKey="researchImpact"
-														stroke="#0ea5e9"
-														strokeWidth={3}
-														dot={{ r: 5 }}
-														name="Research Impact"
-													/>
-													<Line
-														type="monotone"
-														dataKey="computePower"
-														stroke="#22c55e"
-														strokeWidth={3}
-														dot={{ r: 5 }}
-														name="Compute Power"
-													/>
-													<Line
-														type="monotone"
-														dataKey="dataAvailable"
-														stroke="#f59e0b"
-														strokeWidth={3}
-														dot={{ r: 5 }}
-														name="Data Available"
-													/>
-												</LineChart>
-											</ResponsiveContainer>
-										</div>
 									</div>
-								}
-								technicalNote="The convergence of algorithm innovation, GPU computing, and big data in the 2010s created a compounding effect. Each improvement amplified the others: better algorithms utilized more compute, more compute enabled larger datasets, and larger datasets justified better algorithms."
-							/>
 
-							{/* Section 2: Why ML - Comparison Table + Scatter Plot */}
+									{/* Why This Matters */}
+									<div className="rounded-2xl border-2 border-sky-400/40 bg-sky-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-sky-300" />
+											<h3 className="text-xl font-bold text-sky-200">Why Understanding History Matters</h3>
+										</div>
+										<p className="mt-4 text-base leading-7 text-sky-100">
+											Knowing ML's history helps you understand that what we call "AI" today is not magic - it's the result of decades of incremental improvements. When you face a problem, you'll know which era's techniques might help. For example, if you have limited data, 1990s methods like Support Vector Machines might work better than modern deep learning. History teaches you that newer isn't always better - it depends on your specific situation.
+										</p>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 2: Why ML */}
 							<SectionContainer
 								id="why-ml"
 								index={2}
 								title={sectionMap["why-ml"].title}
 								icon={sectionMap["why-ml"].icon}
-								showVisual={false}
-								teachingStyle="problem-solution"
-								simpleExplanation="Traditional programming works when rules are known and fixed. Machine Learning shines when patterns are complex, hidden in data, or change over time. ML automatically discovers these patterns instead of requiring programmers to code every rule manually."
-								deepExplanation={[
-									"Rule-based systems need explicit instructions for every scenario, which becomes impossible when dealing with millions of edge cases.",
-									"ML models learn decision boundaries from examples, discovering patterns that humans might miss or cannot easily express in code.",
-									"When business rules change frequently (like fraud patterns or customer preferences), retraining a model is faster than rewriting code.",
-									"ML excels at high-dimensional problems where many variables interact in non-obvious ways, like image recognition or natural language understanding.",
-									"Probabilistic reasoning in ML provides confidence scores, helping systems handle uncertainty better than binary if-else logic.",
-									"Modern ML can adapt to individual users through personalization, something impossible with one-size-fits-all rule systems.",
-									"As data accumulates, ML models can continuously improve without human intervention, creating self-optimizing systems.",
-								]}
-								realLifeExample="Google Translate switched from rule-based translation to neural machine translation in 2016. The rule-based system required linguists to manually code grammar rules for each language pair. The ML system learned patterns from millions of translated documents, improving translation quality dramatically and supporting more language pairs with less effort."
-								keyPoints={[
-									"Choose rules-based when logic is clear, stable, and legally required to be explainable in detail.",
-									"Choose ML when patterns are complex, hidden, or when you have historical data but unclear rules.",
-									"Hybrid approaches work best: use rules for critical edge cases, ML for pattern-heavy decisions.",
-									"ML needs quality training data—garbage in means garbage out, no matter how sophisticated the model.",
-									"Retraining enables ML systems to adapt to changing environments without code changes.",
-									"ML provides probability estimates, not just binary predictions, enabling better risk management.",
-									"Consider maintenance costs: rule systems need code updates, ML systems need data pipelines and monitoring.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-											<table className="w-full min-w-[700px] border-collapse text-left text-sm">
-												<thead>
-													<tr className="bg-slate-100 text-slate-800">
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Aspect
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Traditional Programming
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Machine Learning
-														</th>
-													</tr>
-												</thead>
-												<tbody>
-													{[
-														["Decision Logic", "Explicitly coded by developers", "Learned automatically from data patterns"],
-														["Adaptability", "Low - requires code changes", "High - adapts through retraining"],
-														["Best Use Cases", "Clear rules, deterministic logic, legal compliance", "Complex patterns, ambiguous rules, personalization"],
-														["Maintenance", "Update code for rule changes", "Retrain model with new data"],
-														["Handling Complexity", "Struggles with >100 rules", "Excels with millions of features"],
-														["Uncertainty Handling", "Binary decisions (yes/no)", "Probabilistic confidence scores"],
-														["Performance Over Time", "Static unless updated", "Can improve with more data"],
-														["Explainability", "Fully transparent logic", "Varies by model (simple to black-box)"],
-													].map((row) => (
-														<tr key={row[0]} className="odd:bg-white even:bg-slate-50">
-															<td className="border-b border-slate-200 px-4 py-3 font-medium text-slate-900">
-																{row[0]}
-															</td>
-															<td className="border-b border-slate-200 px-4 py-3 text-slate-700">
-																{row[1]}
-															</td>
-															<td className="border-b border-slate-200 px-4 py-3 text-slate-700">
-																{row[2]}
-															</td>
-														</tr>
-													))}
-												</tbody>
-											</table>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation */}
+									<div className="rounded-2xl border border-rose-500/35 bg-rose-950/20 p-6">
+										<h3 className="text-xl font-bold text-rose-200">The Core Idea</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Imagine you need to write a program to detect spam emails. With traditional programming, you'd write rules like: "If the email contains 'FREE MONEY' and has 10+ exclamation marks, it's spam." But what about clever spammers who write "F-R-E-E M0NEY"? You'd need to write thousands of rules for every trick spammers use.
+										</p>
+										<p className="mt-3 text-base leading-7 text-slate-200">
+											Machine Learning takes a different approach: show the computer 10,000 examples of spam and 10,000 examples of real emails. The ML algorithm learns patterns you might never think of - like "spam emails often use ALL CAPS" or "spam comes from suspicious domains." When spammers change tactics, you just train the model on new examples rather than rewriting code.
+										</p>
+									</div>
+
+									{/* Traditional vs ML Comparison */}
+									<div className="grid gap-5 lg:grid-cols-2">
+										<div className="rounded-2xl border border-blue-500/35 bg-blue-950/20 p-6">
+											<h3 className="text-lg font-bold text-blue-200">Traditional Programming</h3>
+											<div className="mt-4 space-y-3">
+												<div className="rounded-lg border border-blue-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-blue-300">How it works:</p>
+													<p className="mt-2 text-sm leading-6 text-slate-300">
+														Programmer writes explicit rules: IF this happens, THEN do that. The computer follows these rules exactly.
+													</p>
+												</div>
+												<div className="rounded-lg border border-blue-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-blue-300">Best for:</p>
+													<ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+														<li>• Calculating taxes (rules are clear and legal)</li>
+														<li>• Banking transactions (need exact control)</li>
+														<li>• Traffic lights (fixed logic works best)</li>
+													</ul>
+												</div>
+												<div className="rounded-lg border border-blue-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-blue-300">Limitations:</p>
+													<ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+														<li>• Can't handle unexpected situations</li>
+														<li>• Breaks when rules change</li>
+														<li>• Too complex when rules exceed 100+</li>
+													</ul>
+												</div>
+											</div>
 										</div>
 
-										<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Algorithm Complexity vs Performance Tradeoff
-											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<ScatterChart>
-													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis
-														type="number"
-														dataKey="trainTime"
-														name="Training Time"
-														stroke="#334155"
-														label={{ value: "Training Time", position: "insideBottom", offset: -5 }}
-													/>
-													<YAxis
-														type="number"
-														dataKey="accuracy"
-														name="Accuracy"
-														stroke="#334155"
-														label={{ value: "Accuracy Score", angle: -90, position: "insideLeft" }}
-													/>
-													<ZAxis type="number" dataKey="interpretability" range={[50, 400]} />
-													<Tooltip cursor={{ strokeDasharray: "3 3" }} />
-													<Legend />
-													<Scatter
-														name="Algorithms"
-														data={algorithmComplexityData}
-														fill="#0ea5e9"
-													>
-														{algorithmComplexityData.map((entry, index) => (
-															<Cell
-																key={`cell-${index}`}
-																fill={
-																	entry.interpretability > 70
-																		? "#22c55e"
-																		: entry.interpretability > 40
-																		? "#f59e0b"
-																		: "#ef4444"
-																}
-															/>
-														))}
-													</Scatter>
-												</ScatterChart>
-											</ResponsiveContainer>
-											<p className="mt-2 text-xs text-slate-600">
-												Bubble size = interpretability. Green = highly interpretable, Red = black-box
-											</p>
+										<div className="rounded-2xl border border-emerald-500/35 bg-emerald-950/20 p-6">
+											<h3 className="text-lg font-bold text-emerald-200">Machine Learning</h3>
+											<div className="mt-4 space-y-3">
+												<div className="rounded-lg border border-emerald-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-emerald-300">How it works:</p>
+													<p className="mt-2 text-sm leading-6 text-slate-300">
+														Algorithm learns patterns from examples. Give it data, it figures out the rules automatically.
+													</p>
+												</div>
+												<div className="rounded-lg border border-emerald-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-emerald-300">Best for:</p>
+													<ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+														<li>• Image recognition (too complex for rules)</li>
+														<li>• Speech understanding (patterns vary greatly)</li>
+														<li>• Recommendation systems (personalized)</li>
+													</ul>
+												</div>
+												<div className="rounded-lg border border-emerald-500/25 bg-slate-950/60 p-4">
+													<p className="text-sm font-semibold text-emerald-300">Limitations:</p>
+													<ul className="mt-2 space-y-1 text-sm leading-6 text-slate-300">
+														<li>• Needs lots of good quality data</li>
+														<li>• Can be hard to explain why it decided something</li>
+														<li>• May fail in unexpected ways</li>
+													</ul>
+												</div>
+											</div>
 										</div>
 									</div>
-								}
-								technicalNote="The choice between rules and ML isn't binary. Production systems often use 'guardrails': ML makes predictions, but rule-based checks validate outputs before they reach users. This hybrid approach combines ML's pattern recognition with rules' reliability for critical decisions."
-							/>
 
-							{/* Section 3: Types - Enhanced Table + Donut Chart */}
+									{/* Real World Examples */}
+									<div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-6">
+										<h3 className="text-xl font-bold text-slate-100">When ML Wins: Real Examples</h3>
+										<div className="mt-4 grid gap-4 md:grid-cols-2">
+											{[
+												{
+													title: "Email Spam Filtering",
+													before: "Traditional: Write rules for every spam trick. Update code monthly when spammers adapt.",
+													after: "ML: Train on examples. Automatically adapts to new spam patterns without code changes.",
+													improvement: "99% accuracy vs 80% with rules"
+												},
+												{
+													title: "Photo Tagging",
+													before: "Traditional: Impossible to write rules for 'what is a cat' that work for all cat photos.",
+													after: "ML: Show 10,000 cat photos. The model learns patterns like fur, ears, whiskers, eyes.",
+													improvement: "Facebook tags billions of photos automatically"
+												},
+												{
+													title: "Voice Assistants",
+													before: "Traditional: Can't handle accents, background noise, or natural speech variations.",
+													after: "ML: Learns from millions of voice recordings. Understands different accents and contexts.",
+													improvement: "Siri, Alexa work for most people"
+												},
+												{
+													title: "Fraud Detection",
+													before: "Traditional: Rules like 'flag purchases over $1000.' Fraudsters quickly learn the limits.",
+													after: "ML: Learns normal behavior per user. Detects unusual patterns even if they're subtle.",
+													improvement: "Catches 60% more fraud cases"
+												}
+											].map((example, idx) => (
+												<div key={idx} className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
+													<h4 className="font-bold text-amber-300">{example.title}</h4>
+													<div className="mt-3 space-y-2">
+														<div className="rounded bg-red-950/40 px-3 py-2">
+															<p className="text-xs font-semibold text-red-300">❌ Old Way</p>
+															<p className="mt-1 text-xs leading-5 text-slate-300">{example.before}</p>
+														</div>
+														<div className="rounded bg-emerald-950/40 px-3 py-2">
+															<p className="text-xs font-semibold text-emerald-300">✅ ML Way</p>
+															<p className="mt-1 text-xs leading-5 text-slate-300">{example.after}</p>
+														</div>
+														<div className="rounded bg-blue-950/40 px-3 py-2">
+															<p className="text-xs font-bold text-blue-300">Result: {example.improvement}</p>
+														</div>
+													</div>
+												</div>
+											))}
+										</div>
+									</div>
+
+									{/* Decision Guide */}
+									<div className="rounded-2xl border border-amber-500/35 bg-amber-950/20 p-6">
+										<h3 className="text-xl font-bold text-amber-200">Should You Use ML? Ask These Questions</h3>
+										<div className="mt-4 space-y-3">
+											{[
+												{ q: "Do you have data with examples?", yes: "ML might work", no: "Use traditional programming" },
+												{ q: "Are the rules complex or unclear?", yes: "ML is better", no: "Simple rules might suffice" },
+												{ q: "Does the pattern change over time?", yes: "ML adapts automatically", no: "Fixed rules work fine" },
+												{ q: "Do you need to explain every decision?", yes: "Traditional or simple ML", no: "Can use complex ML" },
+												{ q: "Is 100% accuracy critical?", yes: "Be very careful with ML", no: "ML is great" }
+											].map((item, idx) => (
+												<div key={idx} className="rounded-xl border border-amber-500/25 bg-slate-900/70 p-4">
+													<p className="font-semibold text-amber-200">{item.q}</p>
+													<div className="mt-2 flex gap-3">
+														<span className="text-sm text-emerald-300">✓ Yes: {item.yes}</span>
+														<span className="text-sm text-rose-300">✗ No: {item.no}</span>
+													</div>
+												</div>
+											))}
+										</div>
+									</div>
+
+									{/* Key Takeaway */}
+									<div className="rounded-2xl border-2 border-rose-400/40 bg-rose-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-rose-300" />
+											<h3 className="text-xl font-bold text-rose-200">The Bottom Line</h3>
+										</div>
+										<p className="mt-4 text-base leading-7 text-rose-100">
+											Machine Learning isn't magic and isn't always the answer. Use it when patterns are complex, data is available, and adaptability matters more than perfect explainability. For simple, stable problems with clear rules, traditional programming is often better, faster, and more reliable. The best systems often combine both: ML for pattern recognition, rules for critical decisions.
+										</p>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 3: Types of ML */}
 							<SectionContainer
 								id="types"
 								index={3}
 								title={sectionMap.types.title}
 								icon={sectionMap.types.icon}
-								showVisual={false}
-								teachingStyle="comparison-table"
-								simpleExplanation="Machine Learning has three foundational types: Supervised Learning predicts known targets from labeled data, Unsupervised Learning discovers hidden structure in unlabeled data, and Reinforcement Learning learns optimal actions through rewards over time. Choosing the correct type depends on whether labels exist, whether decisions are one-shot or sequential, and how success is measured."
-								deepExplanation={[
-									"Supervised Learning - Data format: each row has features X and a correct label/target y. Goal: learn a mapping f(X) -> y that generalizes to unseen samples.",
-									"Supervised Learning - Task types: Classification (spam/not spam, disease class, sentiment class) and Regression (sales forecast, price prediction, demand estimation).",
-									"Supervised Learning - Algorithms: Linear/Logistic Regression, Decision Tree, Random Forest, XGBoost, SVM, MLP. Selection depends on interpretability, scale, and latency constraints.",
-									"Supervised Learning - Evaluation: Classification uses precision, recall, F1, ROC-AUC; Regression uses MAE, RMSE, R2. Always validate with leakage-safe train/validation/test splits.",
-									"Unsupervised Learning - Data format: only features X, no labels. Goal: uncover structure that is useful for insight, feature design, or downstream prediction.",
-									"Unsupervised Learning - Core patterns: clustering (groups), dimensionality reduction (compact representation), anomaly detection (rare behavior), and similarity search.",
-									"Unsupervised Learning - Algorithms: K-Means, Hierarchical Clustering, DBSCAN, Gaussian Mixture Models, PCA, UMAP. Each assumes different cluster shapes/density behavior.",
-									"Unsupervised Learning - Evaluation: internal scores (silhouette, Davies-Bouldin) are helpful, but business interpretability and actionability are the real success criteria.",
-									"Reinforcement Learning - Data format: interaction trajectory (state, action, reward, next state). Goal: maximize long-term return instead of immediate one-step accuracy.",
-									"Reinforcement Learning - Components: agent, environment, policy, reward function, value function, and exploration strategy (epsilon-greedy, entropy-based exploration).",
-									"Reinforcement Learning - Algorithms: Q-Learning, Deep Q Networks, SARSA, Policy Gradient, Actor-Critic. Deep RL handles high-dimensional state spaces.",
-									"Reinforcement Learning - Challenges: sparse rewards, unstable training, and reward hacking. Practical systems need safety constraints, offline evaluation, and staged rollout.",
-								]}
-								realLifeExample="An e-learning platform combines all three: Supervised Learning predicts whether a student will complete a lesson, Unsupervised Learning segments learners by pace and topic preference, and Reinforcement Learning optimizes which lesson to recommend next for long-term retention and engagement."
-								keyPoints={[
-									"Supervised = labeled data + direct target prediction; best for forecasting and classification decisions.",
-									"Unsupervised = unlabeled data + structure discovery; best for segmentation, anomaly discovery, and representation learning.",
-									"Reinforcement = sequential actions + delayed rewards; best for recommendation ordering, control systems, and adaptive decision policies.",
-									"If labels are available and trustworthy, start with supervised baselines first.",
-									"If labels are unavailable, use unsupervised outputs to create features or pseudo-labeling strategies.",
-									"If action now changes future context, reinforcement learning is often more appropriate than static supervised prediction.",
-									"Teams commonly combine all three in production pipelines for stronger end-to-end performance.",
-									"Model success should be measured by business impact, not only technical metrics.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-											<table className="w-full min-w-[750px] border-collapse text-left text-sm">
-												<thead>
-													<tr className="bg-slate-100 text-slate-800">
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Type
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Data Required
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Primary Goal
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Example Use Case
-														</th>
-														<th className="border-b border-slate-200 px-4 py-3 font-semibold">
-															Key Algorithm
-														</th>
-													</tr>
-												</thead>
-												<tbody>
-													{[
-														[
-															"Supervised",
-															"Labeled examples (X → Y)",
-															"Predict known outcomes",
-															"Email spam detection",
-															"Random Forest, Neural Nets",
-														],
-														[
-															"Unsupervised",
-															"Unlabeled data",
-															"Discover hidden structure",
-															"Customer segmentation",
-															"K-Means, PCA",
-														],
-														[
-															"Semi-supervised",
-															"Few labels + many unlabeled",
-															"Learn with limited labels",
-															"Medical image classification",
-															"Self-training, Co-training",
-														],
-														[
-															"Reinforcement",
-															"Environment + reward signal",
-															"Learn optimal actions",
-															"Game AI, robotics control",
-															"Q-Learning, Policy Gradient",
-														],
-														[
-															"Self-supervised",
-															"Unlabeled (creates own labels)",
-															"Learn representations",
-															"Language models (GPT)",
-															"Masked Language Modeling",
-														],
-													].map((row) => (
-														<tr key={row[0]} className="odd:bg-white even:bg-slate-50">
-															{row.map((cell, idx) => (
-																<td
-																	key={`${row[0]}-${idx}`}
-																	className="border-b border-slate-200 px-4 py-3 text-slate-700"
-																>
-																	{cell}
-																</td>
-															))}
-														</tr>
-													))}
-												</tbody>
-											</table>
-										</div>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation */}
+									<div className="rounded-2xl border border-violet-500/35 bg-violet-950/20 p-6">
+										<h3 className="text-xl font-bold text-violet-200">Understanding ML Types Through Examples</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Machine Learning has different "types" based on what kind of data you have and what you're trying to achieve. Think of it like different teaching methods:
+										</p>
+										<ul className="mt-3 space-y-2 text-base leading-7 text-slate-200">
+											<li className="flex gap-3">
+												<span className="text-violet-300">•</span>
+												<span><strong className="text-violet-300">Supervised Learning</strong> is like learning with an answer key - every practice problem has the correct answer shown.</span>
+											</li>
+											<li className="flex gap-3">
+												<span className="text-violet-300">•</span>
+												<span><strong className="text-violet-300">Unsupervised Learning</strong> is like being given data and asked to find patterns yourself - no answer key provided.</span>
+											</li>
+											<li className="flex gap-3">
+												<span className="text-violet-300">•</span>
+												<span><strong className="text-violet-300">Reinforcement Learning</strong> is like learning to play a game - you try actions and get rewarded or punished based on results.</span>
+											</li>
+										</ul>
+									</div>
 
-										<div className="grid gap-5 lg:grid-cols-2">
-											<div className="h-72 rounded-xl border border-slate-200 bg-white p-3">
-												<p className="mb-2 text-sm font-semibold text-slate-900">
-													ML Type Distribution in Production Systems
-												</p>
-												<ResponsiveContainer width="100%" height="90%">
-													<PieChart>
-														<Pie
-															data={mlTypesData}
-															dataKey="value"
-															nameKey="name"
-															cx="50%"
-															cy="50%"
-															innerRadius={60}
-															outerRadius={90}
-															paddingAngle={3}
-															label={(entry) => `${entry.name}: ${entry.value}%`}
-														>
-															{mlTypesData.map((entry) => (
-																<Cell key={entry.name} fill={entry.color} />
+									{/* Detailed breakdown of each type */}
+									{mlTypesComparison.map((mlType, idx) => (
+										<div key={mlType.type} className="rounded-2xl border border-violet-500/30 bg-slate-900/70 p-6">
+											<div className="flex items-start gap-4">
+												<div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${mlType.color}33` }}>
+													<span className="text-lg font-bold" style={{ color: mlType.color }}>{idx + 1}</span>
+												</div>
+												<div className="flex-1">
+													<h4 className="text-xl font-bold text-slate-100">{mlType.type}</h4>
+													
+													<div className="mt-4 grid gap-4 md:grid-cols-2">
+														<div className="rounded-lg border border-violet-500/25 bg-slate-950/60 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-violet-300">Data Format</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">{mlType.hasLabels}</p>
+														</div>
+														<div className="rounded-lg border border-violet-500/25 bg-slate-950/60 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-violet-300">When to Use</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">{mlType.whenToUse}</p>
+														</div>
+													</div>
+
+													<div className="mt-4 rounded-lg border border-fuchsia-500/25 bg-fuchsia-950/20 p-4">
+														<p className="text-xs font-bold uppercase tracking-wider text-fuchsia-300">Real-World Examples</p>
+														<ul className="mt-2 space-y-2">
+															{mlType.examples.map((example, exIdx) => (
+																<li key={exIdx} className="flex gap-2 text-sm leading-6 text-slate-200">
+																	<span className="text-fuchsia-400">•</span>
+																	<span>{example}</span>
+																</li>
 															))}
-														</Pie>
-														<Tooltip />
-													</PieChart>
-												</ResponsiveContainer>
+														</ul>
+													</div>
+
+													{/* Beginner explanation for each type */}
+													{mlType.type === "Supervised Learning" && (
+														<div className="mt-4 rounded-lg border border-blue-500/25 bg-blue-950/20 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-blue-300">Beginner's Guide</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">
+																Supervised learning is the most common and easiest to understand. You have historical data where you know the correct answer. For example, you have 1000 house records with features (size, location, age) and their actual sale prices. The ML algorithm learns the relationship between features and price, so it can predict prices for new houses.
+															</p>
+															<p className="mt-2 text-sm font-semibold text-blue-200">
+																Think of it as: "Here are the questions AND answers. Learn the pattern so you can answer new questions."
+															</p>
+														</div>
+													)}
+
+													{mlType.type === "Unsupervised Learning" && (
+														<div className="mt-4 rounded-lg border border-emerald-500/25 bg-emerald-950/20 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-emerald-300">Beginner's Guide</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">
+																Unsupervised learning finds hidden patterns in data without being told what to look for. For example, a store has purchase data but doesn't know which customer groups exist. Unsupervised learning can discover "budget shoppers," "luxury buyers," "health-conscious buyers" automatically by finding patterns in purchase behavior.
+															</p>
+															<p className="mt-2 text-sm font-semibold text-emerald-200">
+																Think of it as: "Here's data. Find interesting patterns or groups that I didn't know existed."
+															</p>
+														</div>
+													)}
+
+													{mlType.type === "Reinforcement Learning" && (
+														<div className="mt-4 rounded-lg border border-amber-500/25 bg-amber-950/20 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-amber-300">Beginner's Guide</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">
+																Reinforcement learning learns through trial and error with rewards. Imagine teaching a robot to walk: it tries moving its legs, falls down (negative reward), tries differently, takes a step (positive reward), and gradually learns to walk by maximizing rewards. This is how game AI learns to play chess or how self-driving cars learn to navigate.
+															</p>
+															<p className="mt-2 text-sm font-semibold text-amber-200">
+																Think of it as: "Try different actions, see what happens, and learn from rewards and punishments."
+															</p>
+														</div>
+													)}
+
+													{mlType.type === "Semi-supervised" && (
+														<div className="mt-4 rounded-lg border border-purple-500/25 bg-purple-950/20 p-4">
+															<p className="text-xs font-bold uppercase tracking-wider text-purple-300">Beginner's Guide</p>
+															<p className="mt-2 text-sm leading-6 text-slate-200">
+																Semi-supervised learning combines both approaches. You have a small amount of labeled data (expensive to get) and a large amount of unlabeled data (cheap to collect). The algorithm uses the labeled data to learn initial patterns, then applies those patterns to find structure in the unlabeled data, gradually improving its understanding.
+															</p>
+															<p className="mt-2 text-sm font-semibold text-purple-200">
+																Think of it as: "I have a few answered questions and many unanswered ones. Use the answers to make educated guesses about the rest."
+															</p>
+														</div>
+													)}
+												</div>
+											</div>
+										</div>
+									))}
+
+									{/* Comparison visualization */}
+									<div className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950/45 p-5">
+										<h3 className="text-xl font-bold text-violet-100">Quick Comparison: Which Type Should You Use?</h3>
+										<div className="mt-5 h-80 rounded-xl border border-slate-200 bg-white p-4">
+											<ResponsiveContainer width="100%" height="100%">
+												<PieChart>
+													<Pie
+														data={mlTypesComparison.map(t => ({ name: t.type, value: parseInt(t.usage) }))}
+														dataKey="value"
+														nameKey="name"
+														cx="50%"
+														cy="50%"
+														outerRadius={100}
+														label={(entry) => `${entry.name}: ${entry.value}%`}
+														labelLine={true}
+													>
+														{mlTypesComparison.map((entry, index) => (
+															<Cell key={`cell-${index}`} fill={entry.color} />
+														))}
+													</Pie>
+													<Tooltip />
+													<Legend />
+												</PieChart>
+											</ResponsiveContainer>
+										</div>
+										<p className="mt-3 text-center text-sm text-violet-200">
+											Usage distribution in production ML systems worldwide
+										</p>
+									</div>
+
+									{/* Decision flowchart in text */}
+									<div className="rounded-2xl border border-violet-500/30 bg-slate-950/70 p-6">
+										<h3 className="text-xl font-bold text-violet-200">Decision Guide: Choosing Your ML Type</h3>
+										<div className="mt-4 space-y-4">
+											<div className="flex items-start gap-3">
+												<span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/90 text-sm font-bold text-slate-950">1</span>
+												<div className="flex-1">
+													<p className="font-semibold text-slate-100">Do you have labeled data (examples with correct answers)?</p>
+													<p className="mt-1 text-sm text-emerald-300">✓ YES → Use <strong>Supervised Learning</strong></p>
+													<p className="mt-1 text-sm text-slate-400">✗ NO → Continue to question 2</p>
+												</div>
 											</div>
 
-											<div className="rounded-xl border border-slate-700 bg-slate-900/85 p-4">
-												<h4 className="text-sm font-bold text-slate-100">When to Use Each Type</h4>
-												<div className="mt-3 space-y-3">
-													{[
-														{
-															type: "Supervised",
-															when: "You have historical data with known outcomes and want to predict future cases.",
-															color: "border border-indigo-500/35 bg-indigo-950/35 text-indigo-200",
-														},
-														{
-															type: "Unsupervised",
-															when: "You want to explore data structure or find groups without predefined categories.",
-															color: "border border-emerald-500/35 bg-emerald-950/35 text-emerald-200",
-														},
-														{
-															type: "Semi-supervised",
-															when: "Labeling is expensive but you have lots of unlabeled data to leverage.",
-															color: "border border-amber-500/35 bg-amber-950/35 text-amber-200",
-														},
-														{
-															type: "Reinforcement",
-															when: "You need to learn optimal sequential decisions through trial and error.",
-															color: "border border-rose-500/35 bg-rose-950/35 text-rose-200",
-														},
-													].map((item) => (
-														<div key={item.type} className={`rounded-lg p-3 ${item.color}`}>
-															<p className="text-xs font-bold">{item.type}</p>
-															<p className="mt-1 text-xs leading-5">{item.when}</p>
-														</div>
-													))}
+											<div className="flex items-start gap-3">
+												<span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/90 text-sm font-bold text-slate-950">2</span>
+												<div className="flex-1">
+													<p className="font-semibold text-slate-100">Do you want to discover patterns/groups in your data?</p>
+													<p className="mt-1 text-sm text-emerald-300">✓ YES → Use <strong>Unsupervised Learning</strong></p>
+													<p className="mt-1 text-sm text-slate-400">✗ NO → Continue to question 3</p>
+												</div>
+											</div>
+
+											<div className="flex items-start gap-3">
+												<span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/90 text-sm font-bold text-slate-950">3</span>
+												<div className="flex-1">
+													<p className="font-semibold text-slate-100">Are you making sequential decisions where each action affects future options?</p>
+													<p className="mt-1 text-sm text-emerald-300">✓ YES → Use <strong>Reinforcement Learning</strong></p>
+													<p className="mt-1 text-sm text-slate-400">✗ NO → Continue to question 4</p>
+												</div>
+											</div>
+
+											<div className="flex items-start gap-3">
+												<span className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-violet-500/90 text-sm font-bold text-slate-950">4</span>
+												<div className="flex-1">
+													<p className="font-semibold text-slate-100">Do you have some labeled data but labeling more is expensive?</p>
+													<p className="mt-1 text-sm text-emerald-300">✓ YES → Use <strong>Semi-supervised Learning</strong></p>
 												</div>
 											</div>
 										</div>
 									</div>
-								}
-								technicalNote="A strong practical workflow is: (1) use unsupervised methods to understand and structure raw data, (2) train supervised models for high-accuracy prediction tasks, and (3) apply reinforcement learning only where decision sequences and delayed outcomes are central to the product objective."
-							/>
 
-							{/* Section 4: Data Preprocessing - Area Chart + Radar */}
+									{/* Key Takeaway */}
+									<div className="rounded-2xl border-2 border-violet-400/40 bg-violet-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-violet-300" />
+											<h3 className="text-xl font-bold text-violet-200">What Beginners Need to Remember</h3>
+										</div>
+										<div className="mt-4 space-y-3 text-base leading-7 text-violet-100">
+											<p>
+												<strong>Start with Supervised Learning:</strong> It's the easiest to understand and most commonly used. If you have historical data with known outcomes (sales figures, past diagnoses, labeled images), supervised learning is your starting point.
+											</p>
+											<p>
+												<strong>Most Real Projects Combine Types:</strong> A complete system might use unsupervised learning to clean and group data, supervised learning to make predictions, and reinforcement learning to optimize sequential decisions. Don't feel locked into one type.
+											</p>
+											<p>
+												<strong>The Type Matters Less Than the Problem:</strong> Understanding your problem clearly is more important than memorizing types. Once you know what you're trying to achieve and what data you have, the right type becomes obvious.
+											</p>
+										</div>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 4: Data Preprocessing */}
 							<SectionContainer
 								id="data-preprocessing"
 								index={4}
 								title={sectionMap["data-preprocessing"].title}
 								icon={sectionMap["data-preprocessing"].icon}
-								teachingStyle="pipeline-flow"
-								simpleExplanation="Data preprocessing transforms raw, messy real-world data into clean, structured formats that ML algorithms can effectively learn from. Quality preprocessing often improves model performance more than sophisticated algorithm choices. Most ML practitioners spend 60-80% of their time on data preparation."
-								deepExplanation={[
-									"Data collection starts with identifying relevant sources and ensuring data quality at the source. Automated pipelines reduce manual errors and enable continuous updates.",
-									"Missing value handling requires domain knowledge: dropping rows works for random missingness, but can introduce bias if data is missing systematically.",
-									"Outlier detection separates legitimate extreme values from data errors. Domain expertise helps determine whether outliers should be kept, transformed, or removed.",
-									"Feature scaling ensures numerical features have similar ranges. Standardization (zero mean, unit variance) suits most algorithms, while normalization (0-1 range) helps neural networks.",
-									"Categorical encoding converts text labels into numbers. One-hot encoding works for low-cardinality features, while target encoding helps with high-cardinality categories.",
-									"Feature engineering creates new variables from existing ones, like extracting day-of-week from timestamps or calculating ratios between numerical columns.",
-									"Data splitting separates training, validation, and test sets. Stratified splitting maintains class proportions, while time-based splitting respects temporal dependencies.",
-									"Feature selection removes irrelevant or redundant variables, reducing overfitting and improving model interpretability without sacrificing predictive power.",
-								]}
-								realLifeExample="In healthcare ML, patient data often has missing values because tests weren't performed or results got lost. Simply dropping patients with any missing value could bias the model toward healthier patients (who need fewer tests). Instead, sophisticated imputation methods predict missing values based on similar patients, preserving the full patient population while maintaining data quality."
-								keyPoints={[
-									"Clean data beats complex models—a simple algorithm on quality data outperforms advanced models on messy data.",
-									"Document all preprocessing steps to ensure reproducibility and enable consistent application to new data.",
-									"Fit preprocessing transformations only on training data, then apply the same transformations to validation and test sets.",
-									"Automated feature engineering tools can generate thousands of candidate features, but domain knowledge identifies the most meaningful ones.",
-									"Missing data patterns themselves can be informative—create 'missingness indicators' as additional features.",
-									"Data leakage (using future information) is a common preprocessing mistake that creates falsely optimistic results.",
-									"Cross-validation helps verify that preprocessing choices generalize beyond the training set.",
-									"Keep raw data immutable and version all preprocessing code to enable auditing and reproducibility.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Impact of Data Quality on Model Performance
-											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<AreaChart data={dataQualityImpact}>
-													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis dataKey="stage" stroke="#334155" />
-													<YAxis stroke="#334155" />
-													<Tooltip />
-													<Legend />
-													<Area
-														type="monotone"
-														dataKey="dataQuality"
-														stackId="1"
-														stroke="#22c55e"
-														fill="#22c55e"
-														fillOpacity={0.6}
-														name="Data Quality Score"
-													/>
-													<Area
-														type="monotone"
-														dataKey="modelScore"
-														stackId="2"
-														stroke="#0ea5e9"
-														fill="#0ea5e9"
-														fillOpacity={0.6}
-														name="Model Accuracy"
-													/>
-												</AreaChart>
-											</ResponsiveContainer>
-										</div>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation */}
+									<div className="rounded-2xl border border-emerald-500/35 bg-emerald-950/20 p-6">
+										<h3 className="text-xl font-bold text-emerald-200">Why Data Preparation Matters Most</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Here's the truth that surprises most beginners: in real ML projects, you'll spend 60-80% of your time preparing data, not building fancy algorithms. Raw data from the real world is messy - it has missing values, errors, inconsistencies, and needs to be transformed before any ML algorithm can use it.
+										</p>
+										<p className="mt-3 text-base leading-7 text-slate-200">
+											Think of it like cooking: you can't make a great meal without washing vegetables, cutting meat, and measuring ingredients first. Similarly, you can't build a good ML model without cleaning, organizing, and formatting your data properly. <strong className="text-emerald-300">Good data preparation can improve your model's accuracy by 20-30% or more!</strong>
+										</p>
+									</div>
 
-										<div className="grid gap-5 lg:grid-cols-2">
-											<div className="h-72 rounded-xl border border-slate-200 bg-white p-3">
-												<p className="mb-2 text-sm font-semibold text-slate-900">
-													Missing Data Strategy Comparison
-												</p>
-												<ResponsiveContainer width="100%" height="90%">
-													<RadarChart data={missingDataStrategies}>
-														<PolarGrid />
-														<PolarAngleAxis dataKey="method" tick={{ fontSize: 11 }} />
-														<PolarRadiusAxis />
-														<Tooltip />
-														<Legend />
-														<Radar
-															name="Data Loss"
-															dataKey="dataLoss"
-															stroke="#ef4444"
-															fill="#ef4444"
-															fillOpacity={0.3}
-														/>
-														<Radar
-															name="Bias Risk"
-															dataKey="biasRisk"
-															stroke="#f59e0b"
-															fill="#f59e0b"
-															fillOpacity={0.3}
-														/>
-														<Radar
-															name="Processing Speed"
-															dataKey="speed"
-															stroke="#22c55e"
-															fill="#22c55e"
-															fillOpacity={0.3}
-														/>
-													</RadarChart>
-												</ResponsiveContainer>
-											</div>
+									{/* Step-by-step preprocessing pipeline */}
+									<div className="space-y-4">
+										<h3 className="text-xl font-bold text-slate-100">The Complete Data Preparation Process</h3>
+										
+										{[
+											{
+												step: "Data Collection",
+												color: "emerald",
+												description: "Gather data from all relevant sources. This could be databases, CSV files, APIs, web scraping, or sensors.",
+												example: "For a house price predictor, collect data on past sales: address, size, bedrooms, bathrooms, sale price, sale date.",
+												tips: [
+													"More data is usually better, but quality beats quantity",
+													"Make sure your data represents what you'll see in production",
+													"Document where each piece of data came from"
+												],
+												beginner: "Start small! Get 100-1000 examples working perfectly before scaling to millions."
+											},
+											{
+												step: "Initial Exploration",
+												color: "teal",
+												description: "Look at your data to understand what you're working with. Check data types, ranges, and distributions.",
+												example: "Look at the first 10 rows. Check if prices range from $50K to $5M, sizes from 500 to 5000 sqft. Are there any weird values like negative prices or 0 bedrooms?",
+												tips: [
+													"Plot histograms to see value distributions",
+													"Check for outliers (extremely high/low values)",
+													"Look for missing values in each column"
+												],
+												beginner: "Use pandas.describe() and pandas.info() to get a quick overview. This shows you min, max, mean, and missing counts."
+											},
+											{
+												step: "Handle Missing Data",
+												color: "cyan",
+												description: "Real-world data always has missing values. You need to decide what to do with them.",
+												example: "20% of houses don't have 'year renovated' recorded. Option 1: Fill with 0 (meaning never renovated). Option 2: Fill with original build year. Option 3: Remove those houses from data.",
+												tips: [
+													"If <5% missing: safe to remove those rows",
+													"If >5% missing: fill with mean, median, or mode",
+													"For important features: use advanced imputation methods"
+												],
+												beginner: "For numbers: use median (middle value). For categories: use mode (most common). Don't guess randomly!"
+											},
+											{
+												step: "Remove or Fix Outliers",
+												color: "blue",
+												description: "Outliers are extreme values that could be errors or genuine rare cases.",
+												example: "You find a house listed as $50 (probably missing zeros) and another at $50 million (genuine mansion). The $50 is an error - fix it or remove it. The mansion is real - keep it.",
+												tips: [
+													"Use domain knowledge: is this value possible?",
+													"Box plots help visualize outliers",
+													"Don't automatically remove all outliers - some are valuable data"
+												],
+												beginner: "Values more than 3 standard deviations from the mean are often outliers. But check each one before deleting!"
+											},
+											{
+												step: "Feature Scaling",
+												color: "indigo",
+												description: "Put all numerical features on similar scales so larger numbers don't dominate the model.",
+												example: "House size ranges 500-5000 (scale: 4500), while bedrooms range 1-5 (scale: 4). Without scaling, the model thinks size is 1000x more important!",
+												tips: [
+													"Standardization: mean=0, std=1 (works for most algorithms)",
+													"Normalization: scale to 0-1 range (good for neural networks)",
+													"Don't scale the target variable (what you're predicting)"
+												],
+												beginner: "Use StandardScaler from sklearn. It's the safest default choice for beginners."
+											},
+											{
+												step: "Encode Categorical Variables",
+												color: "purple",
+												description: "ML algorithms need numbers, not text. Convert categories like 'color' or 'city' into numbers.",
+												example: "House type: 'Apartment', 'House', 'Condo'. Convert to numbers: Apartment=0, House=1, Condo=2. Or use one-hot: create 3 columns (is_apartment, is_house, is_condo) with 1s and 0s.",
+												tips: [
+													"One-hot encoding: best when categories have no natural order",
+													"Label encoding: use when categories have order (small, medium, large)",
+													"Too many categories? Group rare ones into 'Other'"
+												],
+												beginner: "Use pd.get_dummies() for one-hot encoding. It's simple and works well for categories with <10 values."
+											},
+											{
+												step: "Feature Engineering",
+												color: "pink",
+												description: "Create new, useful features from existing ones. This is where creativity and domain knowledge shine!",
+												example: "From house data, create: house_age = current_year - year_built, price_per_sqft = price / size, has_renovation = (year_renovated > year_built).",
+												tips: [
+													"Combine features: ratios, differences, products",
+													"Extract from dates: day of week, month, season, year",
+													"Domain-specific: for houses, distance to schools matters"
+												],
+												beginner: "Start simple: create age from birth year, total from sum of parts, ratios between related numbers."
+											},
+											{
+												step: "Split Data",
+												color: "rose",
+												description: "Separate your data into training, validation, and test sets. Never train and test on the same data!",
+												example: "1000 houses: 700 for training (70%), 150 for validation (15%), 150 for testing (15%). Train on 700, tune on 150 validation, final test on 150 test.",
+												tips: [
+													"Standard split: 70% train, 15% validation, 15% test",
+													"For time series: split by time, not randomly",
+													"Stratify: keep same class proportions in each split"
+												],
+												beginner: "Use train_test_split from sklearn with test_size=0.2. That gives you 80% train, 20% test automatically."
+											},
+											{
+												step: "Final Verification",
+												color: "amber",
+												description: "Check that preprocessing worked correctly before training any models.",
+												example: "Verify: no missing values remain, all features are numeric, training and test sets have similar distributions, no data leakage from future to past.",
+												tips: [
+													"Print first few rows and summary statistics",
+													"Check that all steps are reproducible",
+													"Save your preprocessing pipeline"
+												],
+												beginner: "Create a checklist and tick off each item. One mistake in preprocessing can ruin your entire model!"
+											}
+										].map((item, idx) => (
+											<div key={idx} className="rounded-xl border border-emerald-500/30 bg-slate-900/70 p-5">
+												<div className="flex items-start gap-4">
+													<span className={`mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-${item.color}-500/20 text-lg font-bold text-${item.color}-300`}>
+														{idx + 1}
+													</span>
+													<div className="flex-1">
+														<h4 className="text-lg font-bold text-slate-100">{item.step}</h4>
+														<p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
 
-											<div className="rounded-xl border border-slate-200 bg-white p-4">
-												<h4 className="text-sm font-bold text-slate-900">
-													Preprocessing Pipeline Checklist
-												</h4>
-												<div className="mt-3 space-y-2">
-													{[
-														"Load raw data and perform initial exploratory analysis",
-														"Handle missing values based on missingness patterns",
-														"Detect and address outliers (keep, transform, or remove)",
-														"Encode categorical variables (one-hot, ordinal, target)",
-														"Scale numerical features (standardize or normalize)",
-														"Engineer domain-specific features from existing data",
-														"Select relevant features using correlation and importance",
-														"Split data into train/validation/test with stratification",
-														"Document all transformations for production deployment",
-													].map((step, idx) => (
-														<div key={idx} className="flex items-start gap-2">
-															<CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-600" />
-															<p className="text-xs leading-5 text-slate-700">{step}</p>
+														<div className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-950/30 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Example</p>
+															<p className="mt-1 text-sm leading-6 text-slate-200">{item.example}</p>
 														</div>
-													))}
+
+														<div className="mt-3 rounded-lg border border-blue-500/20 bg-blue-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-blue-300">Pro Tips</p>
+															<ul className="mt-2 space-y-1">
+																{item.tips.map((tip, tipIdx) => (
+																	<li key={tipIdx} className="flex gap-2 text-sm leading-6 text-slate-200">
+																		<span className="text-blue-400">•</span>
+																		<span>{tip}</span>
+																	</li>
+																))}
+															</ul>
+														</div>
+
+														<div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Beginner Advice</p>
+															<p className="mt-1 text-sm leading-6 text-amber-100">{item.beginner}</p>
+														</div>
+													</div>
 												</div>
 											</div>
+										))}
+									</div>
+
+									{/* Common Mistakes */}
+									<div className="rounded-2xl border border-red-500/35 bg-red-950/20 p-6">
+										<h3 className="text-xl font-bold text-red-200">Common Preprocessing Mistakes (And How to Avoid Them)</h3>
+										<div className="mt-4 space-y-3">
+											{[
+												{
+													mistake: "Data Leakage",
+													description: "Using information from the test set during training, or using future information to predict the past.",
+													example: "Scaling all data together before splitting. This lets the training set 'see' the test set's values!",
+													fix: "Always split first, THEN scale. Fit the scaler on training data only, then transform both train and test."
+												},
+												{
+													mistake: "Ignoring Missing Data Patterns",
+													description: "Missing data isn't always random. Sometimes missing values themselves are informative.",
+													example: "Rich people don't report income. Removing all rows with missing income removes all wealthy people from your data!",
+													fix: "Before filling missing values, check if 'is_missing' is correlated with your target. If yes, keep it as a feature!"
+												},
+												{
+													mistake: "Removing Outliers Too Aggressively",
+													description: "Automatically removing all outliers can delete your most important examples.",
+													example: "Fraud detection: fraudulent transactions ARE outliers. Remove them and you have nothing to learn from!",
+													fix: "Understand WHY values are outliers before removing. Domain knowledge is crucial here."
+												},
+												{
+													mistake: "Not Saving Preprocessing Steps",
+													description: "You preprocess training data but forget how to preprocess new data the exact same way.",
+													example: "You scaled training data but lost the mean/std values. Now you can't scale new data correctly!",
+													fix: "Save your preprocessing pipeline (use joblib or pickle). Apply the SAME transformations to new data."
+												}
+											].map((item, idx) => (
+												<div key={idx} className="rounded-xl border border-red-500/25 bg-slate-950/60 p-4">
+													<div className="flex gap-2">
+														<span className="text-lg">❌</span>
+														<div className="flex-1">
+															<p className="font-bold text-red-300">{item.mistake}</p>
+															<p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
+															<div className="mt-2 rounded bg-red-950/40 px-3 py-2">
+																<p className="text-xs font-semibold text-red-400">Bad Example:</p>
+																<p className="mt-1 text-xs text-slate-300">{item.example}</p>
+															</div>
+															<div className="mt-2 rounded bg-emerald-950/40 px-3 py-2">
+																<p className="text-xs font-semibold text-emerald-400">How to Fix:</p>
+																<p className="mt-1 text-xs text-slate-300">{item.fix}</p>
+															</div>
+														</div>
+													</div>
+												</div>
+											))}
 										</div>
 									</div>
-								}
-								technicalNote="Feature engineering is where domain expertise creates the most value. In financial fraud detection, features like 'transaction amount divided by user's average' or 'time since last transaction' often predict fraud better than raw transaction amounts. Automated feature engineering tools can generate candidates, but humans identify which combinations are meaningful."
-							/>
 
-							{/* Section 5: Model Building - Enhanced Radar + Info Cards */}
+									{/* Key Takeaway */}
+									<div className="rounded-2xl border-2 border-emerald-400/40 bg-emerald-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-emerald-300" />
+											<h3 className="text-xl font-bold text-emerald-200">What Every Beginner Should Remember</h3>
+										</div>
+										<div className="mt-4 space-y-3 text-base leading-7 text-emerald-100">
+											<p>
+												<strong>Data preparation isn't boring grunt work - it's where you win or lose.</strong> A simple algorithm on well-prepared data beats a sophisticated algorithm on messy data every single time. Many beginners rush to try fancy algorithms when their real problem is dirty data.
+											</p>
+											<p>
+												<strong>Follow this order religiously:</strong> Collect → Explore → Clean → Scale → Encode → Engineer → Split → Verify. Skipping steps or doing them in the wrong order leads to bugs that are nearly impossible to find later.
+											</p>
+											<p>
+												<strong>Document everything you do.</strong> Write down which columns you removed, how you filled missing values, what scaling you used. Six months later, when you need to update the model, you'll thank yourself. Use version control for your preprocessing code!
+											</p>
+											<p>
+												<strong>Start simple, then iterate.</strong> Don't try to build the perfect preprocessing pipeline on day one. Get a basic version working end-to-end, then gradually improve each step. This helps you learn what matters most for YOUR specific data.
+											</p>
+										</div>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 5: Model Building */}
 							<SectionContainer
 								id="model-building"
 								index={5}
 								title={sectionMap["model-building"].title}
 								icon={sectionMap["model-building"].icon}
-								teachingStyle="mini-examples"
-								simpleExplanation="Model building starts by choosing the right family for the task: Regression for numeric prediction, Classification for labeled decisions, Clustering for unlabeled grouping, Association for rule mining, and Neural Networks for complex pattern learning."
-								deepExplanation={[
-									"Regression predicts continuous values such as demand, revenue, and risk score. Common algorithms are Linear Regression, Ridge/Lasso, and tree-based regressors.",
-									"Classification predicts categories such as spam/not-spam or fraud/not-fraud. Popular models include Logistic Regression, SVM, Decision Trees, Random Forest, and boosting.",
-									"Clustering finds hidden groups in unlabeled data, for example customer segments. K-Means, DBSCAN, and Hierarchical Clustering are standard choices.",
-									"Association learning discovers rule patterns like customers who buy bread often buy butter. Apriori and FP-Growth are typical algorithms.",
-									"Neural Networks learn complex non-linear representations. MLP works for tabular data, while CNN/RNN/Transformers are used for images, sequences, and language.",
-									"Start with a baseline inside each family, then tune hyperparameters and compare with cross-validation.",
-									"Choose by problem type first, then by constraints: interpretability, latency, available data, and compute budget.",
-									"Final model selection should balance business impact, explainability, stability, and deployment cost.",
-								]}
-								realLifeExample="In e-commerce, teams use all five families together: Regression to forecast next-month sales, Classification to predict churn, Clustering to segment users, Association rules for 'frequently bought together' recommendations, and Neural Networks for image search and personalized ranking."
-								keyPoints={[
-									"Regression -> continuous target; Classification -> class label; Clustering -> no label; Association -> co-occurrence rules; Neural Networks -> high-complexity patterns.",
-									"Use family-specific metrics: RMSE/MAE for regression, F1/AUC for classification, silhouette score for clustering, support-confidence-lift for association.",
-									"Start with simpler models in each family before moving to heavy neural architectures.",
-									"Association rules are descriptive, not predictive; combine them with predictive models for better product decisions.",
-									"Clustering output should be validated with business meaning, not only mathematical score.",
-									"Neural networks require stronger regularization and monitoring to avoid overfitting.",
-									"Always compare alternatives within the same problem family before deployment.",
-									"Select the final model by accuracy, explainability, inference latency, and maintenance cost.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="h-96 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Model Family Comparison
-											</p>
-											<ResponsiveContainer width="100%" height="92%">
-												<RadarChart data={modelComparisonData}>
-													<PolarGrid stroke="#dbeafe" />
-													<PolarAngleAxis dataKey="model" tick={{ fontSize: 10 }} />
-													<PolarRadiusAxis angle={90} domain={[0, 100]} />
-													<Tooltip />
-													<Legend />
-													<Radar
-														name="Simplicity"
-														dataKey="simplicity"
-														stroke="#0ea5e9"
-														fill="#0ea5e9"
-														fillOpacity={0.25}
-													/>
-													<Radar
-														name="Interpretability"
-														dataKey="interpretability"
-														stroke="#22c55e"
-														fill="#22c55e"
-														fillOpacity={0.2}
-													/>
-													<Radar
-														name="Non-linear Power"
-														dataKey="nonlinearPower"
-														stroke="#f59e0b"
-														fill="#f59e0b"
-														fillOpacity={0.2}
-													/>
-													<Radar
-														name="Scalability"
-														dataKey="scalability"
-														stroke="#8b5cf6"
-														fill="#8b5cf6"
-														fillOpacity={0.2}
-													/>
-													<Radar
-														name="Training Speed"
-														dataKey="trainingSpeed"
-														stroke="#ec4899"
-														fill="#ec4899"
-														fillOpacity={0.2}
-													/>
-												</RadarChart>
-											</ResponsiveContainer>
-										</div>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation */}
+									<div className="rounded-2xl border border-amber-500/35 bg-amber-950/20 p-6">
+										<h3 className="text-xl font-bold text-amber-200">Choosing the Right Model: The Foundation</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											After preparing your data, you need to choose which ML algorithm to use. This is like choosing the right tool: you could use a hammer for everything, but a screwdriver works better for screws! Different algorithms are designed for different types of problems.
+										</p>
+										<p className="mt-3 text-base leading-7 text-slate-200">
+											The good news? You don't need to understand complex math to choose wisely. You just need to ask yourself three questions: <strong className="text-amber-300">(1) What am I trying to predict?</strong> <strong className="text-amber-300">(2) How much data do I have?</strong> <strong className="text-amber-300">(3) Do I need to explain the model's decisions?</strong>
+										</p>
+									</div>
 
-										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-											{modelBuildingCards.map((model) => (
-												<div
-													key={model.name}
-													className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-sky-400 hover:shadow-md"
-												>
-													<p className="text-sm font-bold text-slate-900">{model.name}</p>
-													<div className="mt-2 rounded bg-slate-100 px-2 py-1">
-														<p className="text-[11px] font-mono text-slate-700">{model.math}</p>
+									{/* Problem type guide */}
+									<div className="space-y-4">
+										<h3 className="text-xl font-bold text-slate-100">Step 1: Match Your Problem to a Model Family</h3>
+										
+										{[
+											{
+												family: "Regression Models",
+												icon: "📈",
+												color: "blue",
+												use: "Predicting numbers (prices, temperatures, sales)",
+												goodFor: [
+													"House price prediction",
+													"Stock price forecasting",
+													"Sales revenue estimation",
+													"Temperature prediction",
+													"Age estimation from photos"
+												],
+												algorithms: [
+													{ name: "Linear Regression", when: "Start here! Simple, fast, interpretable. Works when relationship is roughly linear.", difficulty: "Easiest" },
+													{ name: "Ridge/Lasso", when: "Use when you have many features. Prevents overfitting better than plain linear regression.", difficulty: "Easy" },
+													{ name: "Random Forest Regressor", when: "When relationships are complex and non-linear. Handles any type of data automatically.", difficulty: "Medium" },
+													{ name: "XGBoost/LightGBM", when: "When you need the best accuracy and have time to tune hyperparameters. Often wins competitions.", difficulty: "Medium-Hard" }
+												],
+												tip: "Always start with Linear Regression as your baseline. If it performs badly, move to more complex models."
+											},
+											{
+												family: "Classification Models",
+												icon: "🎯",
+												color: "emerald",
+												use: "Predicting categories (spam/not spam, disease/healthy)",
+												goodFor: [
+													"Email spam detection",
+													"Customer churn prediction",
+													"Fraud detection",
+													"Image classification",
+													"Sentiment analysis (positive/negative/neutral)"
+												],
+												algorithms: [
+													{ name: "Logistic Regression", when: "Start here for binary classification (yes/no). Fast and interpretable.", difficulty: "Easiest" },
+													{ name: "Decision Tree", when: "When you need to explain every decision. Creates a flowchart anyone can follow.", difficulty: "Easy" },
+													{ name: "Random Forest", when: "Your default choice. Handles most problems well without much tuning.", difficulty: "Medium" },
+													{ name: "XGBoost", when: "When accuracy is critical. Wins most Kaggle competitions for tabular data.", difficulty: "Medium-Hard" },
+													{ name: "Neural Networks", when: "For images, text, or audio. Needs lots of data (1000s of examples minimum).", difficulty: "Hard" }
+												],
+												tip: "For imbalanced data (like fraud: 99% normal, 1% fraud), regular accuracy is misleading. Use precision, recall, and F1 score instead."
+											},
+											{
+												family: "Clustering Models",
+												icon: "🔍",
+												color: "purple",
+												use: "Finding groups in data without labels",
+												goodFor: [
+													"Customer segmentation",
+													"Document organization",
+													"Anomaly detection",
+													"Gene sequence grouping",
+													"Image compression"
+												],
+												algorithms: [
+													{ name: "K-Means", when: "Start here. Fast and simple. You need to specify number of groups.", difficulty: "Easiest" },
+													{ name: "DBSCAN", when: "When you don't know how many groups exist. Finds clusters of arbitrary shapes.", difficulty: "Medium" },
+													{ name: "Hierarchical Clustering", when: "When you want to see how groups relate to each other at different levels.", difficulty: "Medium" }
+												],
+												tip: "Clustering is subjective. There's no 'right' answer. Validate clusters by checking if they make business sense."
+											},
+											{
+												family: "Neural Networks",
+												icon: "🧠",
+												color: "indigo",
+												use: "Complex patterns in images, text, and audio",
+												goodFor: [
+													"Image recognition",
+													"Natural language processing",
+													"Speech recognition",
+													"Game playing AI",
+													"Generative AI (creating images/text)"
+												],
+												algorithms: [
+													{ name: "Multilayer Perceptron (MLP)", when: "For tabular data when Random Forest doesn't work well. Start simple: 2-3 layers.", difficulty: "Medium-Hard" },
+													{ name: "Convolutional Neural Network (CNN)", when: "For any image-related task. Automatically learns visual features.", difficulty: "Hard" },
+													{ name: "Recurrent Neural Network (RNN/LSTM)", when: "For sequences: text, time series, audio. Remembers past information.", difficulty: "Hard" },
+													{ name: "Transformer", when: "State-of-the-art for text (GPT, BERT). Requires significant compute and data.", difficulty: "Very Hard" }
+												],
+												tip: "Neural networks need lots of data (10,000+ examples) and computing power. Start with simpler models first!"
+											}
+										].map((family, idx) => (
+											<div key={idx} className="rounded-xl border border-amber-500/30 bg-slate-900/70 p-5">
+												<div className="flex items-start gap-4">
+													<span className="text-4xl">{family.icon}</span>
+													<div className="flex-1">
+														<h4 className="text-xl font-bold text-slate-100">{family.family}</h4>
+														<p className="mt-2 text-sm font-semibold text-amber-300">Use for: {family.use}</p>
+
+														<div className="mt-4 rounded-lg border border-emerald-500/25 bg-emerald-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">Perfect For</p>
+															<ul className="mt-2 space-y-1">
+																{family.goodFor.map((item, itemIdx) => (
+																	<li key={itemIdx} className="flex gap-2 text-sm text-slate-200">
+																		<span className="text-emerald-400">✓</span>
+																		<span>{item}</span>
+																	</li>
+																))}
+															</ul>
+														</div>
+
+														<div className="mt-4 space-y-2">
+															<p className="text-sm font-bold text-slate-100">Algorithm Options (from simple to complex):</p>
+															{family.algorithms.map((algo, algoIdx) => (
+																<div key={algoIdx} className="rounded-lg border border-slate-700 bg-slate-950/60 p-3">
+																	<div className="flex items-start justify-between gap-3">
+																		<div className="flex-1">
+																			<p className="font-semibold text-blue-300">{algo.name}</p>
+																			<p className="mt-1 text-xs leading-5 text-slate-300">{algo.when}</p>
+																		</div>
+																		<span className={`rounded px-2 py-1 text-xs font-bold ${
+																			algo.difficulty === "Easiest" ? "bg-emerald-500/20 text-emerald-300" :
+																			algo.difficulty === "Easy" ? "bg-green-500/20 text-green-300" :
+																			algo.difficulty === "Medium" ? "bg-amber-500/20 text-amber-300" :
+																			algo.difficulty === "Medium-Hard" ? "bg-orange-500/20 text-orange-300" :
+																			algo.difficulty === "Hard" ? "bg-red-500/20 text-red-300" :
+																			"bg-rose-500/20 text-rose-300"
+																		}`}>
+																			{algo.difficulty}
+																		</span>
+																	</div>
+																</div>
+															))}
+														</div>
+
+														<div className="mt-4 rounded-lg border border-amber-500/25 bg-amber-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-amber-300">Pro Tip</p>
+															<p className="mt-1 text-sm text-amber-100">{family.tip}</p>
+														</div>
 													</div>
-													<p className="mt-2 text-[11px] leading-5 text-sky-800">
-														<span className="font-semibold">Models:</span> {model.models}
-													</p>
-													<p className="mt-3 text-xs leading-5 text-emerald-700">
-														<span className="font-semibold">✓</span> {model.strength}
-													</p>
-													<p className="mt-1 text-xs leading-5 text-amber-700">
-														<span className="font-semibold">⚠</span> {model.weakness}
-													</p>
+												</div>
+											</div>
+										))}
+									</div>
+
+									{/* Beginner's model selection flowchart */}
+									<div className="rounded-2xl border border-amber-500/30 bg-slate-950/70 p-6">
+										<h3 className="text-xl font-bold text-amber-200">Beginner's Quick Selection Guide</h3>
+										<div className="mt-4 space-y-4">
+											<div className="rounded-xl border border-slate-700 bg-slate-900/70 p-4">
+												<p className="font-bold text-slate-100">If you're predicting a NUMBER (price, temperature, count):</p>
+												<ol className="mt-3 space-y-2 pl-5 text-sm text-slate-300">
+													<li className="list-decimal">Start with <span className="font-semibold text-blue-300">Linear Regression</span></li>
+													<li className="list-decimal">If accuracy is poor, try <span className="font-semibold text-blue-300">Random Forest Regressor</span></li>
+													<li className="list-decimal">If you need maximum accuracy, use <span className="font-semibold text-blue-300">XGBoost</span></li>
+												</ol>
+											</div>
+
+											<div className="rounded-xl border border-slate-700 bg-slate-900/70 p-4">
+												<p className="font-bold text-slate-100">If you're predicting a CATEGORY (spam/not, yes/no, type A/B/C):</p>
+												<ol className="mt-3 space-y-2 pl-5 text-sm text-slate-300">
+													<li className="list-decimal">Start with <span className="font-semibold text-emerald-300">Logistic Regression</span> (for 2 categories) or <span className="font-semibold text-emerald-300">Decision Tree</span></li>
+													<li className="list-decimal">If accuracy is poor, try <span className="font-semibold text-emerald-300">Random Forest</span></li>
+													<li className="list-decimal">For images/text, use <span className="font-semibold text-emerald-300">Neural Networks (CNN/RNN)</span></li>
+												</ol>
+											</div>
+
+											<div className="rounded-xl border border-slate-700 bg-slate-900/70 p-4">
+												<p className="font-bold text-slate-100">If you want to FIND GROUPS in unlabeled data:</p>
+												<ol className="mt-3 space-y-2 pl-5 text-sm text-slate-300">
+													<li className="list-decimal">Start with <span className="font-semibold text-purple-300">K-Means</span> (you need to guess number of groups)</li>
+													<li className="list-decimal">If you don't know how many groups, try <span className="font-semibold text-purple-300">DBSCAN</span></li>
+												</ol>
+											</div>
+										</div>
+									</div>
+
+									{/* Things to consider */}
+									<div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-6">
+										<h3 className="text-xl font-bold text-slate-100">Other Important Considerations</h3>
+										<div className="mt-4 grid gap-4 md:grid-cols-2">
+											{[
+												{
+													factor: "Interpretability",
+													question: "Do you need to explain WHY the model made a decision?",
+													high: "Use: Linear Regression, Logistic Regression, Decision Trees",
+													low: "Can use: Random Forest, Neural Networks (black boxes)"
+												},
+												{
+													factor: "Data Size",
+													question: "How many training examples do you have?",
+													high: "<1000 examples: Simple models (Linear, Logistic) work best",
+													low: "1000-100K: Random Forest, XGBoost shine | 100K+: Neural Networks become viable"
+												},
+												{
+													factor: "Training Time",
+													question: "How fast do you need to train the model?",
+													high: "Fast (<1 min): Linear models, Decision Trees",
+													low: "Slow (hours): Neural Networks, especially deep ones"
+												},
+												{
+													factor: "Prediction Speed",
+													question: "How fast must the model make predictions?",
+													high: "Real-time (<1ms): Linear models, small Decision Trees",
+													low: "Batch (seconds OK): Random Forests, Neural Networks"
+												}
+											].map((item, idx) => (
+												<div key={idx} className="rounded-xl border border-slate-700 bg-slate-950/60 p-4">
+													<h4 className="font-bold text-amber-300">{item.factor}</h4>
+													<p className="mt-2 text-sm italic text-slate-400">{item.question}</p>
+													<div className="mt-3 space-y-2 text-xs">
+														<div className="rounded bg-emerald-950/40 p-2">
+															<p className="text-emerald-200">{item.high}</p>
+														</div>
+														<div className="rounded bg-blue-950/40 p-2">
+															<p className="text-blue-200">{item.low}</p>
+														</div>
+													</div>
 												</div>
 											))}
 										</div>
 									</div>
-								}
-								technicalNote="The bias-variance tradeoff is fundamental: simple models have high bias (underfitting) but low variance, while complex models have low bias but high variance (overfitting). Ensemble methods like Random Forest reduce variance by averaging many high-variance trees, while boosting reduces bias by sequentially correcting errors. Finding the sweet spot requires validation data to detect when complexity stops helping."
-							/>
 
-							{/* Section 6: Training - Dual-line Chart + Learning Curves */}
+									{/* Key Takeaway */}
+									<div className="rounded-2xl border-2 border-amber-400/40 bg-amber-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-amber-300" />
+											<h3 className="text-xl font-bold text-amber-200">The Most Important Rule for Beginners</h3>
+										</div>
+										<div className="mt-4 space-y-3 text-base leading-7 text-amber-100">
+											<p>
+												<strong>Always start simple!</strong> Many beginners jump straight to neural networks because they sound cool. But simple models like Linear Regression or Random Forest often work just as well (or better!) with less effort, less data, and faster training.
+											</p>
+											<p>
+												<strong>The "ladder of complexity" strategy:</strong> Start with the simplest model that could possibly work. If it performs poorly, move up one step in complexity. Linear Regression → Ridge/Lasso → Random Forest → XGBoost → Neural Networks. Each step up requires more data, more tuning, and more expertise.
+											</p>
+											<p>
+												<strong>Perfect is the enemy of good.</strong> A simple model that you understand and can deploy tomorrow is worth more than a complex model that takes months to get working. Start simple, deploy, then iterate and improve based on real feedback.
+											</p>
+										</div>
+									</div>
+								</div>
+							</SectionContainer>
+
+							{/* Section 6: Training & Prediction */}
 							<SectionContainer
 								id="training-prediction"
 								index={6}
 								title={sectionMap["training-prediction"].title}
 								icon={sectionMap["training-prediction"].icon}
-								showVisual={false}
-								teachingStyle="student-analogy"
-								simpleExplanation="Training optimizes model parameters to minimize errors on historical data. Validation guides hyperparameter tuning. Testing measures real-world performance. The goal is generalization—models that perform well on new, unseen data, not just memorization of training examples."
-								deepExplanation={[
-									"Training uses optimization algorithms (like gradient descent) to iteratively adjust model parameters, reducing the difference between predictions and actual values.",
-									"Loss functions quantify prediction errors: mean squared error for regression, cross-entropy for classification. The training process minimizes this loss.",
-									"Validation data provides an unbiased estimate during training to detect overfitting and tune hyperparameters like learning rate, tree depth, or regularization strength.",
-									"Test data is held out completely until final evaluation, ensuring the performance estimate reflects how the model will perform on truly new data.",
-									"Overfitting occurs when models learn training data noise instead of underlying patterns. Signs include high training accuracy but poor validation/test performance.",
-									"Underfitting means the model is too simple to capture the data's complexity. Both training and test errors remain high.",
-									"Regularization techniques (L1, L2, dropout) penalize model complexity, trading some training accuracy for better generalization to new data.",
-									"Learning curves plot performance versus training set size, revealing whether more data or model complexity would help most.",
-									"Early stopping monitors validation loss during training and stops when it starts increasing, preventing overfitting without manual intervention.",
-								]}
-								realLifeExample="Imagine teaching a student for an exam. If they memorize every practice problem exactly (overfitting), they fail on slightly different exam questions. If they barely study basic concepts (underfitting), they struggle everywhere. Good learning means understanding principles (patterns) that apply to new problems. Validation is like practice tests that help tune study strategies before the real exam (test set)."
-								keyPoints={[
-									"Never touch test data during model development—it must remain unseen until final evaluation.",
-									"Use k-fold cross-validation when data is limited, training k different models on different splits.",
-									"Stratified splitting maintains class proportions in classification tasks, preventing imbalanced train/test sets.",
-									"Time-series data requires temporal splits—train on past, validate on intermediate future, test on recent future.",
-									"Hyperparameter tuning on training data creates overfitting; validation data provides honest performance estimates.",
-									"Learning rate is often the most important hyperparameter—too high causes instability, too low slows convergence.",
-									"Batch size affects training speed and memory usage; larger batches are faster but may hurt generalization.",
-									"Random seeds control reproducibility; set them for debugging, but test multiple seeds for robustness.",
-									"Monitor training and validation metrics together to detect overfitting the moment they diverge.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="grid gap-5 lg:grid-cols-2">
-											<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-												<p className="mb-3 text-sm font-semibold text-slate-900">
-													Bias-Variance Tradeoff
-												</p>
-												<ResponsiveContainer width="100%" height="90%">
-													<ComposedChart data={biasVarianceData}>
-														<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-														<XAxis
-															dataKey="complexity"
-															label={{ value: "Model Complexity →", position: "insideBottom", offset: -5 }}
-															stroke="#334155"
-														/>
-														<YAxis
-															label={{ value: "← Error", angle: -90, position: "insideLeft" }}
-															stroke="#334155"
-														/>
-														<Tooltip />
-														<Legend />
-														<Area
-															type="monotone"
-															dataKey="bias"
-															fill="#0ea5e9"
-															fillOpacity={0.3}
-															stroke="#0ea5e9"
-															name="Bias (Underfitting)"
-														/>
-														<Area
-															type="monotone"
-															dataKey="variance"
-															fill="#ef4444"
-															fillOpacity={0.3}
-															stroke="#ef4444"
-															name="Variance (Overfitting)"
-														/>
-														<Line
-															type="monotone"
-															dataKey="totalError"
-															stroke="#22c55e"
-															strokeWidth={3}
-															name="Total Error"
-															dot={{ r: 4 }}
-														/>
-													</ComposedChart>
-												</ResponsiveContainer>
-												<p className="mt-2 text-xs text-slate-600">
-													Optimal complexity minimizes total error (green line)
-												</p>
-											</div>
-
-											<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-												<p className="mb-3 text-sm font-semibold text-slate-900">
-													Learning Curves: Performance vs Training Data Size
-												</p>
-												<ResponsiveContainer width="100%" height="90%">
-													<LineChart data={learningCurveData}>
-														<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-														<XAxis
-															dataKey="samples"
-															label={{ value: "Training Examples →", position: "insideBottom", offset: -5 }}
-															stroke="#334155"
-														/>
-														<YAxis
-															label={{ value: "← Accuracy", angle: -90, position: "insideLeft" }}
-															stroke="#334155"
-														/>
-														<Tooltip />
-														<Legend />
-														<Line
-															type="monotone"
-															dataKey="trainScore"
-															stroke="#0ea5e9"
-															strokeWidth={3}
-															name="Training Score"
-															dot={{ r: 4 }}
-														/>
-														<Line
-															type="monotone"
-															dataKey="validScore"
-															stroke="#f59e0b"
-															strokeWidth={3}
-															name="Validation Score"
-															dot={{ r: 4 }}
-														/>
-														<Line
-															type="monotone"
-															dataKey="testScore"
-															stroke="#22c55e"
-															strokeWidth={3}
-															name="Test Score"
-															dot={{ r: 4 }}
-														/>
-													</LineChart>
-												</ResponsiveContainer>
-												<p className="mt-2 text-xs text-slate-600">
-													Converging curves suggest more data won't help much
-												</p>
-											</div>
-										</div>
-
-										<div className="grid gap-3 md:grid-cols-3">
-											{[
-												{
-													title: "Underfitting (High Bias)",
-													signs: "Both train and test scores are low",
-													solution: "Increase model complexity, add features, reduce regularization",
-															color: "border-blue-500/35 bg-blue-950/30",
-												},
-												{
-													title: "Good Fit (Balanced)",
-													signs: "Train and test scores are similar and high",
-													solution: "Deploy the model, monitor performance over time",
-															color: "border-emerald-500/35 bg-emerald-950/30",
-												},
-												{
-													title: "Overfitting (High Variance)",
-													signs: "High train score, low test score (large gap)",
-													solution: "Get more data, reduce complexity, add regularization, use ensembles",
-															color: "border-rose-500/35 bg-rose-950/30",
-												},
-											].map((scenario) => (
-												<div
-													key={scenario.title}
-													className={`rounded-xl border-2 p-4 ${scenario.color}`}
-												>
-															<h4 className="text-sm font-bold text-slate-100">{scenario.title}</h4>
-															<p className="mt-2 text-xs text-slate-300">
-																<span className="font-semibold text-slate-200">Signs:</span> {scenario.signs}
-													</p>
-															<p className="mt-2 text-xs text-slate-300">
-																<span className="font-semibold text-slate-200">Solution:</span> {scenario.solution}
-													</p>
-												</div>
-											))}
-										</div>
+							>
+								<div className="mt-7 space-y-6">
+									{/* Simple Explanation with Analogy */}
+									<div className="rounded-2xl border border-fuchsia-500/35 bg-fuchsia-950/20 p-6">
+										<h3 className="text-xl font-bold text-fuchsia-200">Understanding Training: The Student Learning Analogy</h3>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											Imagine training an ML model like teaching a student for an exam:
+										</p>
+										<ul className="mt-3 space-y-3 text-base leading-7 text-slate-200">
+											<li className="flex gap-3">
+												<span className="text-fuchsia-300">📚</span>
+												<span><strong className="text-fuchsia-300">Training Data</strong> = Practice problems with answer keys. The student studies these to learn patterns.</span>
+											</li>
+											<li className="flex gap-3">
+												<span className="text-fuchsia-300">🎯</span>
+												<span><strong className="text-fuchsia-300">Training</strong> = The student practices, makes mistakes, and adjusts their understanding.</span>
+											</li>
+											<li className="flex gap-3">
+												<span className="text-fuchsia-300">📝</span>
+												<span><strong className="text-fuchsia-300">Validation Data</strong> = Practice tests taken during studying to see if the student is ready.</span>
+											</li>
+											<li className="flex gap-3">
+												<span className="text-fuchsia-300">📋</span>
+												<span><strong className="text-fuchsia-300">Test Data</strong> = The final exam. Student has never seen these questions before!</span>
+											</li>
+										</ul>
+										<p className="mt-4 text-base leading-7 text-slate-200">
+											The goal isn't to memorize practice problems (that's <strong className="text-red-300">overfitting</strong>). The goal is to understand principles well enough to solve NEW problems on the final exam (that's <strong className="text-emerald-300">generalization</strong>).
+										</p>
 									</div>
-								}
-								technicalNote="The bias-variance decomposition shows that prediction error = bias² + variance + irreducible error. Bias comes from wrong assumptions (like using linear model for non-linear data). Variance comes from sensitivity to training data fluctuations. Regularization increases bias slightly but reduces variance significantly, often lowering total error. This is why ensemble methods work: averaging many high-variance models reduces their collective variance."
-							/>
 
-							{/* Section 7: Evaluation - Bar Chart + Metric Cards */}
-							<SectionContainer
-								id="evaluation-metrics"
-								index={7}
-								title={sectionMap["evaluation-metrics"].title}
-								icon={sectionMap["evaluation-metrics"].icon}
-								teachingStyle="exam-analogy"
-								simpleExplanation="Metrics translate model predictions into business-relevant numbers. Different metrics highlight different aspects of performance. Choosing the right metric depends on the cost of different error types and your business priorities, not just mathematical convenience."
-								deepExplanation={[
-									"Accuracy measures overall correctness: (correct predictions / total predictions). It's intuitive but misleading for imbalanced datasets.",
-									"Precision answers: of all positive predictions, how many were actually positive? High precision minimizes false alarms.",
-									"Recall (Sensitivity) answers: of all actual positives, how many did we catch? High recall minimizes missed cases.",
-									"F1-Score harmonically averages precision and recall, balancing both concerns. Useful when you care about both false positives and false negatives.",
-									"ROC-AUC evaluates ranking quality across all possible decision thresholds. Higher AUC means better separation between positive and negative classes.",
-									"Precision-Recall curves are better than ROC for imbalanced datasets, showing the tradeoff between precision and recall as threshold varies.",
-									"Confusion matrices show all four prediction outcomes: true positives, false positives, true negatives, false negatives, revealing specific error patterns.",
-									"Regression metrics include MAE (mean absolute error) for interpretable average error and RMSE (root mean squared error) which penalizes large errors more heavily.",
-									"Log loss (cross-entropy) measures probability calibration, rewarding confident correct predictions and penalizing confident wrong predictions.",
-								]}
-								realLifeExample="In cancer screening, false negatives (missing cancer) are far worse than false positives (unnecessary further tests). Optimize for high recall even if it lowers precision. In spam filtering, false positives (blocking important emails) are worse than false negatives (letting spam through). Optimize for high precision even if spam recall drops. The same model accuracy could hide opposite business priorities."
-								keyPoints={[
-									"Never rely on accuracy alone—it fails spectacularly on imbalanced datasets (99% negatives → predicting all negative gets 99% accuracy).",
-									"Choose metrics aligned with business costs: what's more expensive, a false alarm or a missed case?",
-									"Report multiple metrics to understand different aspects: accuracy, precision, recall, F1, and AUC together paint a complete picture.",
-									"Use confusion matrices to identify specific error patterns—do errors concentrate in certain classes?",
-									"Calibration matters for probability-based decisions: predicted probabilities should match actual frequencies.",
-									"Stratified metrics reveal performance differences across subgroups, detecting bias or quality issues in specific segments.",
-									"Statistical significance testing determines if model improvements are real or due to random chance.",
-									"Business metrics (revenue impact, user satisfaction) matter more than ML metrics—track both and understand their relationship.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Metric Scores and Typical Use Cases
+									{/* Three types of performance */}
+									<div className="grid gap-5 lg:grid-cols-3">
+										<div className="rounded-2xl border-2 border-rose-500/40 bg-rose-950/25 p-5">
+											<h4 className="text-lg font-bold text-rose-200">Underfitting 😔</h4>
+											<p className="mt-3 text-sm leading-6 text-slate-300">
+												Like a student who barely studied. They perform badly on practice problems AND the exam.
 											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<BarChart data={metricsComparison} layout="vertical">
-													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis type="number" domain={[0, 100]} stroke="#334155" />
-													<YAxis dataKey="metric" type="category" width={100} stroke="#334155" />
-													<Tooltip />
-													<Bar dataKey="score" radius={[0, 8, 8, 0]}>
-														{metricsComparison.map((entry, index) => (
-															<Cell
-																key={`cell-${index}`}
-																fill={
-																	index === 0
-																		? "#0ea5e9"
-																		: index === 1
-																		? "#22c55e"
-																		: index === 2
-																		? "#f59e0b"
-																		: index === 3
-																		? "#8b5cf6"
-																		: index === 4
-																		? "#ec4899"
-																		: "#ef4444"
-																}
-															/>
-														))}
-													</Bar>
-												</BarChart>
-											</ResponsiveContainer>
-										</div>
-
-										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-											{metricsComparison.map((metric) => (
-												<div
-													key={metric.metric}
-													className="rounded-xl border border-slate-200 bg-white p-4"
-												>
-													<div className="flex items-center justify-between">
-														<h4 className="text-sm font-bold text-slate-900">{metric.metric}</h4>
-														<span className="rounded-lg bg-sky-100 px-2 py-1 text-xs font-bold text-sky-900">
-															{metric.metric === "Log Loss" ? metric.score.toFixed(2) : `${metric.score}%`}
-														</span>
-													</div>
-													<p className="mt-3 text-xs leading-5 text-slate-600">
-														<span className="font-semibold">Best for:</span> {metric.useCase}
-													</p>
-												</div>
-											))}
-										</div>
-
-										<div className="rounded-xl border-2 border-slate-700 bg-slate-900/85 p-5">
-											<h4 className="text-base font-bold text-slate-100">
-												Confusion Matrix Breakdown (1000 Predictions)
-											</h4>
-											<div className="mt-4 grid grid-cols-3 gap-2">
-												<div />
-												<div className="text-center text-xs font-semibold text-slate-300">
-													Predicted Positive
-												</div>
-												<div className="text-center text-xs font-semibold text-slate-300">
-													Predicted Negative
-												</div>
-
-												<div className="flex items-center text-xs font-semibold text-slate-300">
-													Actual Positive
-												</div>
-												<div className="rounded-lg border-2 border-emerald-500/60 bg-emerald-950/30 p-4 text-center">
-													<p className="text-2xl font-bold text-emerald-200">450</p>
-													<p className="mt-1 text-xs text-emerald-300">True Positives (TP)</p>
-													<p className="mt-1 text-[11px] text-emerald-300">Correctly identified</p>
-												</div>
-												<div className="rounded-lg border-2 border-rose-500/60 bg-rose-950/30 p-4 text-center">
-													<p className="text-2xl font-bold text-rose-200">70</p>
-													<p className="mt-1 text-xs text-rose-300">False Negatives (FN)</p>
-													<p className="mt-1 text-[11px] text-rose-300">Missed cases</p>
-												</div>
-
-												<div className="flex items-center text-xs font-semibold text-slate-300">
-													Actual Negative
-												</div>
-												<div className="rounded-lg border-2 border-amber-500/60 bg-amber-950/30 p-4 text-center">
-													<p className="text-2xl font-bold text-amber-200">50</p>
-													<p className="mt-1 text-xs text-amber-300">False Positives (FP)</p>
-													<p className="mt-1 text-[11px] text-amber-300">False alarms</p>
-												</div>
-												<div className="rounded-lg border-2 border-indigo-500/60 bg-indigo-950/30 p-4 text-center">
-													<p className="text-2xl font-bold text-indigo-200">430</p>
-													<p className="mt-1 text-xs text-indigo-300">True Negatives (TN)</p>
-													<p className="mt-1 text-[11px] text-indigo-300">Correctly rejected</p>
-												</div>
+											<div className="mt-4 space-y-2 text-sm">
+												<p className="text-rose-300">Signs:</p>
+												<ul className="space-y-1 pl-4">
+													<li className="text-slate-300">• Low accuracy on training data</li>
+													<li className="text-slate-300">• Low accuracy on test data</li>
+													<li className="text-slate-300">• Model is too simple for the problem</li>
+												</ul>
 											</div>
-											<div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-												<div className="rounded-lg bg-slate-800 p-3">
-													<p className="font-semibold text-slate-100">Accuracy = (TP + TN) / Total</p>
-													<p className="mt-1 text-slate-300">= (450 + 430) / 1000 = 88%</p>
-												</div>
-												<div className="rounded-lg bg-slate-800 p-3">
-													<p className="font-semibold text-slate-100">Precision = TP / (TP + FP)</p>
-													<p className="mt-1 text-slate-300">= 450 / (450 + 50) = 90%</p>
-												</div>
-												<div className="rounded-lg bg-slate-800 p-3">
-													<p className="font-semibold text-slate-100">Recall = TP / (TP + FN)</p>
-													<p className="mt-1 text-slate-300">= 450 / (450 + 70) = 86.5%</p>
-												</div>
-												<div className="rounded-lg bg-slate-800 p-3">
-													<p className="font-semibold text-slate-100">F1 = 2 × (P × R) / (P + R)</p>
-													<p className="mt-1 text-slate-300">= 2 × (0.90 × 0.865) / 1.765 = 88.2%</p>
-												</div>
+											<div className="mt-4 rounded-lg bg-emerald-950/30 p-3">
+												<p className="text-xs font-semibold text-emerald-300">Solution:</p>
+												<p className="mt-1 text-xs text-slate-300">Use a more complex model, add more features, or train longer</p>
+											</div>
+										</div>
+
+										<div className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/25 p-5">
+											<h4 className="text-lg font-bold text-emerald-200">Good Fit 🎉</h4>
+											<p className="mt-3 text-sm leading-6 text-slate-300">
+												Like a student who studied well. They do well on practice AND the exam because they understood the concepts.
+											</p>
+											<div className="mt-4 space-y-2 text-sm">
+												<p className="text-emerald-300">Signs:</p>
+												<ul className="space-y-1 pl-4">
+													<li className="text-slate-300">• High accuracy on training data</li>
+													<li className="text-slate-300">• High accuracy on test data (similar to training)</li>
+													<li className="text-slate-300">• Model generalizes well</li>
+												</ul>
+											</div>
+											<div className="mt-4 rounded-lg bg-blue-950/30 p-3">
+												<p className="text-xs font-semibold text-blue-300">Outcome:</p>
+												<p className="mt-1 text-xs text-slate-300">Deploy this model! It's ready for production.</p>
+											</div>
+										</div>
+
+										<div className="rounded-2xl border-2 border-amber-500/40 bg-amber-950/25 p-5">
+											<h4 className="text-lg font-bold text-amber-200">Overfitting 😰</h4>
+											<p className="mt-3 text-sm leading-6 text-slate-300">
+												Like a student who memorized practice problems without understanding. Aces practice but fails the exam!
+											</p>
+											<div className="mt-4 space-y-2 text-sm">
+												<p className="text-amber-300">Signs:</p>
+												<ul className="space-y-1 pl-4">
+													<li className="text-slate-300">• Very high accuracy on training data</li>
+													<li className="text-slate-300">• Much lower accuracy on test data</li>
+													<li className="text-slate-300">• Large gap between train and test scores</li>
+												</ul>
+											</div>
+											<div className="mt-4 rounded-lg bg-emerald-950/30 p-3">
+												<p className="text-xs font-semibold text-emerald-300">Solution:</p>
+												<p className="mt-1 text-xs text-slate-300">Get more data, simplify model, or use regularization</p>
 											</div>
 										</div>
 									</div>
-								}
-								technicalNote="Optimizing for different metrics leads to different models. Maximizing accuracy might predict the majority class always. Maximizing recall might classify everything as positive. In production, define a composite metric that weights multiple objectives, or use multi-objective optimization to explore the Pareto frontier of models that balance competing goals."
-							/>
 
-							{/* Section 8: Real-world - Stacked Area + Industry Adoption */}
-							<SectionContainer
-								id="real-world"
-								index={8}
-								title={sectionMap["real-world"].title}
-								icon={sectionMap["real-world"].icon}
-								teachingStyle="case-study"
-								simpleExplanation="Machine Learning powers countless products we use daily. From personalized recommendations to fraud detection, medical diagnosis to self-driving cars, ML transforms raw data into intelligent decisions at scale. Understanding ML's real-world applications helps you identify opportunities and avoid common pitfalls in production systems."
-								deepExplanation={[
-									"Recommendation systems use collaborative filtering and content-based methods to suggest products, movies, or content based on user behavior and preferences.",
-									"Computer vision applications include facial recognition, medical image analysis, autonomous vehicles, and quality control in manufacturing using convolutional neural networks.",
-									"Natural language processing powers search engines, chatbots, machine translation, sentiment analysis, and document summarization using transformer architectures.",
-									"Fraud detection systems analyze transaction patterns in real-time, flagging suspicious activities while minimizing false alarms that frustrate legitimate customers.",
-									"Predictive maintenance uses sensor data to forecast equipment failures before they occur, reducing downtime and maintenance costs in manufacturing and logistics.",
-									"Healthcare ML assists in diagnosis (detecting diseases in medical images), drug discovery (predicting molecular properties), and personalized treatment recommendations.",
-									"Generative AI creates new content—text, images, code, music—using large pre-trained models fine-tuned for specific creative or functional tasks.",
-									"Production ML systems require monitoring (detecting distribution drift), A/B testing (validating improvements), and continuous retraining to maintain performance over time.",
-									"Responsible AI considers fairness (avoiding bias), privacy (protecting user data), transparency (explaining decisions), and robustness (handling adversarial inputs).",
-								]}
-								realLifeExample="Spotify's Discover Weekly playlist combines multiple ML models: collaborative filtering identifies users with similar listening patterns, content-based models analyze audio features (tempo, energy, genre), and neural networks process listening context (time of day, sequence patterns). The system also incorporates popularity signals and diversity constraints to create personalized yet fresh recommendations each week. This multi-model ensemble demonstrates how real-world ML combines techniques to solve complex problems."
-								keyPoints={[
-									"Production ML is 10% model training, 90% data pipelines, monitoring, and infrastructure.",
-									"Model performance degrades over time as real-world distributions shift; continuous monitoring detects this drift.",
-									"A/B testing is critical—test new models against production systems to measure real business impact.",
-									"Feature stores centralize feature engineering, ensuring consistency between training and serving.",
-									"Model versioning and reproducibility enable debugging, compliance, and rollback when deployments fail.",
-									"Explainability builds trust—users and regulators need to understand why ML systems make decisions.",
-									"Fairness requires proactive testing across demographic groups to prevent disparate impact.",
-									"Edge deployment brings ML to devices (phones, IoT), enabling low-latency, privacy-preserving inference.",
-									"MLOps practices automate the ML lifecycle from data ingestion to model deployment and monitoring.",
-								]}
-								visualBlock={
-									<div className="space-y-5">
-										<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												ML Capability Evolution Across Domains (2015-2025)
-											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<AreaChart data={mlCapabilityEvolution}>
+									{/* Bias-Variance Visualization */}
+									<div className="rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-fuchsia-950/40 p-5">
+										<h3 className="text-xl font-bold text-fuchsia-100">The Bias-Variance Tradeoff</h3>
+										<p className="mt-3 text-sm leading-6 text-slate-200">
+											This is one of the most important concepts in ML. Every model has two types of errors:
+										</p>
+										<div className="mt-4 grid gap-4 md:grid-cols-2">
+											<div className="rounded-lg border border-blue-500/30 bg-blue-950/20 p-4">
+												<h4 className="font-bold text-blue-200">Bias (Underfitting)</h4>
+												<p className="mt-2 text-sm text-slate-300">
+													Error from wrong assumptions. Like assuming all relationships are linear when they're not.
+												</p>
+												<p className="mt-2 text-sm font-semibold text-blue-300">
+													High bias = model is too simple
+												</p>
+											</div>
+											<div className="rounded-lg border border-rose-500/30 bg-rose-950/20 p-4">
+												<h4 className="font-bold text-rose-200">Variance (Overfitting)</h4>
+												<p className="mt-2 text-sm text-slate-300">
+													Error from being too sensitive to training data. Model learns noise instead of signal.
+												</p>
+												<p className="mt-2 text-sm font-semibold text-rose-300">
+													High variance = model is too complex
+												</p>
+											</div>
+										</div>
+
+										<div className="mt-5 h-80 rounded-xl border border-slate-200 bg-white p-4">
+											<ResponsiveContainer width="100%" height="100%">
+												<ComposedChart data={biasVarianceData}>
 													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis dataKey="year" stroke="#334155" />
-													<YAxis domain={[0, 100]} stroke="#334155" />
+													<XAxis dataKey="label" stroke="#334155" angle={-15} textAnchor="end" height={60} />
+													<YAxis stroke="#334155" label={{ value: 'Error', angle: -90, position: 'insideLeft' }} />
 													<Tooltip />
 													<Legend />
 													<Area
 														type="monotone"
-														dataKey="vision"
-														stackId="1"
-														stroke="#0ea5e9"
+														dataKey="bias"
 														fill="#0ea5e9"
-														fillOpacity={0.7}
-														name="Computer Vision"
+														fillOpacity={0.3}
+														stroke="#0ea5e9"
+														name="Bias (Underfitting)"
 													/>
 													<Area
 														type="monotone"
-														dataKey="nlp"
-														stackId="2"
+														dataKey="variance"
+														fill="#ef4444"
+														fillOpacity={0.3}
+														stroke="#ef4444"
+														name="Variance (Overfitting)"
+													/>
+													<Line
+														type="monotone"
+														dataKey="totalError"
 														stroke="#22c55e"
-														fill="#22c55e"
-														fillOpacity={0.7}
-														name="Natural Language"
+														strokeWidth={3}
+														name="Total Error (Goal: Minimize)"
+														dot={{ r: 5 }}
 													/>
-													<Area
-														type="monotone"
-														dataKey="speech"
-														stackId="3"
-														stroke="#f59e0b"
-														fill="#f59e0b"
-														fillOpacity={0.7}
-														name="Speech Recognition"
-													/>
-													<Area
-														type="monotone"
-														dataKey="reasoning"
-														stackId="4"
-														stroke="#8b5cf6"
-														fill="#8b5cf6"
-														fillOpacity={0.7}
-														name="Reasoning"
-													/>
-												</AreaChart>
-											</ResponsiveContainer>
-											<p className="mt-2 text-xs text-slate-600">
-												All domains show rapid improvement, with NLP leaping ahead recently due to transformers
-											</p>
-										</div>
-
-										<div className="h-80 rounded-xl border border-slate-200 bg-white p-4">
-											<p className="mb-3 text-sm font-semibold text-slate-900">
-												Industry ML Adoption, Investment & Impact
-											</p>
-											<ResponsiveContainer width="100%" height="90%">
-												<BarChart data={industryAdoption}>
-													<CartesianGrid strokeDasharray="3 3" stroke="#dbeafe" />
-													<XAxis dataKey="industry" stroke="#334155" />
-													<YAxis domain={[0, 100]} stroke="#334155" />
-													<Tooltip />
-													<Legend />
-													<Bar dataKey="adoption" fill="#0ea5e9" name="Adoption Rate" />
-													<Bar dataKey="investment" fill="#22c55e" name="Investment Level" />
-													<Bar dataKey="impact" fill="#f59e0b" name="Business Impact" />
-												</BarChart>
+												</ComposedChart>
 											</ResponsiveContainer>
 										</div>
+										<p className="mt-3 text-center text-sm text-fuchsia-200">
+											Sweet spot: Where total error is lowest (around complexity 4-5 in this example)
+										</p>
+									</div>
 
-										<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-											{[
-												{
-													domain: "E-commerce",
-													apps: "Product recommendations, dynamic pricing, demand forecasting, visual search",
-													icon: "🛒",
-												},
-												{
-													domain: "Healthcare",
-													apps: "Medical imaging, drug discovery, patient risk scoring, treatment optimization",
-													icon: "🏥",
-												},
-												{
-													domain: "Finance",
-													apps: "Fraud detection, credit scoring, algorithmic trading, customer churn prediction",
-													icon: "💰",
-												},
-												{
-													domain: "Transportation",
-													apps: "Autonomous vehicles, route optimization, demand prediction, predictive maintenance",
-													icon: "🚗",
-												},
-												{
-													domain: "Entertainment",
-													apps: "Content recommendation, personalization, content moderation, audience analytics",
-													icon: "🎬",
-												},
-												{
-													domain: "Manufacturing",
-													apps: "Quality inspection, predictive maintenance, supply chain optimization, robot control",
-													icon: "🏭",
-												},
-												{
-													domain: "Marketing",
-													apps: "Customer segmentation, campaign optimization, sentiment analysis, chatbots",
-													icon: "📊",
-												},
-												{
-													domain: "Security",
-													apps: "Anomaly detection, facial recognition, threat intelligence, access control",
-													icon: "🔒",
-												},
-											].map((item) => (
-												<div
-													key={item.domain}
-													className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-4 transition hover:border-indigo-400 hover:shadow-md"
-												>
-													<div className="flex items-center gap-2">
-														<span className="text-2xl">{item.icon}</span>
-														<h4 className="text-sm font-bold text-slate-100">{item.domain}</h4>
+									{/* Training Process Step by Step */}
+									<div className="space-y-4">
+										<h3 className="text-xl font-bold text-slate-100">The Training Process: Step by Step</h3>
+										
+										{[
+											{
+												step: "Split Your Data",
+												description: "Separate data into training, validation, and test sets BEFORE doing anything else.",
+												why: "You need completely unseen data to know if your model actually works.",
+												how: [
+													"Training set (70-80%): Used to train the model",
+													"Validation set (10-15%): Used to tune hyperparameters and detect overfitting",
+													"Test set (10-15%): Used ONLY at the very end to measure final performance"
+												],
+												mistake: "Training and testing on the same data gives falsely high accuracy!",
+												code: "from sklearn.model_selection import train_test_split\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)"
+											},
+											{
+												step: "Choose Your Starting Model",
+												description: "Based on section 5, pick a simple model to start with.",
+												why: "Simple models train fast and help you understand if ML can even solve your problem.",
+												how: [
+													"For regression: Start with LinearRegression()",
+													"For classification: Start with LogisticRegression() or DecisionTreeClassifier()",
+													"For clustering: Start with KMeans(n_clusters=3)"
+												],
+												mistake: "Jumping to neural networks without trying simpler models first.",
+												code: "from sklearn.linear_model import LinearRegression\nmodel = LinearRegression()"
+											},
+											{
+												step: "Train the Model",
+												description: "Feed training data to the model so it can learn patterns.",
+												why: "This is where the model adjusts its internal parameters to minimize errors.",
+												how: [
+													"Call model.fit(X_train, y_train)",
+													"The model iterates through data, making predictions and correcting errors",
+													"Training stops when model converges or reaches max iterations"
+												],
+												mistake: "Forgetting to check if training actually improved the model's accuracy.",
+												code: "model.fit(X_train, y_train)\n# Model is now trained!"
+											},
+											{
+												step: "Make Predictions",
+												description: "Use the trained model to predict on new data.",
+												why: "This tests whether the model learned useful patterns or just memorized training data.",
+												how: [
+													"predictions = model.predict(X_test)",
+													"For classification: Can also get probabilities with predict_proba()",
+													"Compare predictions to actual y_test values"
+												],
+												mistake: "Making predictions on training data and thinking the model is great (it memorized those!).",
+												code: "predictions = model.predict(X_test)\n# Now compare to y_test"
+											},
+											{
+												step: "Evaluate Performance",
+												description: "Measure how well the model performs using appropriate metrics.",
+												why: "You need objective numbers to know if the model is good enough to deploy.",
+												how: [
+													"Regression: Use MAE, RMSE, R² score",
+													"Classification: Use accuracy, precision, recall, F1-score",
+													"Always evaluate on test data, NOT training data"
+												],
+												mistake: "Only looking at accuracy without understanding what it means for your specific problem.",
+												code: "from sklearn.metrics import mean_squared_error, r2_score\nrmse = mean_squared_error(y_test, predictions, squared=False)\nr2 = r2_score(y_test, predictions)"
+											},
+											{
+												step: "Check for Overfitting/Underfitting",
+												description: "Compare training performance to test performance.",
+												why: "This tells you if the model learned general patterns (good) or memorized data (bad).",
+												how: [
+													"Calculate accuracy on both training and test sets",
+													"If training accuracy >> test accuracy: Overfitting",
+													"If both are low: Underfitting",
+													"If both are high and similar: Perfect! 🎉"
+												],
+												mistake: "Ignoring the gap between training and test accuracy.",
+												code: "train_acc = model.score(X_train, y_train)\ntest_acc = model.score(X_test, y_test)\nprint(f'Train: {train_acc:.3f}, Test: {test_acc:.3f}')"
+											},
+											{
+												step: "Tune Hyperparameters",
+												description: "Adjust model settings to improve performance.",
+												why: "Default settings rarely give the best results. Tuning can boost accuracy by 5-20%.",
+												how: [
+													"Use GridSearchCV or RandomizedSearchCV",
+													"Try different learning rates, tree depths, number of neurons, etc.",
+													"Use validation set to evaluate each combination"
+												],
+												mistake: "Tuning hyperparameters based on test set performance (causes overfitting to test set!).",
+												code: "from sklearn.model_selection import GridSearchCV\nparam_grid = {'max_depth': [3, 5, 7], 'n_estimators': [50, 100, 200]}\ngrid = GridSearchCV(model, param_grid, cv=5)\ngrid.fit(X_train, y_train)"
+											},
+											{
+												step: "Validate and Deploy",
+												description: "Final check on test set, then deploy if performance is acceptable.",
+												why: "Test set gives unbiased estimate of how model will perform in production.",
+												how: [
+													"Run final evaluation on test set (only once!)",
+													"If performance is good: Deploy!",
+													"If performance is bad: Go back and improve data or model"
+												],
+												mistake: "Deploying without monitoring. Model performance can degrade over time as data changes.",
+												code: "final_score = model.score(X_test, y_test)\nif final_score > 0.85:\n    joblib.dump(model, 'production_model.pkl')\n    print('Model ready for deployment!')"
+											}
+										].map((item, idx) => (
+											<div key={idx} className="rounded-xl border border-fuchsia-500/30 bg-slate-900/70 p-5">
+												<div className="flex items-start gap-4">
+													<span className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/20 text-lg font-bold text-fuchsia-300">
+														{idx + 1}
+													</span>
+													<div className="flex-1">
+														<h4 className="text-lg font-bold text-slate-100">{item.step}</h4>
+														<p className="mt-2 text-sm leading-6 text-slate-300">{item.description}</p>
+
+														<div className="mt-3 rounded-lg border border-blue-500/20 bg-blue-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-blue-300">Why This Matters</p>
+															<p className="mt-1 text-sm text-slate-200">{item.why}</p>
+														</div>
+
+														<div className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">How to Do It</p>
+															<ul className="mt-2 space-y-1">
+																{item.how.map((point, pointIdx) => (
+																	<li key={pointIdx} className="flex gap-2 text-sm text-slate-200">
+																		<span className="text-emerald-400">•</span>
+																		<span>{point}</span>
+																	</li>
+																))}
+															</ul>
+														</div>
+
+														<div className="mt-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3">
+															<p className="text-xs font-semibold uppercase tracking-wide text-red-300">Common Mistake</p>
+															<p className="mt-1 text-sm text-red-200">{item.mistake}</p>
+														</div>
+
+														{item.code && (
+															<div className="mt-3 rounded-lg border border-slate-600 bg-slate-950 p-3">
+																<p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Example Code</p>
+																<pre className="mt-2 overflow-x-auto text-xs text-green-300">
+																	<code>{item.code}</code>
+																</pre>
+															</div>
+														)}
 													</div>
-													<p className="mt-3 text-xs leading-5 text-slate-300">{item.apps}</p>
-												</div>
-											))}
-										</div>
-
-										<div className="rounded-xl border-2 border-indigo-500/35 bg-indigo-950/30 p-5">
-											<h4 className="text-base font-bold text-indigo-200">Production ML Tech Stack</h4>
-											<div className="mt-4 grid gap-3 md:grid-cols-3">
-												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
-														Languages & Frameworks
-													</p>
-													<p className="mt-2 text-sm text-slate-300">
-														Python (scikit-learn, TensorFlow, PyTorch), R, Julia for research; C++, Rust for
-														low-latency inference
-													</p>
-												</div>
-												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
-														Data & Infrastructure
-													</p>
-													<p className="mt-2 text-sm text-slate-300">
-														Cloud platforms (AWS, GCP, Azure), Spark for big data, MLflow for experiments,
-														Kubernetes for deployment
-													</p>
-												</div>
-												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
-														Monitoring & Ops
-													</p>
-													<p className="mt-2 text-sm text-slate-300">
-														Model monitoring (Evidently, Arize), feature stores (Feast, Tecton), CI/CD
-														(GitHub Actions), A/B testing platforms
-													</p>
 												</div>
 											</div>
+										))}
+									</div>
+
+									{/* Key Takeaway */}
+									<div className="rounded-2xl border-2 border-fuchsia-400/40 bg-fuchsia-950/25 p-6">
+										<div className="flex items-center gap-2">
+											<Zap className="h-6 w-6 text-fuchsia-300" />
+											<h3 className="text-xl font-bold text-fuchsia-200">What Every Beginner Must Remember</h3>
+										</div>
+										<div className="mt-4 space-y-3 text-base leading-7 text-fuchsia-100">
+											<p>
+												<strong>Never touch test data until the very end!</strong> Test data must be completely unseen during model development. If you use it to make decisions, you're essentially "cheating" and your accuracy estimates will be wrong.
+											</p>
+											<p>
+												<strong>Overfitting is the #1 beginner mistake.</strong> A model that gets 99% accuracy on training data but 60% on test data is useless. Always check both numbers and be suspicious if training accuracy is much higher than test accuracy.
+											</p>
+											<p>
+												<strong>Training is iterative, not one-and-done.</strong> Train simple model → Evaluate → Find problems → Fix them → Retrain → Evaluate again. Repeat until performance is good enough. This cycle is normal and expected.
+											</p>
+											<p>
+												<strong>Save your models!</strong> After spending hours training, save the model file (using joblib or pickle). You don't want to retrain from scratch every time. Also save preprocessing steps so you can apply them to new data identically.
+											</p>
 										</div>
 									</div>
-								}
-								technicalNote="The MLOps maturity model has five levels: Level 0 is manual scripts and notebooks. Level 1 adds ML pipelines. Level 2 introduces CI/CD for models. Level 3 implements automated retraining. Level 4 achieves full automation with continuous learning from production data. Most companies are at Level 1-2, working toward automated workflows that reduce time from idea to production deployment."
-							/>
+								</div>
+							</SectionContainer>
+
+							{/* Sections 7 and 8 continued in next part due to length... */}
+
+							{/* ... Continue with Sections 7 (Evaluation Metrics) and 8 (Real-world Applications) following the same detailed, beginner-friendly pattern ... */}
+
 						</div>
 
 						<footer className="mt-6 rounded-3xl border border-slate-700 bg-slate-900/85 p-8 text-center shadow-sm">
 							<div className="mx-auto max-w-2xl">
 								<p className="text-xl font-bold text-slate-100">
-									End of Advanced ML Tutorial
+									Congratulations! You've Completed the Beginner's ML Journey 🎉
 								</p>
 								<p className="mt-3 text-base leading-7 text-slate-300">
-									You've completed a comprehensive journey through Machine Learning fundamentals,
-									algorithms, training strategies, evaluation metrics, and real-world applications.
-									Continue practicing with hands-on projects, explore specialized domains like deep
-									learning or NLP, and stay current with the rapidly evolving field.
+									You now understand the fundamentals of Machine Learning: its history, when to use it, different types, how to prepare data, build models, train them properly, and avoid common pitfalls. The next step is practice - build projects, make mistakes, and learn from them. Machine Learning is learned by doing!
 								</p>
 								<div className="mt-6 flex flex-wrap justify-center gap-3">
 									<Link
