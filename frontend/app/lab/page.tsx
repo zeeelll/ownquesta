@@ -440,7 +440,7 @@ export default function LabPage() {
     const existing = JSON.parse(localStorage.getItem('userProjects') || '[]');
     const filtered = existing.filter((p: { dataset: string; status: string }) => !(p.dataset === filename && p.status === 'in-progress'));
     localStorage.setItem('userProjects', JSON.stringify([projectData, ...filtered]));
-    const activityData = { id: Date.now().toString(), action: `Opened ${filename} in Lab Playground`, timestamp: new Date().toLocaleTimeString(), type: 'upload' };
+    const activityData = { id: Date.now().toString(), action: `Opened ${filename} in AutoML Playground`, timestamp: new Date().toLocaleTimeString(), type: 'upload' };
     const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
     localStorage.setItem('userActivities', JSON.stringify([activityData, ...activities]));
     return projectId;
@@ -453,7 +453,7 @@ export default function LabPage() {
     localStorage.setItem('userProjects', JSON.stringify(updated));
     const mlStats = { validations: updated.filter((p: { status: string }) => p.status === 'validated').length, datasets: updated.length, avgConfidence: 85, totalRows: 0 };
     localStorage.setItem('mlValidationStats', JSON.stringify(mlStats));
-    const activityData = { id: Date.now().toString(), action: `Completed analysis for ${filename} in Lab Playground`, timestamp: new Date().toLocaleTimeString(), type: 'completion' };
+    const activityData = { id: Date.now().toString(), action: `Completed analysis for ${filename} in AutoML Playground`, timestamp: new Date().toLocaleTimeString(), type: 'completion' };
     const activities = JSON.parse(localStorage.getItem('userActivities') || '[]');
     localStorage.setItem('userActivities', JSON.stringify([activityData, ...activities]));
   }, []);
@@ -807,8 +807,10 @@ export default function LabPage() {
             Dashboard
           </button>
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, boxShadow: '0 0 12px rgba(110,84,200,0.4)' }}>🧪</div>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>Lab Playground</span>
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ddd6fe', boxShadow: '0 0 12px rgba(110,84,200,0.4)' }}>
+            <AutoMlIcon size={14} />
+          </div>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>AutoMl Playground</span>
           <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.18)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>BETA</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -1544,6 +1546,18 @@ function ServiceDot({ label, up }: { label: string; up: boolean | null }) {
 
 function SpinIcon({ size = 10 }: { size?: number }) {
   return <span style={{ display: 'inline-block', width: size, height: size, border: '1.5px solid rgba(99,102,241,0.35)', borderTopColor: '#818cf8', borderRadius: '50%', animation: 'lab-spin 0.7s linear infinite' }} />;
+}
+
+function AutoMlIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ display: 'block' }}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 3.2v2.2M12 18.6v2.2M3.2 12h2.2M18.6 12h2.2" />
+      <path d="M5.9 5.9l1.6 1.6M16.5 16.5l1.6 1.6M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6" />
+      <path d="M14.8 8.7l2.6-2.6" />
+      <path d="M17 4.9v1.4M16.3 5.6h1.4" />
+    </svg>
+  );
 }
 
 function ModelSelector({ models, selectedId, onChange, disabled }: { models: AIModel[]; selectedId: string; onChange: (id: string) => void; disabled?: boolean; }) {
