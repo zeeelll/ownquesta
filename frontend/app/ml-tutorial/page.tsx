@@ -1141,29 +1141,29 @@ export default function MLTutorialPage() {
 												</ResponsiveContainer>
 											</div>
 
-											<div className="rounded-xl border border-slate-200 bg-white p-4">
-												<h4 className="text-sm font-bold text-slate-900">When to Use Each Type</h4>
+											<div className="rounded-xl border border-slate-700 bg-slate-900/85 p-4">
+												<h4 className="text-sm font-bold text-slate-100">When to Use Each Type</h4>
 												<div className="mt-3 space-y-3">
 													{[
 														{
 															type: "Supervised",
 															when: "You have historical data with known outcomes and want to predict future cases.",
-															color: "bg-sky-100 text-sky-900",
+															color: "border border-indigo-500/35 bg-indigo-950/35 text-indigo-200",
 														},
 														{
 															type: "Unsupervised",
 															when: "You want to explore data structure or find groups without predefined categories.",
-															color: "bg-emerald-100 text-emerald-900",
+															color: "border border-emerald-500/35 bg-emerald-950/35 text-emerald-200",
 														},
 														{
 															type: "Semi-supervised",
 															when: "Labeling is expensive but you have lots of unlabeled data to leverage.",
-															color: "bg-amber-100 text-amber-900",
+															color: "border border-amber-500/35 bg-amber-950/35 text-amber-200",
 														},
 														{
 															type: "Reinforcement",
 															when: "You need to learn optimal sequential decisions through trial and error.",
-															color: "bg-red-100 text-red-900",
+															color: "border border-rose-500/35 bg-rose-950/35 text-rose-200",
 														},
 													].map((item) => (
 														<div key={item.type} className={`rounded-lg p-3 ${item.color}`}>
@@ -1584,31 +1584,31 @@ export default function MLTutorialPage() {
 													title: "Underfitting (High Bias)",
 													signs: "Both train and test scores are low",
 													solution: "Increase model complexity, add features, reduce regularization",
-													color: "border-blue-200 bg-blue-50",
+															color: "border-blue-500/35 bg-blue-950/30",
 												},
 												{
 													title: "Good Fit (Balanced)",
 													signs: "Train and test scores are similar and high",
 													solution: "Deploy the model, monitor performance over time",
-													color: "border-emerald-200 bg-emerald-50",
+															color: "border-emerald-500/35 bg-emerald-950/30",
 												},
 												{
 													title: "Overfitting (High Variance)",
 													signs: "High train score, low test score (large gap)",
 													solution: "Get more data, reduce complexity, add regularization, use ensembles",
-													color: "border-red-200 bg-red-50",
+															color: "border-rose-500/35 bg-rose-950/30",
 												},
 											].map((scenario) => (
 												<div
 													key={scenario.title}
 													className={`rounded-xl border-2 p-4 ${scenario.color}`}
 												>
-													<h4 className="text-sm font-bold text-slate-900">{scenario.title}</h4>
-													<p className="mt-2 text-xs text-slate-700">
-														<span className="font-semibold">Signs:</span> {scenario.signs}
+															<h4 className="text-sm font-bold text-slate-100">{scenario.title}</h4>
+															<p className="mt-2 text-xs text-slate-300">
+																<span className="font-semibold text-slate-200">Signs:</span> {scenario.signs}
 													</p>
-													<p className="mt-2 text-xs text-slate-700">
-														<span className="font-semibold">Solution:</span> {scenario.solution}
+															<p className="mt-2 text-xs text-slate-300">
+																<span className="font-semibold text-slate-200">Solution:</span> {scenario.solution}
 													</p>
 												</div>
 											))}
@@ -1703,63 +1703,63 @@ export default function MLTutorialPage() {
 											))}
 										</div>
 
-										<div className="rounded-xl border-2 border-slate-200 bg-white p-5">
-											<h4 className="text-base font-bold text-slate-900">
+										<div className="rounded-xl border-2 border-slate-700 bg-slate-900/85 p-5">
+											<h4 className="text-base font-bold text-slate-100">
 												Confusion Matrix Breakdown (1000 Predictions)
 											</h4>
 											<div className="mt-4 grid grid-cols-3 gap-2">
 												<div />
-												<div className="text-center text-xs font-semibold text-slate-700">
+												<div className="text-center text-xs font-semibold text-slate-300">
 													Predicted Positive
 												</div>
-												<div className="text-center text-xs font-semibold text-slate-700">
+												<div className="text-center text-xs font-semibold text-slate-300">
 													Predicted Negative
 												</div>
 
-												<div className="flex items-center text-xs font-semibold text-slate-700">
+												<div className="flex items-center text-xs font-semibold text-slate-300">
 													Actual Positive
 												</div>
-												<div className="rounded-lg border-2 border-emerald-500 bg-emerald-50 p-4 text-center">
-													<p className="text-2xl font-bold text-emerald-900">450</p>
-													<p className="mt-1 text-xs text-emerald-700">True Positives (TP)</p>
-													<p className="mt-1 text-[11px] text-emerald-600">Correctly identified</p>
+												<div className="rounded-lg border-2 border-emerald-500/60 bg-emerald-950/30 p-4 text-center">
+													<p className="text-2xl font-bold text-emerald-200">450</p>
+													<p className="mt-1 text-xs text-emerald-300">True Positives (TP)</p>
+													<p className="mt-1 text-[11px] text-emerald-300">Correctly identified</p>
 												</div>
-												<div className="rounded-lg border-2 border-red-500 bg-red-50 p-4 text-center">
-													<p className="text-2xl font-bold text-red-900">70</p>
-													<p className="mt-1 text-xs text-red-700">False Negatives (FN)</p>
-													<p className="mt-1 text-[11px] text-red-600">Missed cases</p>
+												<div className="rounded-lg border-2 border-rose-500/60 bg-rose-950/30 p-4 text-center">
+													<p className="text-2xl font-bold text-rose-200">70</p>
+													<p className="mt-1 text-xs text-rose-300">False Negatives (FN)</p>
+													<p className="mt-1 text-[11px] text-rose-300">Missed cases</p>
 												</div>
 
-												<div className="flex items-center text-xs font-semibold text-slate-700">
+												<div className="flex items-center text-xs font-semibold text-slate-300">
 													Actual Negative
 												</div>
-												<div className="rounded-lg border-2 border-amber-500 bg-amber-50 p-4 text-center">
-													<p className="text-2xl font-bold text-amber-900">50</p>
-													<p className="mt-1 text-xs text-amber-700">False Positives (FP)</p>
-													<p className="mt-1 text-[11px] text-amber-600">False alarms</p>
+												<div className="rounded-lg border-2 border-amber-500/60 bg-amber-950/30 p-4 text-center">
+													<p className="text-2xl font-bold text-amber-200">50</p>
+													<p className="mt-1 text-xs text-amber-300">False Positives (FP)</p>
+													<p className="mt-1 text-[11px] text-amber-300">False alarms</p>
 												</div>
-												<div className="rounded-lg border-2 border-sky-500 bg-sky-50 p-4 text-center">
-													<p className="text-2xl font-bold text-sky-900">430</p>
-													<p className="mt-1 text-xs text-sky-700">True Negatives (TN)</p>
-													<p className="mt-1 text-[11px] text-sky-600">Correctly rejected</p>
+												<div className="rounded-lg border-2 border-indigo-500/60 bg-indigo-950/30 p-4 text-center">
+													<p className="text-2xl font-bold text-indigo-200">430</p>
+													<p className="mt-1 text-xs text-indigo-300">True Negatives (TN)</p>
+													<p className="mt-1 text-[11px] text-indigo-300">Correctly rejected</p>
 												</div>
 											</div>
 											<div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-												<div className="rounded-lg bg-slate-100 p-3">
-													<p className="font-semibold text-slate-900">Accuracy = (TP + TN) / Total</p>
-													<p className="mt-1 text-slate-700">= (450 + 430) / 1000 = 88%</p>
+												<div className="rounded-lg bg-slate-800 p-3">
+													<p className="font-semibold text-slate-100">Accuracy = (TP + TN) / Total</p>
+													<p className="mt-1 text-slate-300">= (450 + 430) / 1000 = 88%</p>
 												</div>
-												<div className="rounded-lg bg-slate-100 p-3">
-													<p className="font-semibold text-slate-900">Precision = TP / (TP + FP)</p>
-													<p className="mt-1 text-slate-700">= 450 / (450 + 50) = 90%</p>
+												<div className="rounded-lg bg-slate-800 p-3">
+													<p className="font-semibold text-slate-100">Precision = TP / (TP + FP)</p>
+													<p className="mt-1 text-slate-300">= 450 / (450 + 50) = 90%</p>
 												</div>
-												<div className="rounded-lg bg-slate-100 p-3">
-													<p className="font-semibold text-slate-900">Recall = TP / (TP + FN)</p>
-													<p className="mt-1 text-slate-700">= 450 / (450 + 70) = 86.5%</p>
+												<div className="rounded-lg bg-slate-800 p-3">
+													<p className="font-semibold text-slate-100">Recall = TP / (TP + FN)</p>
+													<p className="mt-1 text-slate-300">= 450 / (450 + 70) = 86.5%</p>
 												</div>
-												<div className="rounded-lg bg-slate-100 p-3">
-													<p className="font-semibold text-slate-900">F1 = 2 × (P × R) / (P + R)</p>
-													<p className="mt-1 text-slate-700">= 2 × (0.90 × 0.865) / 1.765 = 88.2%</p>
+												<div className="rounded-lg bg-slate-800 p-3">
+													<p className="font-semibold text-slate-100">F1 = 2 × (P × R) / (P + R)</p>
+													<p className="mt-1 text-slate-300">= 2 × (0.90 × 0.865) / 1.765 = 88.2%</p>
 												</div>
 											</div>
 										</div>
@@ -1918,43 +1918,43 @@ export default function MLTutorialPage() {
 											].map((item) => (
 												<div
 													key={item.domain}
-													className="rounded-xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-4 transition hover:border-sky-400 hover:shadow-md"
+													className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-900 to-slate-800 p-4 transition hover:border-indigo-400 hover:shadow-md"
 												>
 													<div className="flex items-center gap-2">
 														<span className="text-2xl">{item.icon}</span>
-														<h4 className="text-sm font-bold text-slate-900">{item.domain}</h4>
+														<h4 className="text-sm font-bold text-slate-100">{item.domain}</h4>
 													</div>
-													<p className="mt-3 text-xs leading-5 text-slate-700">{item.apps}</p>
+													<p className="mt-3 text-xs leading-5 text-slate-300">{item.apps}</p>
 												</div>
 											))}
 										</div>
 
-										<div className="rounded-xl border-2 border-sky-200 bg-sky-50 p-5">
-											<h4 className="text-base font-bold text-sky-900">Production ML Tech Stack</h4>
+										<div className="rounded-xl border-2 border-indigo-500/35 bg-indigo-950/30 p-5">
+											<h4 className="text-base font-bold text-indigo-200">Production ML Tech Stack</h4>
 											<div className="mt-4 grid gap-3 md:grid-cols-3">
 												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-sky-700">
+													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
 														Languages & Frameworks
 													</p>
-													<p className="mt-2 text-sm text-slate-700">
+													<p className="mt-2 text-sm text-slate-300">
 														Python (scikit-learn, TensorFlow, PyTorch), R, Julia for research; C++, Rust for
 														low-latency inference
 													</p>
 												</div>
 												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-sky-700">
+													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
 														Data & Infrastructure
 													</p>
-													<p className="mt-2 text-sm text-slate-700">
+													<p className="mt-2 text-sm text-slate-300">
 														Cloud platforms (AWS, GCP, Azure), Spark for big data, MLflow for experiments,
 														Kubernetes for deployment
 													</p>
 												</div>
 												<div>
-													<p className="text-xs font-bold uppercase tracking-wide text-sky-700">
+													<p className="text-xs font-bold uppercase tracking-wide text-indigo-300">
 														Monitoring & Ops
 													</p>
-													<p className="mt-2 text-sm text-slate-700">
+													<p className="mt-2 text-sm text-slate-300">
 														Model monitoring (Evidently, Arize), feature stores (Feast, Tecton), CI/CD
 														(GitHub Actions), A/B testing platforms
 													</p>
