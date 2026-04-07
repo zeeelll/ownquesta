@@ -109,7 +109,7 @@ const helpCategories: HelpCategory[] = [
 const issueTypes = [
   { value: 'account', label: 'Account / Login' },
   { value: 'dashboard', label: 'Dashboard / Navigation' },
-  { value: 'lab', label: 'AutoML Playground / Model Training' },
+  { value: 'automl', label: 'AutoML Playground / Model Training' },
   { value: 'upload', label: 'Dataset Upload' },
   { value: 'prediction', label: 'Prediction / Accuracy' },
   { value: 'payment', label: 'Payment / Download Issue' },

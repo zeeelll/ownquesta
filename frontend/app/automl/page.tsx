@@ -387,21 +387,21 @@ export default function LabPage() {
 
   useEffect(() => {
     if (!sid) return;
-    try { localStorage.setItem(`lab_chat_${sid}`, JSON.stringify(chatMsgs)); } catch { /* storage full */ }
+    try { localStorage.setItem(`automl_chat_${sid}`, JSON.stringify(chatMsgs)); } catch { /* storage full */ }
   }, [sid, chatMsgs]);
 
   useEffect(() => {
     if (!sid) return;
     try {
       const stripped = cells.map(c => ({ ...c, out: c.out ? { ...c.out, charts: [] } : null }));
-      localStorage.setItem(`lab_cells_${sid}`, JSON.stringify(stripped));
+      localStorage.setItem(`automl_cells_${sid}`, JSON.stringify(stripped));
     } catch { /* storage full */ }
   }, [sid, cells]);
 
   useEffect(() => {
     if (!sid) return;
     try {
-      localStorage.setItem('lab_active_state', JSON.stringify({
+      localStorage.setItem('automl_active_state', JSON.stringify({
         sid, analysisStage, selectedModel, featureColumns,
         uploadedFilename, uploadedFilePath, targetCol, predictInputs,
       }));
@@ -410,7 +410,7 @@ export default function LabPage() {
 
   useEffect(() => {
     if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
-    const raw = localStorage.getItem('lab_active_state');
+    const raw = localStorage.getItem('automl_active_state');
     if (!raw) return;
     try {
       const s = JSON.parse(raw) as {
@@ -427,9 +427,9 @@ export default function LabPage() {
       if (s.uploadedFilename) setUploadedFilename(s.uploadedFilename);
       if (s.uploadedFilePath) setUploadedFilePath(s.uploadedFilePath);
       if (s.targetCol) setTargetCol(s.targetCol);
-      const savedChat = localStorage.getItem(`lab_chat_${s.sid}`);
+      const savedChat = localStorage.getItem(`automl_chat_${s.sid}`);
       if (savedChat) { try { const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider'); if (msgs.length > 0) setChatMsgs(msgs); } catch { /* corrupt */ } }
-      const savedCells = localStorage.getItem(`lab_cells_${s.sid}`);
+      const savedCells = localStorage.getItem(`automl_cells_${s.sid}`);
       if (savedCells) { try { const cs = JSON.parse(savedCells) as Cell[]; if (cs.length > 0) setCells(cs); } catch { /* corrupt */ } }
     } catch { /* corrupt */ }
   }, []);
@@ -442,9 +442,9 @@ export default function LabPage() {
       const proj = JSON.parse(raw) as { sessionId?: string; name?: string; stage?: string; filename?: string; filePath?: string; targetColumn?: string; };
       if (proj.sessionId) {
         sidRef.current = proj.sessionId; setSid(proj.sessionId);
-        const savedChat = localStorage.getItem(`lab_chat_${proj.sessionId}`);
+        const savedChat = localStorage.getItem(`automl_chat_${proj.sessionId}`);
         if (savedChat) { try { const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider'); if (msgs.length > 0) { const divider: ChatMsg = { id: 'history-divider', type: 'info', text: '─── Previous session history ───' }; setChatMsgs([divider, ...msgs]); } } catch { /* corrupt */ } }
-        const savedCells = localStorage.getItem(`lab_cells_${proj.sessionId}`);
+        const savedCells = localStorage.getItem(`automl_cells_${proj.sessionId}`);
         if (savedCells) { try { const cs = JSON.parse(savedCells) as Cell[]; if (cs.length > 0) setCells(cs); } catch { /* corrupt */ } }
       }
       if (proj.filename)    setUploadedFilename(proj.filename);
@@ -470,9 +470,9 @@ export default function LabPage() {
     if (!raw) return;
     // Always wipe stale session state before starting a fresh project.
     // This also guards against React Strict Mode running effects twice — the
-    // second run finds mlNewProject gone but lab_active_state is already cleared.
+    // second run finds mlNewProject gone but automl_active_state is already cleared.
     localStorage.removeItem('mlNewProject');
-    localStorage.removeItem('lab_active_state');
+    localStorage.removeItem('automl_active_state');
     try {
       const proj = JSON.parse(raw) as { sessionId?: string; name?: string; goal?: string; targetCol?: string };
       if (proj.sessionId) {
@@ -489,8 +489,8 @@ export default function LabPage() {
   // ── Dashboard integration ─────────────────────────────────────────────────
   const saveLabProjectToDashboard = useCallback((filename: string): string => {
     if (typeof window === 'undefined') return '';
-    const projectId = `lab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const projectData = { id: projectId, name: newProjectNameRef.current || filename.replace(/\.[^/.]+$/, ''), dataset: filename, taskType: 'lab-playground', status: 'in-progress', confidence: 0, createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), filePath: filename, rowCount: 0 };
+    const projectId = `automl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const projectData = { id: projectId, name: newProjectNameRef.current || filename.replace(/\.[^/.]+$/, ''), dataset: filename, taskType: 'automl-playground', status: 'in-progress', confidence: 0, createdDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }), filePath: filename, rowCount: 0 };
     const existing = JSON.parse(localStorage.getItem('userProjects') || '[]');
     const filtered = existing.filter((p: { dataset: string; status: string }) => !(p.dataset === filename && p.status === 'in-progress'));
     localStorage.setItem('userProjects', JSON.stringify([projectData, ...filtered]));
@@ -686,8 +686,8 @@ export default function LabPage() {
   const openScriptEditor = useCallback(() => {
     const session = sid || sidRef.current; if (!session) return;
     const cellCodes = cellsRef.current.map(c => c.code).filter(Boolean);
-    localStorage.setItem('lab_script_session', JSON.stringify({ sessionId: session, cells: cellCodes }));
-    router.push('/lab/script');
+    localStorage.setItem('automl_script_session', JSON.stringify({ sessionId: session, cells: cellCodes }));
+    router.push('/automl/script');
   }, [sid, router]);
 
   // ── Download Model (actual logic, called after payment) ───────────────────
@@ -746,7 +746,7 @@ export default function LabPage() {
     }
 
     const params = new URLSearchParams({
-      source: 'lab',
+      source: 'automl',
       product: 'trained-model',
       session,
       model: selectedModel ?? 'Trained Model',
@@ -829,7 +829,7 @@ export default function LabPage() {
     setChatMsgs([{ id: 'w', type: 'welcome', text: 'Upload a CSV or Excel dataset to begin. The AI agent will analyse it, suggest top models, and build a complete ML pipeline for you.' }]);
     setChatInput(''); setAnalysisStage('idle'); setSelectedModel(null); setFeatureColumns([]); setPredictInputs({});
     setModelPaid(false);
-    localStorage.removeItem('lab_active_state');
+    localStorage.removeItem('automl_active_state');
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -2086,7 +2086,7 @@ function ServiceDot({ label, up }: { label: string; up: boolean | null }) {
 }
 
 function SpinIcon({ size = 10 }: { size?: number }) {
-  return <span style={{ display: 'inline-block', width: size, height: size, border: '1.5px solid rgba(99,102,241,0.35)', borderTopColor: '#818cf8', borderRadius: '50%', animation: 'lab-spin 0.7s linear infinite' }} />;
+  return <span style={{ display: 'inline-block', width: size, height: size, border: '1.5px solid rgba(99,102,241,0.35)', borderTopColor: '#818cf8', borderRadius: '50%', animation: 'automl-spin 0.7s linear infinite' }} />;
 }
 
 function AutoMlIcon({ size = 14 }: { size?: number }) {

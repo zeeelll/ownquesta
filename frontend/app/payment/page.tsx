@@ -159,11 +159,11 @@ export default function PaymentPage() {
 
   // ── Checkout params
   const checkout = useMemo(() => {
-    if (typeof window === 'undefined') return { source: 'lab', sessionId: '', modelName: 'RandomForestClassifier', product: 'trained-model', price: DEFAULT_PRICE };
+    if (typeof window === 'undefined') return { source: 'automl', sessionId: '', modelName: 'RandomForestClassifier', product: 'trained-model', price: DEFAULT_PRICE };
     const params = new URLSearchParams(window.location.search);
     const parsedPrice = parseFloat(params.get('price') ?? `${DEFAULT_PRICE}`);
     return {
-      source:    params.get('source') ?? 'lab',
+      source:    params.get('source') ?? 'automl',
       sessionId: params.get('session') ?? '',
       modelName: params.get('model') ?? 'RandomForestClassifier',
       product:   params.get('product') ?? 'trained-model',
@@ -172,7 +172,7 @@ export default function PaymentPage() {
   }, []);
 
   const { source, sessionId, modelName, product, price } = checkout;
-  const returnPath = source === 'script' ? '/lab/script' : '/lab';
+  const returnPath = source === 'script' ? '/automl/script' : '/automl';
 
   const orderId = useMemo(() => sessionId ? `OQ-${sessionId.slice(0, 8).toUpperCase()}` : 'OQ-INSTANT-DL', [sessionId]);
   const upiApproxAmount = useMemo(() => parseFloat((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);

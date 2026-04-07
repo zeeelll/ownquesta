@@ -1144,7 +1144,7 @@ export default function DashboardPage() {
     }
 
     localStorage.setItem("mlNewProject", JSON.stringify({ name, goal, targetCol, sessionId }));
-    router.push("/lab");
+    router.push("/automl");
   },[router, toast]);
 
   const handleContinue = (project:Project) => {
@@ -1155,7 +1155,7 @@ export default function DashboardPage() {
       selectedModel:project.selectedModel,
     };
     localStorage.setItem("mlContinueProject", JSON.stringify(ctx));
-    router.push("/lab");
+    router.push("/automl");
   };
 
   // ── Loading Skeleton ───────────────────────────────────────────────────────

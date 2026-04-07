@@ -508,7 +508,7 @@ export default function ScriptPage() {
 
   // ── Boot ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const raw = localStorage.getItem('lab_script_session');
+    const raw = localStorage.getItem('automl_script_session');
     if (!raw) { setScript('# No session data found. Go back to the AutoML Playground and click "Python Script".'); return; }
     try {
       const { sessionId: sid, cells } = JSON.parse(raw) as { sessionId: string; cells: string[] };
@@ -616,7 +616,7 @@ export default function ScriptPage() {
     if (dlNotebook || !sessionId) return;
     setDlNotebook(true);
     try {
-      const raw = localStorage.getItem('lab_script_session');
+      const raw = localStorage.getItem('automl_script_session');
       const cells = raw ? (JSON.parse(raw) as { cells: string[] }).cells : [script];
       const res = await fetch(`${AGENT_URL}/v2/generate-notebook`, {
         method: 'POST',

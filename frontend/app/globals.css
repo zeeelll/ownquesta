@@ -242,8 +242,8 @@ input, textarea, select, button, label {
   }
 }
 
-/* Lab Playground spin animation */
-@keyframes lab-spin {
+/* AutoML Playground spin animation */
+@keyframes automl-spin {
   to { transform: rotate(360deg); }
 }
 
