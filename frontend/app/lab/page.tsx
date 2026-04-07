@@ -4,46 +4,9 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
-import { keymap } from '@codemirror/view';
+import { keymap, EditorView } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
-import {
-  AlertTriangle,
-  ArrowDown,
-  ArrowUp,
-  BarChart3,
-  Bot,
-  Brain,
-  Check,
-  CheckCircle2,
-  Code2,
-  ChevronDown,
-  Construction,
-  Download,
-  FileText,
-  FlaskConical,
-  FolderOpen,
-  Hexagon,
-  LineChart,
-  Lock,
-  MessageCircle,
-  Microscope,
-  Play,
-  Plus,
-  Search,
-  Send,
-  Settings,
-  Shield,
-  ShieldCheck,
-  Sparkles,
-  Star,
-  Trophy,
-  Wrench,
-  X,
-  Zap,
-  Diamond,
-  Clock3,
-} from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
 
@@ -460,7 +423,7 @@ export default function LabPage() {
         eda_completed:    'EDA was previously completed. Click **Analyse** to re-run, then select a model to build the pipeline.',
         model_selected:   'A model was selected last time. Click **Analyse** to re-run, then rebuild the pipeline.',
         training:         'The pipeline was building. Click **Analyse** to re-run from scratch.',
-        trained:          'The model was trained. Click **Analyse**, select a model, then build the pipeline to retrain.',
+        trained:          'The model was trained. Click **Analyse** → select model → build pipeline to retrain.',
         evaluated:        'The model was evaluated. Click **Analyse** to run the full workflow again.',
         completed:        'Project was completed. Click **Analyse** to re-run the full workflow.',
       };
@@ -471,7 +434,11 @@ export default function LabPage() {
   useEffect(() => {
     const raw = localStorage.getItem('mlNewProject');
     if (!raw) return;
+    // Always wipe stale session state before starting a fresh project.
+    // This also guards against React Strict Mode running effects twice — the
+    // second run finds mlNewProject gone but lab_active_state is already cleared.
     localStorage.removeItem('mlNewProject');
+    localStorage.removeItem('lab_active_state');
     try {
       const proj = JSON.parse(raw) as { sessionId?: string; name?: string; goal?: string; targetCol?: string };
       if (proj.sessionId) {
@@ -833,44 +800,14 @@ export default function LabPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: `radial-gradient(1200px 500px at 10% -10%, rgba(34,211,238,0.12), transparent 55%), radial-gradient(1000px 520px at 95% 0%, rgba(110,168,255,0.14), transparent 58%), ${LAB_THEME.bg}`, color: LAB_THEME.text, fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0b14', color: '#e6eef8', fontFamily: "'Chillax','Inter',sans-serif", overflow: 'hidden' }}>
 
       {/* Header */}
       <header style={{ height: 52, flexShrink: 0, background: 'rgba(8,14,30,0.82)', backdropFilter: 'blur(14px)', borderBottom: `1px solid ${LAB_THEME.border}`, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button onClick={() => router.push('/dashboard')} title="Back to Dashboard"
-            onMouseEnter={e => {
-              const el = e.currentTarget;
-              el.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.5), rgba(6,182,212,0.36))';
-              el.style.boxShadow = '0 10px 24px rgba(56,189,248,0.32)';
-              el.style.borderColor = 'rgba(125,211,252,0.75)';
-            }}
-            onMouseLeave={e => {
-              const el = e.currentTarget;
-              el.style.background = 'linear-gradient(135deg, rgba(59,130,246,0.34), rgba(6,182,212,0.2))';
-              el.style.boxShadow = '0 6px 16px rgba(56,189,248,0.2)';
-              el.style.borderColor = 'rgba(125,211,252,0.55)';
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'linear-gradient(135deg, rgba(59,130,246,0.34), rgba(6,182,212,0.2))',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderColor: 'rgba(125,211,252,0.55)',
-              borderRadius: 10,
-              padding: '6px 14px',
-              color: '#eff8ff',
-              fontSize: 11.5,
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              letterSpacing: '0.02em',
-              boxShadow: '0 6px 16px rgba(56,189,248,0.2)',
-              transition: 'all 0.18s ease'
-            }}>
-            Dashboard
+            style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
+            ← Dashboard
           </button>
           <div style={{ width: 1, height: 14, background: LAB_THEME.border }} />
           <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#2563eb,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dbeafe', boxShadow: `0 0 12px ${LAB_THEME.accentGlow}` }}>
@@ -949,6 +886,14 @@ export default function LabPage() {
               setPredictInputs={setPredictInputs}
               onPredict={predict}
               modelDownloadPrice={MODEL_DOWNLOAD_PRICE}
+              chatMsgs={chatMsgs}
+              onBuildPipeline={buildPipeline}
+              uploading={uploading}
+              uploadErr={uploadErr}
+              targetCol={targetCol}
+              onTargetColChange={setTargetCol}
+              onUploadClick={() => fileInputRef.current?.click()}
+              onAnalyze={analyze}
             />
           ) : (
             <>
@@ -970,13 +915,13 @@ export default function LabPage() {
 
         {/* Drag handle */}
         <div onMouseDown={e => { dragRef.current = { startX: e.clientX, startW: panelW }; e.preventDefault(); }}
-          style={{ width: 5, flexShrink: 0, cursor: 'col-resize', background: 'rgba(34,211,238,0.14)', borderLeft: `1px solid ${LAB_THEME.borderStrong}` }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,211,238,0.36)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(34,211,238,0.14)'; }} />
+          style={{ width: 5, flexShrink: 0, cursor: 'col-resize', background: 'rgba(110,84,200,0.12)', borderLeft: '1px solid rgba(110,84,200,0.2)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.4)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(110,84,200,0.12)'; }} />
 
         {/* Right: Chat Panel */}
-        <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: LAB_THEME.panelAlt, borderLeft: `1px solid ${LAB_THEME.border}` }}>
-          <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: `1px solid ${LAB_THEME.border}`, background: 'rgba(4,10,24,0.6)' }}>
+        <div style={{ width: panelW, flexShrink: 0, display: 'flex', flexDirection: 'column', background: '#0c0d1a', borderLeft: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ flexShrink: 0, padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.25)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <Bot size={13} />
               <span style={{ fontWeight: 700, fontSize: 13, color: '#bfdbfe' }}>ML Agent</span>
@@ -1043,7 +988,7 @@ export default function LabPage() {
               {chatSending ? <SpinIcon size={11}/> : <Send size={13} />}
             </button>
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* ── Payment Modal ── */}
@@ -1166,6 +1111,156 @@ function EdaSummaryBubble({ summary, featureImportance, preprocessing }: { summa
   );
 }
 
+// ── Deep EDA Section ──────────────────────────────────────────────────────────
+interface DeepEdaSectionProps {
+  analysis: AnalysisData | null;
+  edaSummary: { summary: string; featureImportance: string; preprocessing: string } | null;
+  insightMsgs: ChatMsg[];
+  uploadedFilename: string | null;
+  onDownload(content: string): void;
+}
+
+function DeepEdaSection({ analysis, edaSummary, insightMsgs, uploadedFilename, onDownload }: DeepEdaSectionProps) {
+  const [openSec, setOpenSec] = useState<Record<string, boolean>>({
+    overview: true, features: true, missing: true, fePlan: true,
+    edaSummary: true, importance: true, preprocessing: true, insights: true,
+  });
+  const toggle = (k: string) => setOpenSec(p => ({ ...p, [k]: !p[k] }));
+
+  const Section = ({ id, icon, title, color, border, bg, children }: { id: string; icon: string; title: string; color: string; border: string; bg: string; children: React.ReactNode }) => (
+    <div style={{ marginBottom: 10, borderRadius: 12, border: `1px solid ${border}`, overflow: 'hidden' }}>
+      <button onClick={() => toggle(id)} style={{ width: '100%', padding: '10px 14px', background: bg, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color, fontSize: 13, fontWeight: 700, fontFamily: 'inherit', textAlign: 'left' as const }}>
+        <span>{icon}</span><span style={{ flex: 1 }}>{title}</span>
+        <span style={{ fontSize: 11, transform: openSec[id] ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.15s', color: '#475569' }}>▾</span>
+      </button>
+      {openSec[id] && <div style={{ padding: '12px 16px', borderTop: `1px solid ${border}`, background: 'rgba(0,0,0,0.18)' }}>{children}</div>}
+    </div>
+  );
+
+  const buildMarkdown = () => {
+    const lines: string[] = [];
+    const fname = uploadedFilename ?? 'dataset';
+    lines.push(`# EDA Report — ${fname}`, '', `*Generated ${new Date().toLocaleString()}*`, '');
+
+    if (analysis) {
+      lines.push(`## Problem Type`, `**${analysis.problem_type}**`, '');
+      if (analysis.target_column) lines.push(`## Target Column`, `\`${analysis.target_column}\``, '');
+      if (analysis.dataset_summary) lines.push(`## Dataset Overview`, analysis.dataset_summary, '');
+      if (analysis.feature_analysis) lines.push(`## Feature Analysis`, analysis.feature_analysis, '');
+      if (analysis.missing_values_note) lines.push(`## Missing Values`, analysis.missing_values_note, '');
+      if (analysis.feature_engineering_reasoning) lines.push(`## Feature Engineering Plan`, analysis.feature_engineering_reasoning, '');
+    }
+    if (edaSummary) {
+      if (edaSummary.summary) lines.push(`## EDA Summary`, edaSummary.summary, '');
+      if (edaSummary.featureImportance) lines.push(`## Feature Importance`, edaSummary.featureImportance, '');
+      if (edaSummary.preprocessing) lines.push(`## Preprocessing Recommendations`, edaSummary.preprocessing, '');
+    }
+    if (insightMsgs.length > 0) {
+      lines.push(`## Chart Insights`);
+      insightMsgs.forEach((m, i) => { if (m.text) lines.push(`### Chart ${i + 1}`, m.text, ''); });
+    }
+    return lines.join('\n');
+  };
+
+  const hasContent = !!(analysis || edaSummary || insightMsgs.length > 0);
+  if (!hasContent) return null;
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {/* Header with download button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 16 }}>🔬</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#22d3ee' }}>Deep Exploratory Data Analysis</span>
+        </div>
+        <button onClick={() => onDownload(buildMarkdown())}
+          style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 9, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(34,211,238,0.18),rgba(6,182,212,0.18))', border: '1px solid rgba(34,211,238,0.45)', color: '#22d3ee', fontSize: 12, fontWeight: 700, fontFamily: 'inherit', flexShrink: 0 }}>
+          <span>📥</span> Download EDA Report
+        </button>
+      </div>
+
+      {/* 1 — Dataset Overview */}
+      {analysis?.dataset_summary && (
+        <Section id="overview" icon="📊" title="Dataset Overview" color="#22d3ee" border="rgba(34,211,238,0.25)" bg="rgba(34,211,238,0.08)">
+          <p style={{ margin: '0 0 10px', fontSize: 13, color: '#a5f3fc', lineHeight: 1.75 }}>{analysis.dataset_summary}</p>
+          {analysis.problem_type && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', borderRadius: 20, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)', fontSize: 12, color: '#22d3ee', fontWeight: 700 }}>
+              Problem Type: {analysis.problem_type}
+            </div>
+          )}
+        </Section>
+      )}
+
+      {/* 2 — Feature Analysis */}
+      {analysis?.feature_analysis && (
+        <Section id="features" icon="⚡" title="Feature Analysis" color="#a78bfa" border="rgba(167,139,250,0.25)" bg="rgba(167,139,250,0.08)">
+          <div style={{ fontSize: 13, color: '#c4b5fd', lineHeight: 1.75 }}><MdText text={analysis.feature_analysis} /></div>
+        </Section>
+      )}
+
+      {/* 3 — Missing Values */}
+      {analysis?.missing_values_note && (
+        <Section id="missing" icon="🕳️" title="Missing Values Analysis" color="#f59e0b" border="rgba(245,158,11,0.25)" bg="rgba(245,158,11,0.07)">
+          <div style={{ fontSize: 13, color: '#fcd34d', lineHeight: 1.75 }}><MdText text={analysis.missing_values_note} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#f59e0b' }}>Why it matters:</strong> Missing data can bias model predictions. The AI has accounted for this in the feature engineering step.
+          </div>
+        </Section>
+      )}
+
+      {/* 4 — Feature Engineering Plan */}
+      {analysis?.feature_engineering_reasoning && (
+        <Section id="fePlan" icon="⚙️" title="Feature Engineering Plan" color="#818cf8" border="rgba(129,140,248,0.25)" bg="rgba(129,140,248,0.07)">
+          <div style={{ fontSize: 13, color: '#c7d2fe', lineHeight: 1.75 }}><MdText text={analysis.feature_engineering_reasoning} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#818cf8' }}>Why it matters:</strong> Feature engineering transforms raw data into signals the model can learn from. Better features = better predictions.
+          </div>
+        </Section>
+      )}
+
+      {/* 5 — EDA Summary */}
+      {edaSummary?.summary && (
+        <Section id="edaSummary" icon="📋" title="EDA Summary" color="#4ade80" border="rgba(74,222,128,0.25)" bg="rgba(74,222,128,0.07)">
+          <div style={{ fontSize: 13, color: '#bbf7d0', lineHeight: 1.75 }}><MdText text={edaSummary.summary} /></div>
+        </Section>
+      )}
+
+      {/* 6 — Feature Importance */}
+      {edaSummary?.featureImportance && (
+        <Section id="importance" icon="⭐" title="Feature Importance & Correlations" color="#f472b6" border="rgba(244,114,182,0.25)" bg="rgba(244,114,182,0.07)">
+          <div style={{ fontSize: 13, color: '#fbcfe8', lineHeight: 1.75 }}><MdText text={edaSummary.featureImportance} /></div>
+          <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(244,114,182,0.07)', border: '1px solid rgba(244,114,182,0.2)', fontSize: 12, color: '#94a3b8' }}>
+            <strong style={{ color: '#f472b6' }}>Why it matters:</strong> High-importance features drive most of the model's predictive power. Low-importance ones may introduce noise.
+          </div>
+        </Section>
+      )}
+
+      {/* 7 — Preprocessing */}
+      {edaSummary?.preprocessing && (
+        <Section id="preprocessing" icon="🔧" title="Preprocessing Recommendations" color="#fb923c" border="rgba(251,146,60,0.25)" bg="rgba(251,146,60,0.07)">
+          <div style={{ fontSize: 13, color: '#fed7aa', lineHeight: 1.75 }}><MdText text={edaSummary.preprocessing} /></div>
+        </Section>
+      )}
+
+      {/* 8 — Per-chart insights */}
+      {insightMsgs.length > 0 && (
+        <Section id="insights" icon="💡" title={`AI Insights from ${insightMsgs.length} Chart${insightMsgs.length !== 1 ? 's' : ''}`} color="#22d3ee" border="rgba(34,211,238,0.2)" bg="rgba(34,211,238,0.06)">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {insightMsgs.map((m, i) => m.text && (
+              <div key={i} style={{ padding: '10px 14px', borderRadius: 9, background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.15)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#22d3ee', marginBottom: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span>📊</span> Chart {i + 1}
+                </div>
+                <div style={{ fontSize: 13, color: '#a5f3fc', lineHeight: 1.7 }}>{m.text}</div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 function PredictForm({ featureColumns, inputs, setInputs, onPredict, predicting }: { featureColumns: string[]; inputs: Record<string,string>; setInputs: React.Dispatch<React.SetStateAction<Record<string,string>>>; onPredict(): void; predicting: boolean; }) {
   return (
     <div style={{ marginBottom: 12, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
@@ -1271,14 +1366,36 @@ interface EasyModePanelProps {
   featureColumns: string[]; predictInputs: Record<string, string>;
   setPredictInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onPredict(): void;
+  chatMsgs: ChatMsg[];
+  onBuildPipeline(modelName: string): void;
+  uploading: boolean; uploadErr: string | null;
+  targetCol: string; onTargetColChange(v: string): void;
+  onUploadClick(): void; onAnalyze(): void;
 }
 
-function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict }: EasyModePanelProps) {
-  const [aiPrompt, setAiPrompt]       = useState('');
-  const [testSize, setTestSize]       = useState(0.2);
-  const [cvFolds, setCvFolds]         = useState(5);
+function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
+  const [aiPrompt, setAiPrompt]         = useState('');
+  const [testSize, setTestSize]         = useState(0.2);
+  const [cvFolds, setCvFolds]           = useState(5);
   const [settingsNote, setSettingsNote] = useState('');
-  const [showParams, setShowParams]   = useState(false);
+  const [showParams, setShowParams]     = useState(false);
+  const [feReviewed, setFeReviewed]     = useState(false);
+  const [showCustomFE, setShowCustomFE] = useState(false);
+  const [customFEInput, setCustomFEInput] = useState('');
+
+  // Extract structured data from chat messages
+  const analysisMsg   = chatMsgs.find(m => m.type === 'analysis');
+  const feMsg         = chatMsgs.find(m => m.type === 'fe');
+  const modelsMsg     = chatMsgs.find(m => m.type === 'models');
+  const edaSummaryMsg = chatMsgs.find(m => m.type === 'eda_summary');
+  const insightMsgs   = chatMsgs.filter(m => m.type === 'insight');
+
+  // Auto-mark FE reviewed when pipeline is already built (session restore)
+  useEffect(() => { if (analysisStage === 'pipeline_built') setTimeout(() => setFeReviewed(true), 0); }, [analysisStage]);
+  // Reset FE state when going back to idle (reset kernel)
+  useEffect(() => {
+    if (analysisStage === 'idle') setTimeout(() => { setFeReviewed(false); setShowCustomFE(false); setCustomFEInput(''); }, 0);
+  }, [analysisStage]);
 
   const allCharts: string[] = [];
   cells.forEach(cell => { (cell.out?.charts ?? []).forEach(c => allCharts.push(c)); });
@@ -1308,15 +1425,19 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
   const metrics = [...rawMetrics].reverse().filter(m => !seen.has(m.label) && seen.add(m.label)).reverse();
 
   const steps = [
-    { label: 'Upload',      done: !!uploadedFilename,                         active: false },
-    { label: 'Analyse',     done: analysisStage !== 'idle',                   active: analyzing },
-    { label: 'Train Model', done: analysisStage === 'pipeline_built',         active: buildingPipeline },
-    { label: 'Done',        done: analysisStage === 'pipeline_built' && !buildingPipeline, active: false },
+    { label: 'Upload',      done: !!uploadedFilename,                                            active: false },
+    { label: 'Analyse',     done: analysisStage !== 'idle',                                      active: analyzing },
+    { label: 'Train Model', done: analysisStage === 'pipeline_built',                            active: buildingPipeline },
+    { label: 'Done',        done: analysisStage === 'pipeline_built' && !buildingPipeline,       active: false },
   ];
   const busy = chatSending || analyzing || buildingPipeline;
+  // Content gated behind FE review
+  const showPostFE = feReviewed || analysisStage === 'pipeline_built';
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+
+      {/* ── Header / Stepper ── */}
       <div style={{ marginBottom: 20, padding: '16px 20px', borderRadius: 14, background: 'linear-gradient(135deg,rgba(110,84,200,0.13),rgba(74,222,128,0.05))', border: '1px solid rgba(110,84,200,0.28)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
           <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#4a3aad,#7c5cbf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 0 16px rgba(110,84,200,0.4)' }}><Sparkles size={18} /></div>
@@ -1344,7 +1465,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {metrics.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><BarChart3 size={12} /> Model Performance</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📊</span> Model Performance</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 8 }}>
             {metrics.map((m, i) => (
               <div key={i} style={{ padding: '12px 10px', borderRadius: 10, background: 'rgba(110,84,200,0.09)', border: '1px solid rgba(110,84,200,0.22)', textAlign: 'center' }}>
@@ -1356,19 +1477,239 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
-      {allCharts.length > 0 && (
+      {/* ── Analysis Results ── */}
+      {analysisMsg?.analysis && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(110,84,200,0.28)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 16px', background: 'rgba(110,84,200,0.12)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>📊</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#c4b5fd' }}>Dataset Analysis</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, padding: '2px 8px', borderRadius: 20, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>{analysisMsg.analysis.problem_type}</span>
+          </div>
+          <div style={{ padding: '14px 16px', fontSize: 13, lineHeight: 1.7, color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {analysisMsg.analysis.target_column && (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                <span style={{ color: '#475569', minWidth: 120, fontWeight: 600, fontSize: 12 }}>Target Column</span>
+                <code style={{ color: '#e2e8f0', fontFamily: 'monospace', background: 'rgba(255,255,255,0.07)', padding: '1px 8px', borderRadius: 4, fontSize: 12 }}>{analysisMsg.analysis.target_column}</code>
+              </div>
+            )}
+            {analysisMsg.analysis.dataset_summary && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Dataset Summary</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.dataset_summary}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.feature_analysis && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Features</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.feature_analysis}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.missing_values_note && (
+              <div>
+                <div style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Missing Values</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.missing_values_note}</div>
+              </div>
+            )}
+            {analysisMsg.analysis.feature_engineering_reasoning && (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}>
+                <div style={{ color: '#818cf8', fontWeight: 600, marginBottom: 4, fontSize: 12, display: 'flex', gap: 5 }}><span>⚙️</span> Feature Engineering Plan</div>
+                <div style={{ fontSize: 12 }}>{analysisMsg.analysis.feature_engineering_reasoning}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Feature Engineering Review ── */}
+      {feMsg && analysisStage !== 'idle' && !feReviewed && !buildingPipeline && analysisStage !== 'pipeline_built' && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.4)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 16px', background: 'rgba(251,191,36,0.09)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>⚙️</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: '#fbbf24' }}>Feature Engineering Applied — Your Review Needed</span>
+          </div>
+          <div style={{ padding: '14px 16px' }}>
+            <p style={{ margin: '0 0 14px', fontSize: 13, color: '#94a3b8', lineHeight: 1.65 }}>
+              The AI has automatically applied feature engineering to prepare your dataset for model training. Please review what was done, then choose how to proceed.
+            </p>
+
+            {feMsg.fe?.code && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', marginBottom: 6, display: 'flex', gap: 5 }}><span>🔧</span> Transformations Applied:</div>
+                <pre style={{ margin: 0, padding: '10px 14px', background: 'rgba(0,0,0,0.38)', borderRadius: 8, color: '#e2e8f0', fontSize: 11.5, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', maxHeight: 220, overflow: 'auto', border: '1px solid rgba(255,255,255,0.06)' }}>{feMsg.fe.code}</pre>
+              </div>
+            )}
+            {feMsg.fe?.output && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#4ade80', marginBottom: 6, display: 'flex', gap: 5 }}><span>✓</span> Result:</div>
+                <pre style={{ margin: 0, padding: '8px 12px', background: 'rgba(74,222,128,0.05)', borderRadius: 8, color: '#bbf7d0', fontSize: 11.5, fontFamily: "'Fira Code','Consolas',monospace", whiteSpace: 'pre-wrap', border: '1px solid rgba(74,222,128,0.15)' }}>{feMsg.fe.output}</pre>
+              </div>
+            )}
+            {feMsg.fe?.error && (
+              <div style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#fca5a5', fontSize: 12 }}>
+                ⚠ An error occurred but was auto-fixed. You may want to provide custom FE logic if results look unexpected.
+              </div>
+            )}
+
+            {/* Custom FE input area */}
+            {showCustomFE && (
+              <div style={{ marginBottom: 14, padding: '12px 14px', borderRadius: 9, background: 'rgba(99,102,241,0.07)', border: '1px solid rgba(99,102,241,0.25)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#818cf8', marginBottom: 8 }}>Describe your custom feature engineering logic:</div>
+                <textarea
+                  value={customFEInput}
+                  onChange={e => setCustomFEInput(e.target.value)}
+                  placeholder="e.g. 'Scale all numeric features with StandardScaler, drop the CustomerID column, one-hot encode Contract_Type only, and create an Age × Tenure interaction feature…'"
+                  rows={4}
+                  style={{ width: '100%', boxSizing: 'border-box' as const, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: 12, outline: 'none', fontFamily: 'inherit', resize: 'none', lineHeight: 1.6 }}
+                />
+                <button
+                  onClick={() => {
+                    if (customFEInput.trim()) {
+                      onSendPrompt(`Please redo the feature engineering with these specific instructions: ${customFEInput.trim()}`);
+                      setFeReviewed(true);
+                      setShowCustomFE(false);
+                    }
+                  }}
+                  disabled={!customFEInput.trim() || busy}
+                  style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, cursor: (!customFEInput.trim() || busy) ? 'not-allowed' : 'pointer', background: customFEInput.trim() && !busy ? 'linear-gradient(135deg,rgba(99,102,241,0.55),rgba(79,82,218,0.55))' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(99,102,241,0.4)', color: customFEInput.trim() && !busy ? '#e2e8f0' : '#475569', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
+                  {busy ? 'Working…' : 'Apply Custom Feature Engineering'}
+                </button>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+              <button
+                onClick={() => setFeReviewed(true)}
+                disabled={busy}
+                style={{ flex: 1, minWidth: 200, padding: '11px 16px', borderRadius: 10, cursor: busy ? 'not-allowed' : 'pointer', background: busy ? 'rgba(74,222,128,0.04)' : 'linear-gradient(135deg,rgba(74,222,128,0.22),rgba(16,185,129,0.22))', border: '1px solid rgba(74,222,128,0.45)', color: '#4ade80', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <span>✓</span> Continue with Model Reasoning
+              </button>
+              <button
+                onClick={() => setShowCustomFE(s => !s)}
+                disabled={busy}
+                style={{ flex: 1, minWidth: 200, padding: '11px 16px', borderRadius: 10, cursor: busy ? 'not-allowed' : 'pointer', background: showCustomFE ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${showCustomFE ? 'rgba(99,102,241,0.55)' : 'rgba(255,255,255,0.14)'}`, color: showCustomFE ? '#818cf8' : '#94a3b8', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <span>✏️</span> Provide Custom FE Logic
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDA Visualisations (full-width, stacked, with AI explanations) ── */}
+      {showPostFE && allCharts.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><LineChart size={12} /> Visualisations</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📈</span> Visualisations</div>
           <div style={{ display: 'grid', gridTemplateColumns: allCharts.length === 1 ? '1fr' : 'repeat(auto-fill,minmax(280px,1fr))', gap: 10 }}>
             {allCharts.map((b64, i) => (
-              <div key={i} style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.2)' }}>
+              <div key={i} style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(110,84,200,0.22)', background: 'rgba(0,0,0,0.28)', boxShadow: '0 4px 24px rgba(0,0,0,0.3)' }}>
+                {/* Chart header */}
+                <div style={{ padding: '10px 16px', background: 'rgba(110,84,200,0.10)', borderBottom: '1px solid rgba(110,84,200,0.18)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>📊</span>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: '#c4b5fd' }}>Chart {i + 1}</span>
+                  {insightMsgs[i]?.text && (
+                    <span style={{ marginLeft: 'auto', fontSize: 10, padding: '2px 8px', borderRadius: 20, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)', color: '#22d3ee' }}>AI Insight</span>
+                  )}
+                </div>
+                {/* Chart image */}
                 <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ width: '100%', display: 'block' }} />
+                {/* AI explanation block — always shown */}
+                {(() => {
+                  const insight = insightMsgs[i]?.text;
+                  const fallbacks = [
+                    'This chart shows the distribution of your target variable across the dataset. Use it to check whether the classes or values are balanced — a heavily skewed distribution can affect how the model learns and may require resampling or class-weight adjustments.',
+                    'This correlation heatmap reveals how strongly each pair of numeric features relates to one another. Values near +1 or −1 indicate strong relationships; values near 0 suggest independence. Highly correlated feature pairs can cause multicollinearity, which may reduce model interpretability.',
+                    'This plot visualises the spread and shape of a key feature in your dataset. Look for skewness, multiple peaks (bimodal), or heavy tails — these patterns often signal that feature transformation (e.g. log-scaling) would help the model learn more effectively.',
+                    'This visualisation compares feature values across different groups or categories. Differences in distribution between groups can indicate that the feature carries predictive signal for your target variable.',
+                    'This chart provides an overview of patterns, counts, or relationships within a feature. Studying the shape of the distribution helps identify outliers, dominant categories, or trends that the model will learn from.',
+                  ];
+                  const text = insight ?? fallbacks[i % fallbacks.length];
+                  const isAI = !!insight;
+                  return (
+                    <div style={{ padding: '14px 18px', borderTop: `1px solid ${isAI ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.06)'}`, background: isAI ? 'linear-gradient(135deg,rgba(13,148,136,0.09),rgba(34,211,238,0.04))' : 'rgba(255,255,255,0.02)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                        <span style={{ fontSize: 13 }}>{isAI ? '🤖' : '📖'}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: isAI ? '#22d3ee' : '#94a3b8', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>
+                          {isAI ? 'What this chart tells you' : 'How to read this chart'}
+                        </span>
+                        {!isAI && <span style={{ fontSize: 10, padding: '1px 6px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#475569', marginLeft: 2 }}>guide</span>}
+                      </div>
+                      <div style={{ fontSize: 13, color: isAI ? '#a5f3fc' : '#94a3b8', lineHeight: 1.75 }}>{text}</div>
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ── Deep EDA Section ── */}
+      {showPostFE && (analysisMsg?.analysis || edaSummaryMsg?.edaSummary || insightMsgs.length > 0) && (
+        <DeepEdaSection
+          analysis={analysisMsg?.analysis ?? null}
+          edaSummary={edaSummaryMsg?.edaSummary ?? null}
+          insightMsgs={insightMsgs}
+          uploadedFilename={uploadedFilename}
+          onDownload={(content: string) => {
+            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+            triggerBlobDownload(blob, `EDA_Report_${(uploadedFilename ?? 'dataset').replace(/\.[^.]+$/, '')}.md`);
+          }}
+        />
+      )}
+
+      {/* ── Model Selection (inline, only while in 'analyzed' state) ── */}
+      {showPostFE && modelsMsg?.models && analysisStage === 'analyzed' && !buildingPipeline && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#c4b5fd', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><span>🏆</span> Select a Model to Train</div>
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>The AI has ranked the top models for your dataset. Click a model to build the full ML pipeline.</p>
+          {modelsMsg.models.map((m, i) => (
+            <ModelCard key={m.name} model={m} rank={i} isSelected={selectedModel === m.name} onSelect={() => onBuildPipeline(m.name)} disabled={buildingPipeline} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Building pipeline status ── */}
+      {buildingPipeline && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <SpinIcon size={20} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80', marginBottom: 2 }}>Training {selectedModel ?? 'Model'}…</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>The agent is writing and executing the ML pipeline step by step. This may take a minute.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Pipeline built ── */}
+      {analysisStage === 'pipeline_built' && !buildingPipeline && (
+        <div style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: 'rgba(74,222,128,0.07)', border: '1px solid rgba(74,222,128,0.38)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <span style={{ fontSize: 22, lineHeight: 1, marginTop: 2, flexShrink: 0 }}>✅</span>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#4ade80', marginBottom: 3 }}>Model Trained Successfully!</div>
+              <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.55 }}>Your {selectedModel ?? 'ML'} model is ready. Explore the visualisations above, test predictions below, or download the model.</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Metrics ── */}
+      {metrics.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}><span>📊</span> Model Performance</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(120px,1fr))', gap: 8 }}>
+            {metrics.map((m, i) => (
+              <div key={i} style={{ padding: '12px 10px', borderRadius: 10, background: 'rgba(110,84,200,0.09)', border: '1px solid rgba(110,84,200,0.22)', textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#c4b5fd', marginBottom: 3 }}>{m.value}</div>
+                <div style={{ fontSize: 10, color: '#64748b' }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Test Your Model ── */}
       {analysisStage === 'pipeline_built' && featureColumns.length > 0 && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(251,191,36,0.3)', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', background: 'rgba(251,191,36,0.07)', fontSize: 13, fontWeight: 700, color: '#fbbf24', display: 'flex', gap: 6, alignItems: 'center' }}><FlaskConical size={13} /> Test Your Model</div>
@@ -1390,6 +1731,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
+      {/* ── Adjust Settings ── */}
       {uploadedFilename && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(99,102,241,0.22)', overflow: 'hidden' }}>
           <button onClick={() => setShowParams(p => !p)} style={{ width: '100%', padding: '10px 14px', background: 'rgba(99,102,241,0.08)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: '#818cf8', fontSize: 13, fontWeight: 700, fontFamily: 'inherit' }}>
@@ -1421,6 +1763,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
+      {/* ── Ask the AI Agent ── */}
       <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden' }}>
         <div style={{ padding: '10px 14px', background: 'rgba(0,0,0,0.22)', fontSize: 13, fontWeight: 700, color: '#94a3b8', display: 'flex', gap: 6, alignItems: 'center' }}><MessageCircle size={13} /> Ask the AI Agent</div>
         <div style={{ padding: '10px 12px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -1435,7 +1778,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       </div>
 
-      {/* Download Model + Script — payment-gated */}
+      {/* ── Download Model + Script — payment-gated ── */}
       {analysisStage === 'pipeline_built' && (
         <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onDownloadModel} disabled={downloadingModel}
@@ -1473,9 +1816,9 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
 
       {!uploadedFilename && (
         <div style={{ textAlign: 'center', padding: '48px 20px', color: '#475569' }}>
-          <div style={{ marginBottom: 14, display: 'flex', justifyContent: 'center' }}><FolderOpen size={52} /></div>
+          <div style={{ fontSize: 52, marginBottom: 14 }}>📂</div>
           <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Upload your dataset to get started</div>
-          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right.</div>
+          <div style={{ fontSize: 12 }}>Use the <strong style={{ color: '#a87edf' }}>ML Agent</strong> panel on the right →</div>
         </div>
       )}
     </div>
@@ -1505,56 +1848,140 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
   const isRunning = cell.status === 'running';
   const hasOut    = cell.out !== null;
   const borderColor = isRunning ? 'rgba(99,102,241,0.55)' : cell.status === 'error' ? 'rgba(239,68,68,0.35)' : cell.status === 'done' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)';
-  const statusDot = { idle: { color: '#475569', icon: <span style={{ width: 6, height: 6, borderRadius: '50%', border: '1px solid currentColor', display: 'inline-block' }} /> }, running: { color: '#818cf8', icon: <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} /> }, done: { color: '#4ade80', icon: <Check size={10} /> }, error: { color: '#f87171', icon: <X size={10} /> } }[cell.status];
+  const statusDot = { idle: { color: '#475569', icon: '○' }, running: { color: '#818cf8', icon: '●' }, done: { color: '#4ade80', icon: '✓' }, error: { color: '#f87171', icon: '✕' } }[cell.status];
   const charts = cell.out?.charts ?? [];
   return (
-    <div style={{ marginBottom: 10, borderRadius: 12, border: `1px solid ${borderColor}`, background: 'rgba(255,255,255,0.018)', overflow: 'hidden', transition: 'border-color 0.25s' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(0,0,0,0.22)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ width: 52, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, lineHeight: 1, color: isRunning ? '#818cf8' : cell.status === 'done' ? '#4ade80' : cell.status === 'error' ? '#f87171' : '#64748b', fontWeight: 600 }}>{isRunning ? '[*]' : `[${index+1}]`}</span>
-          <span style={{ fontSize: 9.5, color: statusDot.color, display: 'flex', alignItems: 'center', gap: 2, lineHeight: 1 }}>
-            {isRunning ? <SpinIcon/> : <span>{statusDot.icon}</span>}
-            {cell.ms !== null && <span style={{ color: '#475569' }}>{cell.ms < 1000 ? `${cell.ms}ms` : `${(cell.ms/1000).toFixed(1)}s`}</span>}
+    <div style={{
+      marginBottom: 14, borderRadius: 14,
+      border: `1px solid ${STATE.border}`,
+      background: `linear-gradient(135deg, ${STATE.bg}, rgba(8,10,22,0.97))`,
+      overflow: 'hidden',
+      transition: 'border-color 0.3s, box-shadow 0.3s',
+      boxShadow: `0 2px 24px ${STATE.glow}, 0 1px 0 rgba(255,255,255,0.04) inset`,
+      position: 'relative',
+    }}>
+      {/* Left accent bar */}
+      <div style={{
+        position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+        background: isRunning
+          ? 'linear-gradient(180deg,#818cf8,#6366f1,#a78bfa)'
+          : cell.status === 'done'  ? 'linear-gradient(180deg,#4ade80,#22d3ee)'
+          : cell.status === 'error' ? 'linear-gradient(180deg,#f87171,#fb923c)'
+          : 'linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))',
+        borderRadius: '14px 0 0 14px',
+        boxShadow: isRunning ? '0 0 12px rgba(129,140,248,0.6)' : cell.status === 'done' ? '0 0 10px rgba(74,222,128,0.4)' : cell.status === 'error' ? '0 0 10px rgba(248,113,113,0.4)' : 'none',
+        transition: 'all 0.3s',
+      }} />
+
+      {/* ── Header toolbar ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 18px', background: 'rgba(0,0,0,0.28)', borderBottom: `1px solid ${STATE.border}` }}>
+
+        {/* Cell index badge */}
+        <div style={{
+          minWidth: 42, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+        }}>
+          <span style={{
+            fontFamily: "'Fira Code','Consolas',monospace", fontSize: 11, fontWeight: 700,
+            color: STATE.numColor, letterSpacing: '0.04em', lineHeight: 1,
+            textShadow: isRunning ? '0 0 10px rgba(129,140,248,0.8)' : cell.status === 'done' ? '0 0 8px rgba(74,222,128,0.6)' : 'none',
+          }}>
+            {isRunning ? '[*]' : `[${index + 1}]`}
           </span>
+          {cell.ms !== null && (
+            <span style={{ fontSize: 9, color: '#475569', fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+              {cell.ms < 1000 ? `${cell.ms}ms` : `${(cell.ms / 1000).toFixed(1)}s`}
+            </span>
+          )}
         </div>
         <button onClick={onRun} disabled={isRunning} title="Run (Ctrl+Enter)"
           style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, background: isRunning ? 'rgba(255,255,255,0.04)' : 'rgba(74,222,128,0.08)', border: isRunning ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(74,222,128,0.4)', cursor: isRunning ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isRunning ? '#475569' : '#4ade80', fontSize: 10, fontWeight: 700, boxShadow: isRunning ? 'none' : '0 0 10px rgba(74,222,128,0.15)' }}>
-          {isRunning ? <SpinIcon size={11}/> : <Play size={11} />}
+          {isRunning ? <SpinIcon size={11}/> : '▶'}
         </button>
+
+        {/* Status pill — only show when running or error */}
+        {(isRunning || cell.status === 'error') && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: '3px 9px', borderRadius: 20,
+            background: isRunning ? 'rgba(99,102,241,0.12)' : 'rgba(239,68,68,0.1)',
+            border: `1px solid ${isRunning ? 'rgba(99,102,241,0.3)' : 'rgba(239,68,68,0.25)'}`,
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+              background: STATE.numColor,
+              boxShadow: `0 0 6px ${STATE.numColor}`,
+              animation: isRunning ? 'cellPing 1.4s ease infinite' : 'none',
+            }} />
+            <span style={{ fontSize: 10, fontWeight: 600, color: STATE.numColor, letterSpacing: '0.06em', textTransform: 'uppercase' as const, fontFamily: "'Fira Code',monospace" }}>
+              {isRunning ? 'running' : 'error'}
+            </span>
+          </div>
+        )}
+
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index===0}><ArrowUp size={12} /></IBtn></Tip>
-          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index===total-1}><ArrowDown size={12} /></IBtn></Tip>
-          <Tip label="Insert below"><IBtn onClick={onInsert}><Plus size={12} /></IBtn></Tip>
+          <Tip label="Move up"><IBtn onClick={onMoveUp} disabled={index===0}>↑</IBtn></Tip>
+          <Tip label="Move down"><IBtn onClick={onMoveDown} disabled={index===total-1}>↓</IBtn></Tip>
+          <Tip label="Insert below"><IBtn onClick={onInsert}>+</IBtn></Tip>
           <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 2px' }} />
           <Tip label="Delete"><DelBtn onClick={onDelete}/></Tip>
         </div>
       </div>
-      <div style={{ marginLeft: 56 }}>
+
+      {/* ── Code editor ── */}
+      <div style={{ marginLeft: 4, background: 'rgba(0,0,0,0.18)' }}>
         <CodeMirror value={cell.code} height="auto"
           extensions={[python(), Prec.highest(keymap.of([{ key: 'Mod-Enter', run: () => { onRun(); return true; } }, { key: 'Shift-Enter', run: () => { onRun(); onInsert(); return true; } }]))]}
-          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index+1} - Ctrl+Enter to run`}
+          theme={oneDark} onChange={onCode} placeholder={`# Cell ${index+1} — Ctrl+Enter to run`}
           style={{ fontSize: 13.5, fontFamily: "'Fira Code','Cascadia Code','Consolas',monospace" }}
           basicSetup={{ lineNumbers: true, highlightActiveLineGutter: false, highlightSpecialChars: false, foldGutter: false, drawSelection: true, dropCursor: false, allowMultipleSelections: false, indentOnInput: true, syntaxHighlighting: true, bracketMatching: true, closeBrackets: true, autocompletion: false, rectangularSelection: false, crosshairCursor: false, highlightActiveLine: false, highlightSelectionMatches: false, closeBracketsKeymap: true, defaultKeymap: true, historyKeymap: true, history: true }}
         />
       </div>
+
+      {/* ── Output section ── */}
       {hasOut && (
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <button onClick={onToggleOut} style={{ width: '100%', background: 'rgba(0,0,0,0.18)', border: 'none', padding: '5px 16px 5px 72px', display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#64748b', fontSize: 11, textAlign: 'left', borderBottom: cell.outOpen ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-            <ChevronDown size={12} style={{ transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s' }} />
+            <span style={{ display: 'inline-block', transform: cell.outOpen ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.18s', lineHeight: 1 }}>▾</span>
             <span>output</span>
             {cell.out?.error && <span style={{ color: '#f87171', marginLeft: 2 }}>— error</span>}
             {!cell.out?.error && cell.out?.stdout && <span style={{ color: '#4ade80', marginLeft: 2 }}>— ok</span>}
             {charts.length > 0 && <span style={{ color: '#22d3ee', marginLeft: 2 }}>— {charts.length} chart{charts.length>1?'s':''}</span>}
           </button>
+
           {cell.outOpen && (
             <div>
-              {cell.out?.stdout && <pre style={{ margin: 0, padding: '10px 16px 10px 72px', background: 'rgba(0,0,0,0.25)', color: '#bbf7d0', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: "'Fira Code','Consolas',monospace" }}>{cell.out.stdout}</pre>}
-              {cell.out?.error  && <pre style={{ margin: 0, padding: '10px 16px 10px 72px', background: 'rgba(239,68,68,0.05)', color: '#fca5a5', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: "'Fira Code','Consolas',monospace" }}>{cell.out.error}</pre>}
-              {!cell.out?.stdout && !cell.out?.error && <div style={{ padding: '8px 16px 8px 72px', color: '#334155', fontSize: 12, fontFamily: 'monospace', background: 'rgba(0,0,0,0.15)' }}>(no output)</div>}
+              {cell.out?.stdout && (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(180deg,#4ade80,#22d3ee)', opacity: 0.7 }} />
+                  <pre style={{
+                    margin: 0, padding: '12px 18px 12px 22px',
+                    background: 'linear-gradient(135deg, rgba(74,222,128,0.04), rgba(0,0,0,0.3))',
+                    color: '#bbf7d0', fontSize: 12.5, lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    fontFamily: "'Fira Code','Consolas',monospace",
+                    borderBottom: cell.out?.error ? `1px solid rgba(255,255,255,0.05)` : 'none',
+                  }}>{cell.out.stdout}</pre>
+                </div>
+              )}
+              {cell.out?.error && (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(180deg,#f87171,#fb923c)', opacity: 0.8 }} />
+                  <pre style={{
+                    margin: 0, padding: '12px 18px 12px 22px',
+                    background: 'linear-gradient(135deg, rgba(239,68,68,0.07), rgba(0,0,0,0.3))',
+                    color: '#fca5a5', fontSize: 12.5, lineHeight: 1.7,
+                    whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                    fontFamily: "'Fira Code','Consolas',monospace",
+                  }}>{cell.out.error}</pre>
+                </div>
+              )}
+              {!cell.out?.stdout && !cell.out?.error && (
+                <div style={{ padding: '10px 18px', color: '#334155', fontSize: 12, fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', fontStyle: 'italic' }}>(no output)</div>
+              )}
               {charts.map((b64, i) => (
-                <div key={i} style={{ padding: '8px 16px 8px 72px', background: 'rgba(0,0,0,0.2)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                  <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i+1}`} style={{ maxWidth: '100%', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)' }} />
+                <div key={i} style={{ padding: '12px 18px', background: 'rgba(0,0,0,0.25)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <img src={`data:image/png;base64,${b64}`} alt={`Chart ${i + 1}`} style={{ maxWidth: '100%', borderRadius: 10, border: '1px solid rgba(34,211,238,0.15)', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }} />
                 </div>
               ))}
             </div>
@@ -1570,7 +1997,7 @@ function AddCellBtn({ onClick }: { onClick(): void }) {
   return (
     <button onClick={onClick} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
       style={{ marginTop: 6, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: h ? 'rgba(110,84,200,0.12)' : 'rgba(110,84,200,0.05)', border: '1px dashed rgba(110,84,200,0.3)', borderRadius: 10, padding: '9px 0', color: h ? '#c4b5fd' : '#7c5cbf', fontSize: 13, cursor: 'pointer', transition: 'all 0.18s', fontFamily: 'inherit' }}>
-      <Plus size={14} /> Add Cell
+      <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Cell
     </button>
   );
 }
@@ -1579,7 +2006,16 @@ function IBtn({ children, onClick, disabled }: { children: React.ReactNode; onCl
   const [h, setH] = useState(false);
   return (
     <button onClick={onClick} disabled={disabled} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ width: 26, height: 26, borderRadius: 6, background: h&&!disabled ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: disabled ? '#2d3748' : h ? '#e2e8f0' : '#64748b', cursor: disabled ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
+      style={{
+        width: 28, height: 28, borderRadius: 7,
+        background: h && !disabled ? 'rgba(129,140,248,0.14)' : 'rgba(255,255,255,0.04)',
+        border: h && !disabled ? '1px solid rgba(129,140,248,0.4)' : '1px solid rgba(255,255,255,0.08)',
+        color: disabled ? '#1e293b' : h ? '#a5b4fc' : '#64748b',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13, transition: 'all 0.15s',
+        boxShadow: h && !disabled ? '0 0 10px rgba(129,140,248,0.15)' : 'none',
+      }}>
       {children}
     </button>
   );

@@ -15,6 +15,7 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [avatarError, setAvatarError] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
@@ -127,11 +128,19 @@ export default function Home() {
                 className="flex items-center gap-2.5 cursor-pointer px-3 py-2 rounded-xl transition-all hover:bg-white/[0.06] border border-transparent hover:border-white/[0.08]"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               >
-                <img
-                  src={user.avatar || 'https://via.placeholder.com/36'}
-                  alt="User"
-                  className="w-8 h-8 rounded-full border-2 border-[rgba(110,84,200,0.5)] object-cover"
-                />
+                {user.avatar && !avatarError ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name || "User"}
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full border-2 border-[rgba(110,84,200,0.5)] object-cover"
+                    onError={() => setAvatarError(true)}
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full border-2 border-[rgba(110,84,200,0.5)] bg-[rgba(110,84,200,0.3)] flex items-center justify-center text-xs font-bold text-white select-none">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                )}
                 <span className="text-sm font-medium">{user.name}</span>
                 <svg className={`w-4 h-4 text-[#9fb3d9] transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''}`} viewBox="0 0 16 16" fill="currentColor">
                   <path d="M8 11L3 6h10l-5 5z"/>
