@@ -30,7 +30,7 @@ const SUGGESTED_QUESTIONS = [
 const LOCAL_QUICK_ANSWERS = [
   {
     patterns: ['how does ownquesta work', 'how does ownquesta work from start to finish', 'what is ownquesta'],
-    answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
+    answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard & ML Tutorial.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
   },
   {
     patterns: ['ml tutorial', 'machine learning tutorial', 'what do i learn in the ml tutorial', 'tutorial content'],
@@ -1317,7 +1317,7 @@ export default function TutorialPage() {
     { number: 1, title: 'Home Page (About / Help / Sign In)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
     { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
     { number: 3, title: 'Authenticated Home (/home)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
-    { number: 4, title: 'Dashboard (Create Project)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
+    { number: 4, title: 'Dashboard & ML Tutorial', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
     { number: 5, title: 'AutoML Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
     { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
     { number: 7, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
@@ -1381,13 +1381,14 @@ export default function TutorialPage() {
       note: 'Transition: Authenticated Home (/home) -> Dashboard.',
     },
     4: {
-      summary: 'The dashboard is the project control room. It shows workspace stats, pipeline stages, and the entry point for creating or resuming projects.',
-      actions: ['Scan the project counters and pipeline stages to understand the current workspace state.', 'Use New Project when you want to start fresh, or open an existing project if one already exists.', 'Continue into AutoML Playground once the project context is selected.'],
+      summary: 'Step 4 combines two navigation hubs: Dashboard for project operations and ML Tutorial for guided learning. Dashboard manages project creation and progress, while ML Tutorial explains each workflow stage in detail.',
+      actions: ['On Dashboard, scan counters and pipeline stages to understand current project status.', 'Use New Project to start fresh, or open an existing project to continue from saved state.', 'Open ML Tutorial when you want step-by-step guidance on flow, buttons, and expected outcomes before running models.', 'From either hub, continue into AutoML Playground once your project context is ready.'],
       buttons: [
-        { name: 'New Project', behavior: 'Opens the project creation modal.', outcome: 'You can name the project and set the prediction goal.' },
-        { name: 'Open Project', behavior: 'Loads an existing project.', outcome: 'You continue the model workflow from the saved state.' },
+        { name: 'New Project', behavior: 'Opens the project creation modal from Dashboard.', outcome: 'You can name the project and set the prediction goal.' },
+        { name: 'Open Project', behavior: 'Loads an existing project from Dashboard.', outcome: 'You continue the model workflow from the saved state.' },
+        { name: 'Tutorial', behavior: 'Opens the ML Tutorial page from the top navigation.', outcome: 'You get detailed guided instructions for each page and step.' },
       ],
-      note: 'Transition: Dashboard -> AutoML Playground.',
+      note: 'Transition: Dashboard / ML Tutorial -> AutoML Playground.',
     },
     5: {
       summary: 'The AutoML Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
@@ -1580,7 +1581,7 @@ export default function TutorialPage() {
                     { label: 'Projects', value: '0' },
                     { label: 'Active', value: '0' },
                     { label: 'Completed', value: '2' },
-                    { label: 'Stages', value: '4' },
+                    { label: 'Guides', value: '10' },
                   ].map((stat) => (
                     <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center min-w-[92px]">
                       <div className="text-xl font-black text-white">{stat.value}</div>
@@ -1598,6 +1599,34 @@ export default function TutorialPage() {
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
                 <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Project controls</h4>
                 <div className="mt-4 grid gap-3">{buttonCards}</div>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">ML Tutorial page details</h4>
+              <div className="mt-4 grid gap-3">
+                {[
+                  'The ML Tutorial page maps the full 10-step Ownquesta journey end to end, from Home and Login through AutoML, prediction testing, payment, and final export.',
+                  'Every step includes page intent, key UI elements, button behavior, and route transition so users know exactly what happens after each click.',
+                  'Desktop uses a left step rail and mobile uses a bottom step navigator, allowing fast topic jumps without losing context.',
+                  'Each lesson card highlights practical actions, expected outputs, and what to verify before moving to the next stage.',
+                  'The tutorial integrates realistic previews for Dashboard, project setup, AutoML Playground, analysis outputs, and model evaluation screens.',
+                  'The built-in Questa assistant inside the tutorial can answer flow questions like mode choice, target selection, model picks, and export paths.',
+                  'Use the tutorial before team onboarding, demos, or first-time project setup to reduce mistakes and speed up workspace adoption.',
+                  'Best practice: finish Step 4 review first, then proceed to AutoML Playground only after project goal and navigation path are clear.'
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3">
+                    <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[11px] font-bold" style={{ background: `${accentColor}33`, color: accentColor }}>{idx + 1}</span>
+                    <p className="text-sm leading-relaxed text-white/70">{item}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+                <h5 className="text-sm font-semibold text-white">What users gain from ML Tutorial</h5>
+                <div className="mt-3 grid gap-2 text-[13px] text-white/65">
+                  <p><span className="text-white/85">Flow clarity:</span> less confusion between Dashboard, Tutorial, and AutoML routes.</p>
+                  <p><span className="text-white/85">Action confidence:</span> users know what each control does before running expensive steps.</p>
+                  <p><span className="text-white/85">Faster onboarding:</span> new users reach model training with fewer support requests.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -1796,7 +1825,7 @@ export default function TutorialPage() {
     1: 'Start on the public landing page and decide whether to read, sign in, or get help.',
     2: 'Use the same auth flow to sign in, register, or recover access.',
     3: 'See the authenticated home page and jump straight to your workspace.',
-    4: 'Create projects, inspect stats, and move into the AutoML Playground.',
+    4: 'Use Dashboard for project actions and ML Tutorial for guided step-by-step workflow details.',
     5: 'Switch between guided Easy Mode and notebook-style Code Mode.',
     6: 'Upload dataset and set prediction target column.',
     7: 'Run automated analysis and review model suggestions.',
