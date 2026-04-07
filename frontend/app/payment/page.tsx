@@ -179,7 +179,7 @@ export default function PaymentPage() {
 
   const downloadTarget = product === 'python-script' ? 'py' : product === 'jupyter-notebook' ? 'ipynb' : 'trained-model';
   const exportTypes    = product === 'python-script' ? ['py'] : product === 'jupyter-notebook' ? ['ipynb'] : [];
-  const checkoutTitle  = downloadTarget === 'trained-model' ? 'Download trained model' : downloadTarget === 'py' ? 'Download Python script' : 'Download Jupyter notebook';
+  const checkoutTitle  = downloadTarget === 'trained-model' ? 'Unlock trained model download' : downloadTarget === 'py' ? 'Unlock Python script download' : 'Unlock Jupyter notebook download';
   const productSummary = downloadTarget === 'trained-model' ? `${modelName} trained model (.pkl)` : downloadTarget === 'py' ? 'Python pipeline export (.py)' : 'Jupyter notebook export (.ipynb)';
   const productDetails = downloadTarget === 'trained-model' ? 'Trained .pkl model only' : downloadTarget === 'py' ? 'Python script file only' : 'Notebook file only';
 
@@ -356,9 +356,9 @@ export default function PaymentPage() {
             <section className="pw-card pw-left">
               <div className="pw-section-label">Order summary</div>
               <h1 className="pw-title">
-                Complete your{' '}
+                Secure your{' '}
                 <span className="pw-gradient-text">Ownquesta</span>{' '}
-                checkout
+                export checkout
               </h1>
               <p className="pw-subtitle">Your export is ready. Complete secure payment to instantly unlock and download your selected file.</p>
 
@@ -421,7 +421,7 @@ export default function PaymentPage() {
                     </div>
                     <div className="pw-amount-badge">
                       <span className="pw-amount-val">₹{upiApproxAmount.toFixed(2)}</span>
-                      <span className="pw-amount-sub">INR · one-time</span>
+                      <span className="pw-amount-sub">One-time secure payment</span>
                     </div>
                   </div>
 
@@ -442,10 +442,10 @@ export default function PaymentPage() {
                     <div className="pw-fields pw-fade-in">
                       <div className="pw-fields-row">
                         <Field label="Cardholder name" error={errors.name}>
-                          <input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" className={`pw-input${errors.name ? ' pw-input-err' : ''}`} onFocus={() => setCardFocused('name')} onBlur={() => setCardFocused('')} />
+                          <input value={name} onChange={e => setName(e.target.value)} placeholder="sumit sarodiya" className={`pw-input${errors.name ? ' pw-input-err' : ''}`} onFocus={() => setCardFocused('name')} onBlur={() => setCardFocused('')} />
                         </Field>
                         <Field label="Email for receipt" error={errors.email}>
-                          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="john@example.com" type="email" className={`pw-input${errors.email ? ' pw-input-err' : ''}`} />
+                          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="sumit@example.com" type="email" className={`pw-input${errors.email ? ' pw-input-err' : ''}`} />
                         </Field>
                       </div>
 
@@ -481,10 +481,10 @@ export default function PaymentPage() {
                     <div className="pw-fields pw-fade-in">
                       <div className="pw-fields-row">
                         <Field label="Full name" error={errors.name}>
-                          <input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" className={`pw-input${errors.name ? ' pw-input-err' : ''}`} />
+                          <input value={name} onChange={e => setName(e.target.value)} placeholder="zeel mistry" className={`pw-input${errors.name ? ' pw-input-err' : ''}`} />
                         </Field>
                         <Field label="Email for receipt" error={errors.email}>
-                          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="john@example.com" type="email" className={`pw-input${errors.email ? ' pw-input-err' : ''}`} />
+                          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="zeel@example.com" type="email" className={`pw-input${errors.email ? ' pw-input-err' : ''}`} />
                         </Field>
                       </div>
 
@@ -593,11 +593,11 @@ export default function PaymentPage() {
                     ) : paymentMethod === 'paypal' ? (
                       <span className="pw-pay-inner"><Wallet size={16} strokeWidth={2.2} /> PayPal - coming soon</span>
                     ) : paymentMethod === 'card' ? (
-                      <span className="pw-pay-inner"><CreditCard size={16} strokeWidth={2.2} /> Pay ₹{upiApproxAmount.toFixed(2)} by Card</span>
+                      <span className="pw-pay-inner"><CreditCard size={16} strokeWidth={2.2} /> Continue with Card · ₹{upiApproxAmount.toFixed(2)}</span>
                     ) : selectedUpiApp ? (
-                      <span className="pw-pay-inner"><Smartphone size={16} strokeWidth={2.2} /> Pay ₹{upiApproxAmount.toFixed(2)} with {selectedUpiAppLabel}</span>
+                      <span className="pw-pay-inner"><Smartphone size={16} strokeWidth={2.2} /> Continue with {selectedUpiAppLabel} · ₹{upiApproxAmount.toFixed(2)}</span>
                     ) : (
-                      <span className="pw-pay-inner"><Smartphone size={16} strokeWidth={2.2} /> Pay ₹{upiApproxAmount.toFixed(2)} via UPI</span>
+                      <span className="pw-pay-inner"><Smartphone size={16} strokeWidth={2.2} /> Continue with UPI · ₹{upiApproxAmount.toFixed(2)}</span>
                     )}
                   </button>
 
