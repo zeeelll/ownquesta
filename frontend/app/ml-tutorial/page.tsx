@@ -1770,15 +1770,25 @@ function VisualChart({ data }: { data: any }) {
 	if (data.type === 'paradigm_cards') {
 		return (
 			<div className="grid gap-4 sm:grid-cols-3">
-				{data.items.map((item: any, i: number) => (
+				{data.items.map((item: any, i: number) => {
+					const ItemIcon = item.icon;
+					return (
 					<div
 						key={i}
 						className="rounded-xl border border-white/10 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
 						style={{ borderColor: `${item.color}40`, background: `${item.color}08` }}
 					>
 						<div className="flex items-center gap-2 mb-3">
-							<div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5" style={{ color: item.color }}>
-								{typeof item.icon === 'function' ? <item.icon size={18} /> : null}
+							<div
+								className="flex h-10 w-10 items-center justify-center rounded-xl border"
+								style={{
+									color: item.color,
+									borderColor: `${item.color}55`,
+									background: `${item.color}14`,
+									boxShadow: `inset 0 0 0 1px ${item.color}18`,
+								}}
+							>
+								<ItemIcon size={20} strokeWidth={2.4} />
 							</div>
 							<h4 className="font-bold text-white">{item.name}</h4>
 						</div>
@@ -1803,7 +1813,8 @@ function VisualChart({ data }: { data: any }) {
 							))}
 						</div>
 					</div>
-				))}
+						);
+					})}
 			</div>
 		);
 	}
