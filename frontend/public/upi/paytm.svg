@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="#ffffff"/>
+  <text x="31" y="73" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#00BAF2">pay</text>
+  <text x="77" y="73" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="#0f172a">tm</text>
+  <rect x="4" y="4" width="120" height="120" rx="24" fill="none" stroke="#e2e8f0"/>
+</svg>

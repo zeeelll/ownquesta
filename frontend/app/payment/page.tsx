@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import QRCode from 'qrcode';
 import Logo from '../components/Logo';
 import {
   AlertTriangle,
@@ -22,10 +23,10 @@ const UPI_EXCHANGE_RATE = 83;
 const OWNQUESTA_UPI_ID = 'ownquesta@oksbi';
 const OWNQUESTA_UPI_NAME = 'Ownquesta';
 const UPI_APP_OPTIONS = [
-  { key: 'gpay', short: 'GPay', label: 'Google Pay', mark: 'G', accent: '#7dd3fc', bg: 'rgba(14,165,233,0.14)', border: 'rgba(56,189,248,0.32)' },
-  { key: 'phonepe', short: 'PhonePe', label: 'PhonePe', mark: 'पे', accent: '#c4b5fd', bg: 'rgba(139,92,246,0.14)', border: 'rgba(167,139,250,0.34)' },
-  { key: 'paytm', short: 'Paytm', label: 'Paytm', mark: 'tm', accent: '#67e8f9', bg: 'rgba(6,182,212,0.14)', border: 'rgba(34,211,238,0.32)' },
-  { key: 'bhim', short: 'BHIM', label: 'BHIM UPI', mark: '₹', accent: '#fcd34d', bg: 'rgba(245,158,11,0.14)', border: 'rgba(251,191,36,0.32)' },
+  { key: 'gpay', short: 'GPay', label: 'Google Pay', logo: '/upi/gpay.svg' },
+  { key: 'phonepe', short: 'PhonePe', label: 'PhonePe', logo: '/upi/phonepe.svg' },
+  { key: 'paytm', short: 'Paytm', label: 'Paytm', logo: '/upi/paytm.svg' },
+  { key: 'bhim', short: 'BHIM', label: 'BHIM UPI', logo: '/upi/bhim.svg' },
 ] as const;
 
 type CheckoutStep = 'details' | 'processing' | 'success';
@@ -33,6 +34,29 @@ type PaymentMethod = 'paypal' | 'card' | 'upi';
 type UpiAppKey = (typeof UPI_APP_OPTIONS)[number]['key'];
 
 const PAYPAL_AVAILABLE = false;
+
+type RazorpaySuccessPayload = {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+};
+
+type RazorpayCheckoutResponse = {
+  orderId: string;
+  razorpayKeyId: string;
+  razorpayOrderId: string;
+  amountPaise: number;
+  currency: 'INR';
+  upiIntentUrl?: string;
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => {
+      open: () => void;
+    };
+  }
+}
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -42,7 +66,7 @@ export default function PaymentPage() {
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('paypal');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('upi');
   const [selectedUpiApp, setSelectedUpiApp] = useState<UpiAppKey | ''>('');
   const [upiId, setUpiId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,6 +75,9 @@ export default function PaymentPage() {
   const [statusNote, setStatusNote] = useState('');
   const [paidOrderId, setPaidOrderId] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [razorpayReady, setRazorpayReady] = useState(false);
+  const [activeUpiIntentUrl, setActiveUpiIntentUrl] = useState('');
+  const [upiQrDataUrl, setUpiQrDataUrl] = useState('');
 
   const checkout = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -132,6 +159,64 @@ export default function PaymentPage() {
     return `upi://pay?${params.toString()}`;
   }, [orderId, upiApproxAmount]);
 
+  useEffect(() => {
+    setActiveUpiIntentUrl(upiPaymentLink);
+  }, [upiPaymentLink]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (window.Razorpay) {
+      setRazorpayReady(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => setRazorpayReady(true);
+    script.onerror = () => {
+      setRazorpayReady(false);
+      setErrors((prev) => ({
+        ...prev,
+        general: 'Unable to load Razorpay checkout. Refresh and try again.',
+      }));
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!activeUpiIntentUrl) {
+      setUpiQrDataUrl('');
+      return;
+    }
+
+    let isMounted = true;
+    QRCode.toDataURL(activeUpiIntentUrl, {
+      width: 220,
+      margin: 1,
+      errorCorrectionLevel: 'M',
+    })
+      .then((url) => {
+        if (isMounted) {
+          setUpiQrDataUrl(url);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setUpiQrDataUrl('');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeUpiIntentUrl]);
+
   const selectedUpiAppLabel = useMemo(
     () => UPI_APP_OPTIONS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI',
     [selectedUpiApp],
@@ -144,7 +229,7 @@ export default function PaymentPage() {
     window.setTimeout(() => setCopiedUpi(false), 1500);
   };
 
-  const handleOpenUpiApp = (paymentLink: string = upiPaymentLink) => {
+  const handleOpenUpiApp = (paymentLink: string = activeUpiIntentUrl || upiPaymentLink) => {
     if (typeof window === 'undefined') return;
     window.open(paymentLink, '_self');
   };
@@ -160,7 +245,7 @@ export default function PaymentPage() {
   const validate = () => {
     const nextErrors: Record<string, string> = {};
     if (paymentMethod === 'paypal' && !PAYPAL_AVAILABLE) {
-      nextErrors.general = 'PayPal is coming soon. Please choose Card or UPI.';
+      nextErrors.general = 'PayPal is coming soon. Please use UPI checkout.';
       setErrors(nextErrors);
       return false;
     }
@@ -181,7 +266,6 @@ export default function PaymentPage() {
     }
 
     if (paymentMethod === 'upi') {
-      if (!selectedUpiApp) nextErrors.upiApp = 'Choose a UPI app first.';
       if (!/^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test(upiId.trim())) {
         nextErrors.upiId = 'Enter a valid UPI ID.';
       }
@@ -191,87 +275,158 @@ export default function PaymentPage() {
     return Object.keys(nextErrors).length === 0;
   };
 
-  const completeCheckout = async (createdOrderId: string) => {
+  const completeVerifiedCheckout = async (
+    createdOrderId: string,
+    payload: RazorpaySuccessPayload,
+  ) => {
     setStep('processing');
-    setProgress(8);
+    setProgress(18);
+    setStatusNote('Verifying your UPI payment securely...');
 
-    let p = 8;
-    const interval = window.setInterval(() => {
-      p += Math.random() * 14;
-      if (p >= 94) {
-        window.clearInterval(interval);
-        p = 94;
-      }
-      setProgress(Math.min(p, 94));
-    }, 120);
+    const confirmResponse = await fetch('/api/payments/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: createdOrderId,
+        razorpayPaymentId: payload.razorpay_payment_id,
+        razorpayOrderId: payload.razorpay_order_id,
+        razorpaySignature: payload.razorpay_signature,
+      }),
+    });
+    const confirmData = await confirmResponse.json();
 
-    try {
-      await new Promise((resolve) => window.setTimeout(resolve, 1400));
-
-      const confirmResponse = await fetch('/api/payments/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: createdOrderId }),
-      });
-      const confirmData = await confirmResponse.json();
-
-      if (!confirmResponse.ok || !confirmData.success) {
-        throw new Error(confirmData.error || 'Unable to confirm payment.');
-      }
-
-      window.clearInterval(interval);
-      setProgress(100);
-      setPaidOrderId(createdOrderId);
-      setStatusNote(
-        downloadTarget === 'trained-model'
-          ? 'Payment confirmed. Starting your trained model download now…'
-          : 'Payment confirmed. Starting your file download now…',
-      );
-      setStep('success');
-
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(
-          'ownquesta_model_payment',
-          JSON.stringify({
-            paid: true,
-            product,
-            sessionId,
-            modelName,
-            price,
-            paidAt: Date.now(),
-            method: paymentMethod,
-            orderId: createdOrderId,
-            downloadTarget,
-            unlocks: [downloadTarget],
-          }),
-        );
-        sessionStorage.setItem(
-          'ownquesta_export_access',
-          JSON.stringify({
-            paid: true,
-            sessionId,
-            types: exportTypes,
-            downloadTarget,
-            orderId: createdOrderId,
-            grantedAt: Date.now(),
-          }),
-        );
-      }
-
-      window.setTimeout(() => {
-        const params = new URLSearchParams();
-        params.set('payment', 'success');
-        if (sessionId) params.set('session', sessionId);
-        router.push(`${returnPath}?${params.toString()}`);
-      }, 1100);
-    } catch (error) {
-      window.clearInterval(interval);
-      throw error;
+    if (!confirmResponse.ok || !confirmData.success) {
+      throw new Error(confirmData.error || 'Unable to verify payment.');
     }
+
+    setProgress(100);
+    setPaidOrderId(createdOrderId);
+    setStatusNote(
+      downloadTarget === 'trained-model'
+        ? 'UPI payment confirmed. Starting your trained model download now...'
+        : 'UPI payment confirmed. Starting your file download now...',
+    );
+    setStep('success');
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(
+        'ownquesta_model_payment',
+        JSON.stringify({
+          paid: true,
+          product,
+          sessionId,
+          modelName,
+          price,
+          paidAt: Date.now(),
+          method: paymentMethod,
+          orderId: createdOrderId,
+          downloadTarget,
+          unlocks: [downloadTarget],
+          gateway: 'razorpay',
+        }),
+      );
+      sessionStorage.setItem(
+        'ownquesta_export_access',
+        JSON.stringify({
+          paid: true,
+          sessionId,
+          types: exportTypes,
+          downloadTarget,
+          orderId: createdOrderId,
+          grantedAt: Date.now(),
+        }),
+      );
+    }
+
+    window.setTimeout(() => {
+      const params = new URLSearchParams();
+      params.set('payment', 'success');
+      if (sessionId) params.set('session', sessionId);
+      router.push(`${returnPath}?${params.toString()}`);
+    }, 1100);
+  };
+
+  const launchRazorpayCheckout = async (
+    payment: RazorpayCheckoutResponse,
+    method: 'upi' | 'card',
+  ) => {
+    if (typeof window === 'undefined' || !window.Razorpay || !razorpayReady) {
+      throw new Error('Razorpay checkout is not ready yet. Please wait and try again.');
+    }
+
+    setStep('processing');
+    setProgress(10);
+    setStatusNote(method === 'upi' ? 'Opening secure UPI checkout...' : 'Opening secure card checkout...');
+
+    const razorpay = new window.Razorpay({
+      key: payment.razorpayKeyId,
+      amount: payment.amountPaise,
+      currency: payment.currency,
+      name: 'Ownquesta',
+      description: `${productSummary} checkout`,
+      order_id: payment.razorpayOrderId,
+      method: {
+        upi: method === 'upi',
+        card: method === 'card',
+        netbanking: false,
+        wallet: false,
+        emi: false,
+        paylater: false,
+      },
+      prefill: {
+        name,
+        email,
+        vpa: upiId || undefined,
+      },
+      notes: {
+        ownquestaOrderId: payment.orderId,
+        sessionId,
+        product,
+      },
+      theme: {
+        color: '#0ea5e9',
+      },
+      modal: {
+        ondismiss: () => {
+          setStep('details');
+          setProgress(0);
+          setStatusNote(
+            method === 'upi'
+              ? 'Payment popup closed. You can retry UPI payment.'
+              : 'Payment popup closed. You can retry card payment.',
+          );
+          setIsSubmitting(false);
+        },
+      },
+      handler: async (payload: RazorpaySuccessPayload) => {
+        try {
+          await completeVerifiedCheckout(payment.orderId, payload);
+        } catch (error: any) {
+          setStep('details');
+          setProgress(0);
+          setErrors((prev) => ({
+            ...prev,
+            general: error?.message || 'Payment verification failed. Please try again.',
+          }));
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+    });
+
+    razorpay.open();
   };
 
   const handleCheckout = async () => {
     if (!validate() || isSubmitting) return;
+    if (paymentMethod === 'paypal') {
+      setErrors({ general: 'PayPal is coming soon. Please use Card or UPI.' });
+      return;
+    }
+    if (!razorpayReady) {
+      setErrors({ general: 'Payment checkout is still loading. Please retry in a moment.' });
+      return;
+    }
 
     setErrors({});
     setStatusNote('');
@@ -299,20 +454,20 @@ export default function PaymentPage() {
         throw new Error(data.error || 'Unable to start the checkout.');
       }
 
-      setStatusNote(
-        paymentMethod === 'upi'
-          ? `Payment request created. Complete it in ${selectedUpiAppLabel}.`
-          : data.instructions || 'Secure checkout created successfully.',
-      );
-
-      if (paymentMethod === 'upi' && data.payment?.upiIntentUrl && typeof window !== 'undefined') {
-        const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent);
-        if (isMobileDevice) {
-          handleOpenUpiApp(data.payment.upiIntentUrl);
-        }
+      const paymentData = data.payment as RazorpayCheckoutResponse;
+      if (paymentData.upiIntentUrl) {
+        setActiveUpiIntentUrl(paymentData.upiIntentUrl);
       }
 
-      await completeCheckout(data.payment.orderId as string);
+      setStatusNote(
+        paymentMethod === 'upi'
+          ? selectedUpiApp
+            ? `Payment request created. Complete it in ${selectedUpiAppLabel}.`
+            : 'Payment request created. Complete it in any UPI app.'
+          : 'Card checkout created. Complete card payment in Razorpay.',
+      );
+
+      await launchRazorpayCheckout(paymentData, paymentMethod === 'card' ? 'card' : 'upi');
     } catch (error: any) {
       setStep('details');
       setProgress(0);
@@ -320,7 +475,6 @@ export default function PaymentPage() {
         ...prev,
         general: error?.message || 'Payment could not be completed. Please try again.',
       }));
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -594,6 +748,43 @@ export default function PaymentPage() {
           background: rgba(255,255,255,0.04); color: #c5d4ed;
           transition: background 0.15s;
         }
+        .upi-logo-box {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+          overflow: hidden;
+          flex-shrink: 0;
+        }
+        .upi-logo-img {
+          width: 24px;
+          height: 24px;
+          object-fit: contain;
+        }
+        .scan-brand-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 10px;
+        }
+        .scan-brand-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          border-radius: 999px;
+          padding: 5px 10px;
+          border: 1px solid rgba(125,211,252,0.26);
+          background: rgba(14,165,233,0.08);
+          color: #d7ecff;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+        }
         .paypal-note {
           border-radius: 16px;
           border: 1px solid rgba(56,189,248,0.22);
@@ -649,7 +840,7 @@ export default function PaymentPage() {
 
         {/* ── NAV ── */}
         <nav className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 md:px-10 py-4 bg-[rgba(8,10,20,0.75)] backdrop-blur-2xl border-b border-white/[0.055]">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+          <div className="w-full flex items-center justify-between gap-4">
             <Logo href="/home" size="md" />
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="chip hidden sm:inline-flex border border-violet-400/20 bg-violet-500/10 text-violet-300">
@@ -672,11 +863,11 @@ export default function PaymentPage() {
         </nav>
 
         {/* ── MAIN ── */}
-        <main className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-28 sm:pt-32 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-6 xl:gap-8 items-start">
+        <main className="relative z-10 w-full px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-14 pt-28 sm:pt-32 pb-16">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start min-h-[calc(100vh-9rem)]">
 
             {/* ── LEFT PANEL ── */}
-            <section className="glass-panel p-6 sm:p-8">
+            <section className="glass-panel p-6 sm:p-8 h-full xl:col-span-7">
               <div className="chip border border-emerald-400/20 bg-emerald-500/10 text-emerald-300 mb-5">
                 <span className="chip-dot bg-emerald-400" />
                 Premium model delivery
@@ -690,7 +881,7 @@ export default function PaymentPage() {
                 checkout
               </h1>
               <p className="text-sm sm:text-[15px] text-[#7a8fa8] leading-relaxed max-w-xl mb-0">
-                Your model is ready. Finish the payment below and we will send you straight back to the Lab Playground for an instant download.
+                Your model is ready. Finish the payment below and we will send you straight back to the AutoML Playground for an instant download.
               </p>
 
               {/* Order meta */}
@@ -706,7 +897,7 @@ export default function PaymentPage() {
                       className="text-xl font-black shrink-0"
                       style={{ background: 'linear-gradient(135deg,#a78bfa,#818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                     >
-                      ${price.toFixed(2)}
+                      ₹{upiApproxAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -749,7 +940,7 @@ export default function PaymentPage() {
             </section>
 
             {/* ── RIGHT PANEL ── */}
-            <section className="glass-panel p-6 sm:p-7">
+            <section className="glass-panel p-6 sm:p-7 h-full xl:col-span-5 xl:sticky xl:top-28">
 
               {/* ── DETAILS STEP ── */}
               {step === 'details' && (
@@ -761,9 +952,9 @@ export default function PaymentPage() {
                       <p className="text-xs text-[#5a718a] mt-1">One-time payment · instant delivery</p>
                     </div>
                     <div className="px-3 py-2 rounded-2xl border border-emerald-400/25 bg-emerald-500/10 text-emerald-300 text-base font-black shrink-0 text-right">
-                      <div>{paymentMethod === 'upi' ? `₹${upiApproxAmount.toFixed(2)}` : `$${price.toFixed(2)}`}</div>
+                      <div>₹{upiApproxAmount.toFixed(2)}</div>
                       {paymentMethod === 'upi' && (
-                        <div className="text-[10px] text-emerald-200/80 font-semibold mt-0.5">≈ ${price.toFixed(2)} USD</div>
+                        <div className="text-[10px] text-emerald-200/80 font-semibold mt-0.5">UPI live payment</div>
                       )}
                     </div>
                   </div>
@@ -772,11 +963,12 @@ export default function PaymentPage() {
                   <div className="flex gap-2 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-1.5 mb-6">
                     <button
                       type="button"
-                      onClick={() => { setPaymentMethod('paypal'); setErrors({}); }}
+                      disabled
                       className={`method-btn ${paymentMethod === 'paypal' ? 'active-paypal' : 'inactive'}`}
+                      style={{ opacity: 0.55, cursor: 'not-allowed' }}
                     >
                       <Wallet size={14} strokeWidth={2.2} />
-                      PayPal
+                      PayPal (Soon)
                     </button>
                     <button
                       type="button"
@@ -784,7 +976,7 @@ export default function PaymentPage() {
                       className={`method-btn ${paymentMethod === 'card' ? 'active-card' : 'inactive'}`}
                     >
                       <CreditCard size={14} strokeWidth={2.2} />
-                      Card
+                      Card (Live)
                     </button>
                     <button
                       type="button"
@@ -792,7 +984,7 @@ export default function PaymentPage() {
                       className={`method-btn ${paymentMethod === 'upi' ? 'active-upi' : 'inactive'}`}
                     >
                       <Smartphone size={14} strokeWidth={2.2} />
-                      UPI
+                      UPI (Live)
                     </button>
                   </div>
 
@@ -902,11 +1094,8 @@ export default function PaymentPage() {
                                 }}
                               >
                                 <div className="flex items-center gap-3">
-                                  <span
-                                    className="flex h-10 w-10 items-center justify-center rounded-xl text-sm font-black"
-                                    style={{ background: app.bg, color: app.accent, border: `1px solid ${app.border}` }}
-                                  >
-                                    {app.mark}
+                                  <span className="upi-logo-box">
+                                    <img src={app.logo} alt={`${app.label} logo`} className="upi-logo-img" />
                                   </span>
                                   <span className="min-w-0">
                                     <span className="block text-sm font-bold text-white">{app.short}</span>
@@ -916,6 +1105,13 @@ export default function PaymentPage() {
                               </button>
                             );
                           })}
+                        </div>
+                        <div className="upi-row">
+                          <span className="upi-chip">Google Pay</span>
+                          <span className="upi-chip">PhonePe</span>
+                          <span className="upi-chip">Paytm</span>
+                          <span className="upi-chip">BHIM</span>
+                          <span className="upi-chip">Any UPI app</span>
                         </div>
                       </Field>
 
@@ -936,7 +1132,7 @@ export default function PaymentPage() {
                             <p className="text-xs text-[#bfe8d7] mt-1">UPI ID: <span className="font-semibold text-emerald-300">{OWNQUESTA_UPI_ID}</span></p>
                             <p className="text-xs text-[#92b8a7] mt-1">
                               {selectedUpiApp
-                                ? `Pay from ${selectedUpiAppLabel} for approximately ₹${upiApproxAmount.toFixed(2)} based on $${price.toFixed(2)} USD.`
+                                ? `Pay from ${selectedUpiAppLabel} for ₹${upiApproxAmount.toFixed(2)}.`
                                 : `First choose your UPI app, then enter your UPI ID to pay approximately ₹${upiApproxAmount.toFixed(2)}.`}
                             </p>
                           </div>
@@ -951,11 +1147,31 @@ export default function PaymentPage() {
                             <button
                               type="button"
                               onClick={() => handleOpenUpiApp()}
-                              disabled={!selectedUpiApp}
-                              className="px-3 py-2 rounded-xl border border-sky-300/25 bg-sky-500/10 text-sky-200 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-50"
+                              className="px-3 py-2 rounded-xl border border-sky-300/25 bg-sky-500/10 text-sky-200 text-xs font-bold"
                             >
-                              {selectedUpiApp ? `Open ${selectedUpiAppLabel}` : 'Select app first'}
+                              {selectedUpiApp ? `Open ${selectedUpiAppLabel}` : 'Open UPI app'}
                             </button>
+                          </div>
+                        </div>
+                        <div className="rounded-2xl border border-sky-400/20 bg-sky-500/[0.06] p-4 mt-3">
+                          <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-300 mb-2">Scan and pay</p>
+                          <p className="text-xs text-[#c9ddf5] mb-3">Scan this QR using any UPI app scanner to pay instantly.</p>
+                          {upiQrDataUrl ? (
+                            <div className="bg-white rounded-xl p-2 inline-flex shadow-[0_10px_28px_rgba(3,10,20,0.34)]">
+                              <img src={upiQrDataUrl} alt="Ownquesta UPI QR code" width={182} height={182} />
+                            </div>
+                          ) : (
+                            <p className="text-xs text-[#9bb8d6]">Preparing UPI QR...</p>
+                          )}
+                          <div className="scan-brand-row">
+                            {UPI_APP_OPTIONS.map((app) => (
+                              <span key={`scan-${app.key}`} className="scan-brand-chip">
+                                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-white/95">
+                                  <img src={app.logo} alt={`${app.label} logo`} className="h-3 w-3 object-contain" />
+                                </span>
+                                {app.short}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -966,7 +1182,7 @@ export default function PaymentPage() {
                   <div className="divider" />
                   <div className="flex justify-between items-center text-sm mb-1">
                     <span className="text-[#5a718a]">{productSummary}</span>
-                    <span className="text-[#c5d4ed] font-semibold">${price.toFixed(2)}</span>
+                    <span className="text-[#c5d4ed] font-semibold">₹{upiApproxAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm mb-1">
                     <span className="text-[#5a718a]">Other downloads</span>
@@ -980,7 +1196,7 @@ export default function PaymentPage() {
                   )}
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-[#5a718a]">Processing & platform fee</span>
-                    <span className="text-emerald-400 font-semibold">$0.00</span>
+                    <span className="text-emerald-400 font-semibold">₹0.00</span>
                   </div>
                   <p className="text-[11px] text-[#6d84a3] mt-3 leading-relaxed">
                     Each download type is billed separately. Paying for the model does <strong>not</strong> unlock the <code>.py</code> or <code>.ipynb</code> files.
@@ -998,10 +1214,10 @@ export default function PaymentPage() {
                       : paymentMethod === 'paypal'
                         ? 'PayPal is coming soon'
                         : paymentMethod === 'card'
-                          ? `Pay $${price.toFixed(2)} by Card`
+                          ? `Pay ₹${upiApproxAmount.toFixed(2)} by Card`
                           : selectedUpiApp
                             ? `Pay ₹${upiApproxAmount.toFixed(2)} with ${selectedUpiAppLabel}`
-                            : `Select app & pay ₹${upiApproxAmount.toFixed(2)}`}
+                              : `Pay ₹${upiApproxAmount.toFixed(2)} with any UPI app`}
                   </button>
 
                   {(errors.general || statusNote) && (
@@ -1031,7 +1247,7 @@ export default function PaymentPage() {
                         : `Confirming ${selectedUpiAppLabel} payment…`}
                   </h3>
                   <p className="text-sm text-[#5a718a] leading-relaxed max-w-[280px] mx-auto">
-                    {statusNote || 'Please wait while we secure your order, unlock your exports, and prepare the automatic return to the Lab Playground.'}
+                    {statusNote || 'Please wait while we secure your order, unlock your exports, and prepare the automatic return to the AutoML Playground.'}
                   </p>
                   <div className="prog-track mx-auto" style={{ maxWidth: '240px' }}>
                     <div
@@ -1053,7 +1269,7 @@ export default function PaymentPage() {
                     Payment successful
                   </h3>
                   <p className="text-sm text-[#5a718a] leading-relaxed max-w-[280px] mx-auto">
-                    {statusNote || 'Done. Returning you automatically to the Lab Playground to start the download…'}
+                    {statusNote || 'Done. Returning you automatically to the AutoML Playground to start the download...'}
                   </p>
                   {paidOrderId && (
                     <p className="text-[11px] text-sky-300 mt-3 font-semibold">Order #{paidOrderId}</p>
@@ -1091,3 +1307,4 @@ function Field({
     </label>
   );
 }
+

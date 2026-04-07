@@ -6,10 +6,17 @@ export type PaymentRecord = {
   product: string;
   modelName: string;
   price: number;
+  amountInr: number;
+  amountPaise: number;
   currency: 'USD';
   method: CheckoutMethod;
   customerName: string;
   customerEmail: string;
+  gateway: 'razorpay' | 'none';
+  gatewayOrderId?: string;
+  gatewayPaymentId?: string;
+  gatewaySignature?: string;
+  upiIntentUrl?: string;
   status: 'created' | 'paid';
   createdAt: string;
   paidAt?: string;
@@ -34,9 +41,14 @@ export function createPaymentRecord(input: {
   product: string;
   modelName?: string;
   price: number;
+  amountInr: number;
+  amountPaise: number;
   method: CheckoutMethod;
   customerName: string;
   customerEmail: string;
+  gateway?: 'razorpay' | 'none';
+  gatewayOrderId?: string;
+  upiIntentUrl?: string;
 }) {
   const orderId = `PAY-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const record: PaymentRecord = {
@@ -45,10 +57,15 @@ export function createPaymentRecord(input: {
     product: input.product,
     modelName: input.modelName || 'Trained Model',
     price: sanitizePrice(input.price),
+    amountInr: sanitizePrice(input.amountInr),
+    amountPaise: Math.max(100, Math.round(input.amountPaise)),
     currency: 'USD',
     method: input.method,
     customerName: input.customerName.trim(),
     customerEmail: input.customerEmail.trim().toLowerCase(),
+    gateway: input.gateway ?? 'none',
+    gatewayOrderId: input.gatewayOrderId,
+    upiIntentUrl: input.upiIntentUrl,
     status: 'created',
     createdAt: new Date().toISOString(),
   };
@@ -57,12 +74,20 @@ export function createPaymentRecord(input: {
   return record;
 }
 
-export function confirmPaymentRecord(orderId: string) {
+export function confirmPaymentRecord(
+  orderId: string,
+  meta?: {
+    gatewayPaymentId?: string;
+    gatewaySignature?: string;
+  },
+) {
   const existing = paymentStore.get(orderId);
   if (!existing) return null;
 
   const updated: PaymentRecord = {
     ...existing,
+    gatewayPaymentId: meta?.gatewayPaymentId,
+    gatewaySignature: meta?.gatewaySignature,
     status: 'paid',
     paidAt: new Date().toISOString(),
   };
