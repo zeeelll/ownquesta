@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
 	ArrowLeft,
@@ -2279,6 +2279,7 @@ function renderSection(section: Section, index: number) {
 export default function MLTutorialPage() {
 	const [activeStep, setActiveStep] = useState(1);
 	const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+	const mainContentRef = useRef<HTMLElement | null>(null);
 
 	const highestCompleted = useMemo(
 		() => (completedSteps.length ? Math.max(...completedSteps) : 0),
@@ -2308,6 +2309,10 @@ export default function MLTutorialPage() {
 		if (typeof window === 'undefined') return;
 		localStorage.setItem(STORAGE_KEY, JSON.stringify({ activeStep, completedSteps }));
 	}, [activeStep, completedSteps]);
+
+	useEffect(() => {
+		mainContentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+	}, [activeStep]);
 
 	const markCompleted = (id: number) =>
 		setCompletedSteps((prev) => (prev.includes(id) ? prev : [...prev, id].sort((a, b) => a - b)));
@@ -2414,7 +2419,7 @@ export default function MLTutorialPage() {
 					</aside>
 
 					{/* Main content */}
-					<section className="bg-[#0c122c]/90 p-5 backdrop-blur-xl sm:p-6 lg:h-full lg:overflow-y-auto lg:p-8">
+					<section ref={mainContentRef} className="bg-[#0c122c]/90 p-5 backdrop-blur-xl sm:p-6 lg:h-full lg:overflow-y-auto lg:p-8">
 						<div className="mb-5 flex flex-wrap items-center justify-between gap-3">
 							<div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold tracking-[0.15em] text-cyan-100">
 								Step {String(activeStepData.id).padStart(2, '0')} of 08
