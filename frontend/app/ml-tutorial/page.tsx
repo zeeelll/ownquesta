@@ -11,10 +11,14 @@ import {
 	Database,
 	Globe2,
 	History,
+	Gamepad2,
+	GraduationCap,
 	Layers3,
 	Lightbulb,
 	Lock,
-	Sparkles,
+	Search,
+	Star,
+	TriangleAlert,
 	Wrench,
 	TrendingUp,
 	Target,
@@ -370,7 +374,7 @@ const TUTORIAL_STEPS: StepData[] = [
 							{
 								name: 'Supervised',
 								color: '#38bdf8',
-								icon: '🎓',
+								icon: GraduationCap,
 								signal: 'Labelled data (X→Y)',
 								goal: 'Predict known targets',
 								examples: ['Spam filter', 'Image classification', 'House prices'],
@@ -379,7 +383,7 @@ const TUTORIAL_STEPS: StepData[] = [
 							{
 								name: 'Unsupervised',
 								color: '#c084fc',
-								icon: '🔍',
+								icon: Search,
 								signal: 'Unlabelled data (X only)',
 								goal: 'Find hidden structure',
 								examples: ['Customer segments', 'Topic modelling', 'Anomaly detection'],
@@ -388,7 +392,7 @@ const TUTORIAL_STEPS: StepData[] = [
 							{
 								name: 'Reinforcement',
 								color: '#34d399',
-								icon: '🎮',
+								icon: Gamepad2,
 								signal: 'Reward signals from env',
 								goal: 'Maximise cumulative reward',
 								examples: ['AlphaGo', 'Robot walking', 'Trading bots'],
@@ -1769,11 +1773,13 @@ function VisualChart({ data }: { data: any }) {
 				{data.items.map((item: any, i: number) => (
 					<div
 						key={i}
-						className="rounded-xl p-4 border"
+						className="rounded-xl border border-white/10 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.18)]"
 						style={{ borderColor: `${item.color}40`, background: `${item.color}08` }}
 					>
 						<div className="flex items-center gap-2 mb-3">
-							<span className="text-2xl">{item.icon}</span>
+							<div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5" style={{ color: item.color }}>
+								{typeof item.icon === 'function' ? <item.icon size={18} /> : null}
+							</div>
 							<h4 className="font-bold text-white">{item.name}</h4>
 						</div>
 						<p className="text-xs mb-2" style={{ color: item.color }}>{item.signal}</p>
@@ -1781,13 +1787,19 @@ function VisualChart({ data }: { data: any }) {
 						<div className="mb-2">
 							<p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Use Cases</p>
 							{item.examples.map((ex: string, j: number) => (
-								<p key={j} className="text-xs text-slate-300">• {ex}</p>
+								<p key={j} className="flex items-start gap-1.5 text-xs text-slate-300">
+									<ArrowRight size={10} className="mt-0.5 shrink-0" style={{ color: item.color }} />
+									<span>{ex}</span>
+								</p>
 							))}
 						</div>
 						<div>
 							<p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1">Algorithms</p>
 							{item.algorithms.map((alg: string, j: number) => (
-								<p key={j} className="text-[10px] text-slate-400">• {alg}</p>
+								<p key={j} className="flex items-start gap-1.5 text-[10px] text-slate-400">
+									<ArrowRight size={9} className="mt-0.5 shrink-0" style={{ color: item.color }} />
+									<span>{alg}</span>
+								</p>
 							))}
 						</div>
 					</div>
@@ -1959,7 +1971,7 @@ function renderSection(section: Section, index: number) {
 							</div>
 							<div className="rounded-xl border border-cyan-300/20 bg-gradient-to-br from-cyan-900/20 to-indigo-950/30 p-4">
 								<div className="mb-3 flex items-center gap-2">
-									<Sparkles size={18} className="text-cyan-300" />
+									<Brain size={18} className="text-cyan-300" />
 									<h4 className="font-bold text-cyan-100">Machine Learning</h4>
 								</div>
 								<p className="mb-3 text-xs italic text-cyan-200/80">{section.data.ml.approach}</p>
@@ -2028,10 +2040,16 @@ function renderSection(section: Section, index: number) {
 										<h4 className="mb-1 font-bold text-white">{item.step}</h4>
 										<p className="text-xs leading-relaxed text-[#c5d4f7]">{item.description}</p>
 										{item.detail && (
-											<p className="mt-1 text-xs italic text-indigo-200/70">💡 {item.detail}</p>
+											<p className="mt-1 flex items-start gap-1.5 text-xs italic text-indigo-200/70">
+												<Lightbulb size={11} className="mt-0.5 shrink-0 text-cyan-200" />
+												<span>{item.detail}</span>
+											</p>
 										)}
 										{item.challenges && (
-											<p className="mt-1 text-xs text-amber-200/80">⚠️ {item.challenges}</p>
+											<p className="mt-1 flex items-start gap-1.5 text-xs text-amber-200/80">
+												<TriangleAlert size={11} className="mt-0.5 shrink-0 text-amber-300" />
+												<span>{item.challenges}</span>
+											</p>
 										)}
 									</div>
 								</div>
@@ -2117,11 +2135,17 @@ function renderSection(section: Section, index: number) {
 									</p>
 								)}
 								{item.example && (
-									<p className="mt-2 rounded bg-cyan-400/10 p-2 text-xs italic text-cyan-200">
-										💡 {item.example}
+									<p className="mt-2 flex items-start gap-2 rounded bg-cyan-400/10 p-2 text-xs italic text-cyan-200">
+										<Lightbulb size={11} className="mt-0.5 shrink-0 text-cyan-200" />
+										<span>{item.example}</span>
 									</p>
 								)}
-								{item.bestFor && <p className="mt-2 text-xs text-amber-200">⭐ <strong>Best for:</strong> {item.bestFor}</p>}
+								{item.bestFor && (
+									<p className="mt-2 flex items-start gap-1.5 text-xs text-amber-200">
+										<Star size={11} className="mt-0.5 shrink-0 text-amber-300" />
+										<span><strong>Best for:</strong> {item.bestFor}</span>
+									</p>
+								)}
 							</div>
 						))}
 					</div>
@@ -2194,7 +2218,10 @@ function renderSection(section: Section, index: number) {
 										{branch.algorithms ? (
 											<ul className="ml-3 space-y-1">
 												{branch.algorithms.map((alg: string, j: number) => (
-													<li key={j} className="text-xs text-[#dce8ff]">• {alg}</li>
+													<li key={j} className="flex items-start gap-1.5 text-xs text-[#dce8ff]">
+														<ArrowRight size={10} className="mt-0.5 shrink-0 text-cyan-300" />
+														<span>{alg}</span>
+													</li>
 												))}
 											</ul>
 										) : branch.next ? (
@@ -2206,7 +2233,10 @@ function renderSection(section: Section, index: number) {
 														{sub.algorithms && (
 															<ul className="ml-3 space-y-0.5">
 																{sub.algorithms.map((alg: string, l: number) => (
-																	<li key={l} className="text-xs text-[#dce8ff]">• {alg}</li>
+																	<li key={l} className="flex items-start gap-1.5 text-xs text-[#dce8ff]">
+																		<ArrowRight size={10} className="mt-0.5 shrink-0 text-cyan-300" />
+																		<span>{alg}</span>
+																	</li>
 																))}
 															</ul>
 														)}
@@ -2297,16 +2327,15 @@ export default function MLTutorialPage() {
 
 			<div className="relative flex h-full w-full flex-col">
 				{/* Header */}
-				<header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-[#0f1430]/90 px-4 py-3 backdrop-blur-xl sm:px-6">
+				<header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-black/70 px-4 py-3 backdrop-blur-xl sm:px-6">
 					<div className="flex items-center gap-4">
 						<Logo href="/home" size="md" showText={true} variant="light" />
 					</div>
 					<Link
 						href="/dashboard"
-						className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/40 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100 transition-all duration-300 hover:-translate-y-0.5 hover:bg-cyan-300/20 hover:shadow-[0_0_18px_rgba(34,211,238,0.35)]"
+						className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition-colors duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white"
 					>
-						<Sparkles size={16} />
-						Go to Dashboard
+						Dashboard
 					</Link>
 				</header>
 
@@ -2316,15 +2345,15 @@ export default function MLTutorialPage() {
 					<aside className="flex flex-col border-r border-white/10 bg-[#0d1230]/90 p-3 backdrop-blur-xl lg:h-full lg:overflow-hidden">
 						<div className="mb-3 rounded-xl border border-cyan-300/25 bg-[#131a3d]/80 p-3">
 							<div className="mb-2 flex items-center justify-between text-sm">
-								<span className="text-cyan-200">Progress</span>
-								<span className="font-semibold text-white">{completedSteps.length}/8 completed</span>
+									<span className="text-cyan-200">Progress</span>
+									<span className="font-semibold text-white">{completedSteps.length}/8 completed</span>
 							</div>
-							<div className="h-2 overflow-hidden rounded-full bg-white/10">
-								<div
-									className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-fuchsia-400 transition-all duration-700"
-									style={{ width: `${progressPercent}%`, boxShadow: '0 0 16px rgba(34,211,238,0.7)' }}
-								/>
-							</div>
+									<div className="h-2 overflow-hidden rounded-full bg-white/10">
+									<div
+											className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-fuchsia-400 transition-all duration-700"
+										style={{ width: `${progressPercent}%`, boxShadow: '0 0 16px rgba(34,211,238,0.7)' }}
+									/>
+								</div>
 						</div>
 
 						<div className="grid flex-1 grid-cols-1 gap-2 content-start overflow-y-auto">
@@ -2413,7 +2442,7 @@ export default function MLTutorialPage() {
 								<ul className="space-y-2">
 									{activeStepData.content.keyTakeaways.map((t, i) => (
 										<li key={i} className="flex items-start gap-2 text-sm text-[#dce8ff]">
-											<CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
+											<CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-300" />
 											{t}
 										</li>
 									))}
