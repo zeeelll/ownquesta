@@ -17,6 +17,7 @@ interface Message {
 
 const SUGGESTED_QUESTIONS = [
   'How does Ownquesta work from start to finish?',
+  'What do I learn in the ML Tutorial?',
   'What happens after I click Analyse?',
   'What is the AutoML Playground?',
   'What is Easy Mode vs Code Mode?',
@@ -30,6 +31,10 @@ const LOCAL_QUICK_ANSWERS = [
   {
     patterns: ['how does ownquesta work', 'how does ownquesta work from start to finish', 'what is ownquesta'],
     answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
+  },
+  {
+    patterns: ['ml tutorial', 'machine learning tutorial', 'what do i learn in the ml tutorial', 'tutorial content'],
+    answer: `The ML Tutorial page teaches the complete workflow used inside Ownquesta:\n1. Problem framing and dataset readiness checks.\n2. Data cleaning and preprocessing basics.\n3. Feature engineering and target selection.\n4. EDA interpretation (patterns, distributions, outliers).\n5. Model selection logic in AutoML Playground.\n6. Training, validation, and accuracy evaluation.\n7. Prediction testing and result interpretation.\n8. Exporting model artifacts and Python scripts.\n\nOpen the full guided experience from /ml-tutorial to follow each step interactively.`,
   },
   {
     patterns: ['authenticated home', 'welcome page', 'go to dashboard', 'after sign in'],
