@@ -195,7 +195,7 @@ export default function HomePage() {
           </div>
 
           {/* Quick stats */}
-          <div className="grid grid-cols-3 gap-4 mt-16 max-w-[480px] mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s', animationFillMode: 'forwards', opacity: 0 }}>
+          <div className="grid grid-cols-1 gap-4 mt-16 max-w-[480px] mx-auto animate-fade-in-up sm:grid-cols-3" style={{ animationDelay: '0.4s', animationFillMode: 'forwards', opacity: 0 }}>
             {[
               { label: 'Models', value: '50+' },
               { label: 'Algorithms', value: 'Auto' },

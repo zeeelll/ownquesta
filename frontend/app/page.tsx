@@ -196,7 +196,7 @@ export default function Home() {
 
           {!user?.authenticated && (
             <div className="mb-16 animate-fade-in-up delay-300">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-12 max-w-[640px] mx-auto">
+              <div className="grid grid-cols-1 gap-5 mb-12 max-w-[640px] mx-auto sm:grid-cols-3">
                 {[
                   { num: '01', title: 'Upload Dataset', desc: 'Any format, any size' },
                   { num: '02', title: 'Understand Data', desc: 'AI-powered analysis' },

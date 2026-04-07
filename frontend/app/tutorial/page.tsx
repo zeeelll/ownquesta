@@ -176,15 +176,15 @@ function QuestaAgent() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } };
-  const chatWidth = isExpanded ? 'w-[520px]' : 'w-[380px]';
-  const chatHeight = isExpanded ? 'h-[640px]' : 'h-[520px]';
+  const chatWidth = isExpanded ? 'w-[min(520px,calc(100vw-1rem))] sm:w-[520px]' : 'w-[min(380px,calc(100vw-1rem))] sm:w-[380px]';
+  const chatHeight = isExpanded ? 'h-[min(72vh,640px)] sm:h-[640px]' : 'h-[min(65vh,520px)] sm:h-[520px]';
   const statusColor = backendStatus === 'online' ? 'bg-green-400' : backendStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse';
   const statusLabel = backendStatus === 'online' ? 'Connected' : backendStatus === 'offline' ? 'Backend offline' : 'Connecting...';
   const statusTextColor = backendStatus === 'online' ? 'text-green-400/70' : backendStatus === 'offline' ? 'text-red-400/70' : 'text-yellow-400/70';
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-3">
+      <div className="fixed bottom-20 right-4 z-[200] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
         {!isOpen && (
           <div onClick={() => setIsOpen(true)} className="flex items-center gap-2 bg-[rgba(15,10,30,0.95)] border border-violet-500/30 backdrop-blur-xl rounded-2xl px-4 py-2.5 shadow-xl shadow-violet-500/10 cursor-pointer hover:border-violet-400/50 transition-all" style={{ animation: 'fadeSlideUp 0.3s ease forwards' }}>
             <span className="text-violet-400 text-sm font-medium">Ask Questa anything</span>
@@ -198,7 +198,7 @@ function QuestaAgent() {
         </button>
       </div>
       {isOpen && (
-        <div className={`fixed bottom-24 right-6 z-[199] ${chatWidth} ${chatHeight} flex flex-col rounded-3xl overflow-hidden shadow-2xl shadow-violet-900/50 border border-white/[0.08] bg-[rgba(8,6,20,0.97)] backdrop-blur-2xl transition-all duration-300`} style={{ animation: 'slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}>
+        <div className={`fixed bottom-24 right-2 z-[199] ${chatWidth} ${chatHeight} flex flex-col rounded-3xl overflow-hidden shadow-2xl shadow-violet-900/50 border border-white/[0.08] bg-[rgba(8,6,20,0.97)] backdrop-blur-2xl transition-all duration-300 sm:right-6`} style={{ animation: 'slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}>
           <div className="relative flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-fuchsia-600/5 pointer-events-none" />
             <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30 text-lg flex-shrink-0">✦<span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#08061e] ${statusColor}`} /></div>

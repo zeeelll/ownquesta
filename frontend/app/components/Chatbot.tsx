@@ -146,10 +146,10 @@ export default function Chatbot({ userId }: ChatbotProps) {
   return (
     <>
       {/* Chat Widget */}
-      <div className="fixed bottom-6 right-6 z-50 font-sans">
+      <div className="fixed bottom-4 left-4 right-4 z-50 font-sans sm:bottom-6 sm:left-auto sm:right-6">
         {/* Chat Window */}
         <div
-          className={`absolute bottom-20 right-0 w-96 max-h-[600px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col overflow-hidden transition-all duration-300 ease-out transform origin-bottom-right ${
+          className={`absolute bottom-20 right-0 w-[min(24rem,calc(100vw-2rem))] max-h-[min(70vh,600px)] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-700/50 flex flex-col overflow-hidden transition-all duration-300 ease-out transform origin-bottom-right sm:w-96 sm:max-h-[600px] ${
             isOpen
               ? 'opacity-100 scale-100 visible'
               : 'opacity-0 scale-95 invisible pointer-events-none'
@@ -197,7 +197,7 @@ export default function Chatbot({ userId }: ChatbotProps) {
                 className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'} animate-slideIn`}
               >
                 <div
-                  className={`max-w-xs px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed sm:max-w-xs ${
                     msg.type === 'user'
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-none'
                       : 'bg-slate-700/60 text-slate-100 rounded-bl-none border border-slate-600/50'
@@ -252,7 +252,7 @@ export default function Chatbot({ userId }: ChatbotProps) {
         {/* Floating Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-2xl hover:shadow-indigo-500/50 flex items-center justify-center transition-all duration-300 transform hover:scale-110 ${
+          className={`ml-auto h-14 w-14 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg transition-all duration-300 transform hover:scale-110 hover:from-indigo-700 hover:to-purple-700 hover:shadow-2xl hover:shadow-indigo-500/50 sm:ml-0 ${
             isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'
           }`}
         >

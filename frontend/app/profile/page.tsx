@@ -388,7 +388,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Navigation Bar */}
-      <nav className="fixed top-0 left-0 right-0 h-16 z-50 flex items-center justify-between px-8 bg-transparent">
+      <nav className="fixed top-0 left-0 right-0 h-16 z-50 flex items-center justify-between px-4 sm:px-8 bg-transparent">
         <Logo href="/home" size="md" />
         <div className="flex items-center gap-3">
           <button
@@ -400,7 +400,7 @@ export default function ProfilePage() {
         </div>
       </nav>
 
-      <div className="relative z-10 pt-24 pb-12 px-6 max-w-6xl mx-auto">
+      <div className="relative z-10 pt-24 pb-12 px-4 sm:px-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
@@ -415,7 +415,7 @@ export default function ProfilePage() {
           <div className="flex border-b border-slate-700/50 bg-slate-900/30 overflow-x-auto">
             <button
               onClick={() => setActiveTab('personal')}
-              className={`px-6 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+              className={`px-4 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 sm:px-6 ${
                 activeTab === 'personal'
                   ? 'text-white border-b-2 border-indigo-500 bg-indigo-500/10'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -428,7 +428,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => setActiveTab('work')}
-              className={`px-6 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+              className={`px-4 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 sm:px-6 ${
                 activeTab === 'work'
                   ? 'text-white border-b-2 border-indigo-500 bg-indigo-500/10'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -441,7 +441,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => setActiveTab('security')}
-              className={`px-6 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 ${
+              className={`px-4 py-4 font-medium transition-all whitespace-nowrap flex items-center gap-2 sm:px-6 ${
                 activeTab === 'security'
                   ? 'text-white border-b-2 border-indigo-500 bg-indigo-500/10'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/30'
@@ -454,7 +454,7 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          <div className="p-8">
+          <div className="p-4 sm:p-8">
             {/* Personal Details Tab */}
             {activeTab === 'personal' && (
               <div className="space-y-8">
@@ -808,7 +808,7 @@ export default function ProfilePage() {
               <button 
                 onClick={save} 
                 disabled={saving} 
-                className="group relative flex-1 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-slate-600 disabled:to-slate-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-green-500/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                className="group relative flex-1 px-4 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-slate-600 disabled:to-slate-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-green-500/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2 sm:px-8"
               >
                 {saving ? (
                   <>
@@ -826,7 +826,7 @@ export default function ProfilePage() {
               </button>
               <button 
                 onClick={() => window.location.reload()} 
-                className="px-8 py-4 border-2 border-slate-600 hover:border-slate-500 hover:bg-slate-800/50 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                className="px-4 py-4 border-2 border-slate-600 hover:border-slate-500 hover:bg-slate-800/50 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 sm:px-8"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

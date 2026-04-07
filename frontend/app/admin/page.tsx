@@ -1084,7 +1084,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-                  <div className="relative min-w-[260px]">
+                  <div className="relative w-full xl:min-w-[260px]">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
                       type="text"
@@ -1497,7 +1497,7 @@ export default function AdminPage() {
                                 <div className="flex flex-wrap gap-2">
                                   {ticket.proofFiles.map((file) => (
                                     <div key={`${ticket._id}-${file.name}-${file.size}`} className="rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-slate-300 font-mono">
-                                      <div className="truncate max-w-[300px]">{file.name}</div>
+                                      <div className="truncate max-w-[220px] sm:max-w-[300px]">{file.name}</div>
                                       <div className="mt-1 text-[10px] text-slate-500">
                                         {(file.type || 'unknown').toUpperCase()} • {(Number(file.size || 0) / 1024).toFixed(1)} KB
                                       </div>
