@@ -86,7 +86,7 @@ function StepIndicator({ current }: { current: CheckoutStep }) {
   const steps = [
     { key: 'details',    label: 'Details',    num: 1 },
     { key: 'processing', label: 'Processing', num: 2 },
-    { key: 'success',    label: 'Done',       num: 3 },
+    { key: 'success',    label: 'Complete',   num: 3 },
   ];
   const idx = steps.findIndex(s => s.key === current);
   return (
@@ -360,7 +360,7 @@ export default function PaymentPage() {
                 <span className="pw-gradient-text">Ownquesta</span>{' '}
                 checkout
               </h1>
-              <p className="pw-subtitle">Your model is ready. Complete payment and you'll be redirected instantly for download.</p>
+              <p className="pw-subtitle">Your export is ready. Complete secure payment to instantly unlock and download your selected file.</p>
 
               <StepIndicator current={step} />
 
@@ -383,9 +383,9 @@ export default function PaymentPage() {
               {/* Feature list */}
               <div className="pw-features">
                 {[
-                  { icon: <Zap size={14} strokeWidth={2.4} />, title: 'Instant download', text: 'Your file starts downloading immediately after payment confirmation.' },
-                  { icon: <Shield size={14} strokeWidth={2.2} />, title: 'Session-locked', text: 'This unlock is tied only to your current lab session — targeted access only.' },
-                  { icon: <Package size={14} strokeWidth={2.2} />, title: 'Separate billing', text: 'Each export type (model, .py, .ipynb) is billed independently.' },
+                  { icon: <Zap size={14} strokeWidth={2.4} />, title: 'Instant access', text: 'Your selected file becomes available immediately after payment confirmation.' },
+                  { icon: <Shield size={14} strokeWidth={2.2} />, title: 'Session-protected', text: 'Access is linked to your current AutoML Playground session for safer delivery.' },
+                  { icon: <Package size={14} strokeWidth={2.2} />, title: 'Per-export billing', text: 'Each export type (model, .py, .ipynb) is billed separately.' },
                 ].map(f => (
                   <div key={f.title} className="pw-feature-item">
                     <span className="pw-feature-icon">{f.icon}</span>
@@ -417,7 +417,7 @@ export default function PaymentPage() {
                     <div>
                       <p className="pw-section-label">Payment details</p>
                       <h2 className="pw-form-title">{checkoutTitle}</h2>
-                      <p className="pw-form-subtitle">One-time · no recurring charges</p>
+                      <p className="pw-form-subtitle">One-time payment. No recurring subscription.</p>
                     </div>
                     <div className="pw-amount-badge">
                       <span className="pw-amount-val">₹{upiApproxAmount.toFixed(2)}</span>
@@ -464,14 +464,14 @@ export default function PaymentPage() {
                         <Field label="Expiry" error={errors.expiry}>
                           <input value={expiry} onChange={e => setExpiry(formatExpiry(e.target.value))} placeholder="MM / YY" className={`pw-input${errors.expiry ? ' pw-input-err' : ''}`} />
                         </Field>
-                        <Field label="CVV" error={errors.cvv} hint="3–4 digits on back">
+                        <Field label="CVV" error={errors.cvv} hint="3-4 digits on your card">
                           <input value={cvv} onChange={e => setCvv(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="•••" type="password" className={`pw-input${errors.cvv ? ' pw-input-err' : ''}`} />
                         </Field>
                       </div>
 
                       <div className="pw-card-note">
                         <Info size={12} strokeWidth={2.2} className="shrink-0 mt-0.5" />
-                        <span>Your card is processed securely via Razorpay PCI-DSS Level 1 infrastructure. We never store card data.</span>
+                        <span>Your card payment is processed securely by Razorpay (PCI-DSS compliant). Ownquesta does not store your card details.</span>
                       </div>
                     </div>
                   )}
@@ -501,7 +501,7 @@ export default function PaymentPage() {
                         </div>
                       </Field>
 
-                      <Field label="Step 2 — Your UPI ID" error={errors.upiId} hint="The payment request will be sent here">
+                      <Field label="Step 2 — Your UPI ID" error={errors.upiId} hint="Payment request will be sent to this UPI ID">
                         <div className="pw-upi-id-wrap">
                           <input value={upiId} onChange={e => setUpiId(e.target.value.trim())} placeholder="yourname@okaxis" className={`pw-input pw-upi-id-input${errors.upiId ? ' pw-input-err' : ''}`} />
                           <span className="pw-upi-at">@</span>
@@ -531,7 +531,7 @@ export default function PaymentPage() {
 
                         {/* QR */}
                         <div className="pw-qr-box">
-                          <p className="pw-qr-label">Or scan QR with any UPI app</p>
+                          <p className="pw-qr-label">Or scan this QR in any UPI app</p>
                           <div className="pw-qr-frame">
                             {qrLoading ? (
                               <div className="pw-qr-loading"><RefreshCw size={20} strokeWidth={2} className="pw-spin-icon" /></div>
@@ -558,8 +558,8 @@ export default function PaymentPage() {
                   {paymentMethod === 'paypal' && (
                     <div className="pw-paypal-note pw-fade-in">
                       <Wallet size={28} strokeWidth={1.8} className="text-sky-400 mx-auto mb-3" />
-                      <p className="pw-paypal-title">PayPal coming soon</p>
-                      <p className="pw-paypal-text">PayPal integration is under development. Please use Card or UPI to complete your payment right now.</p>
+                      <p className="pw-paypal-title">PayPal support is coming soon</p>
+                      <p className="pw-paypal-text">PayPal checkout is currently unavailable. Please continue with Card or UPI for instant access.</p>
                     </div>
                   )}
 
@@ -579,7 +579,7 @@ export default function PaymentPage() {
                     </div>
                     <div className="pw-summary-divider" />
                     <div className="pw-summary-row pw-summary-total">
-                      <span>Total due today</span>
+                      <span>Total payable now</span>
                       <span>₹{upiApproxAmount.toFixed(2)}</span>
                     </div>
                   </div>
@@ -589,9 +589,9 @@ export default function PaymentPage() {
                     className={`pw-pay-btn pw-pay-${paymentMethod === 'card' ? 'card' : paymentMethod === 'upi' ? 'upi' : 'paypal'}`}>
                     <span className="pw-pay-shimmer" />
                     {isSubmitting ? (
-                      <span className="pw-pay-inner"><span className="pw-mini-spin" /> Starting secure checkout…</span>
+                      <span className="pw-pay-inner"><span className="pw-mini-spin" /> Starting secure checkout...</span>
                     ) : paymentMethod === 'paypal' ? (
-                      <span className="pw-pay-inner"><Wallet size={16} strokeWidth={2.2} /> PayPal — coming soon</span>
+                      <span className="pw-pay-inner"><Wallet size={16} strokeWidth={2.2} /> PayPal - coming soon</span>
                     ) : paymentMethod === 'card' ? (
                       <span className="pw-pay-inner"><CreditCard size={16} strokeWidth={2.2} /> Pay ₹{upiApproxAmount.toFixed(2)} by Card</span>
                     ) : selectedUpiApp ? (
@@ -608,11 +608,11 @@ export default function PaymentPage() {
                     <p className="pw-status-note"><Info size={13} strokeWidth={2.2} /> {statusNote}</p>
                   )}
                   {!razorpayReady && !errors.general && (
-                    <p className="pw-loading-note"><RefreshCw size={12} strokeWidth={2.2} className="pw-spin-icon" /> Initializing payment gateway…</p>
+                    <p className="pw-loading-note"><RefreshCw size={12} strokeWidth={2.2} className="pw-spin-icon" /> Initializing secure payment gateway...</p>
                   )}
 
                   <p className="pw-disclaimer">
-                    By paying you agree to Ownquesta's terms. Each download type bills separately. Paying for the model does <strong>not</strong> unlock .py or .ipynb files.
+                    By continuing, you agree to Ownquesta's terms. Each export type is billed separately. Paying for a model export does <strong>not</strong> automatically unlock .py or .ipynb exports.
                   </p>
                 </div>
               )}
@@ -627,7 +627,7 @@ export default function PaymentPage() {
                   <h3 className="pw-proc-title">
                     {paymentMethod === 'upi' ? `Confirming ${selectedUpiAppLabel} payment` : 'Processing card payment'}
                   </h3>
-                  <p className="pw-proc-text">{progressText || 'Securing your order and preparing your download…'}</p>
+                  <p className="pw-proc-text">{progressText || 'Securing your order and preparing your download...'}</p>
 
                   <div className="pw-progress-wrap">
                     <div className="pw-progress-track">
@@ -637,7 +637,7 @@ export default function PaymentPage() {
                   </div>
 
                   <div className="pw-proc-steps">
-                    {['Payment initiated', 'Signature verified', 'Order confirmed', 'Download ready'].map((s, i) => {
+                    {['Payment initiated', 'Signature verified', 'Order confirmed', 'Download unlocked'].map((s, i) => {
                       const done = progress > (i + 1) * 22;
                       return (
                         <div key={s} className={`pw-proc-step ${done ? 'pw-step-done' : ''}`}>
@@ -655,12 +655,12 @@ export default function PaymentPage() {
                 <div className="pw-fade-in pw-success">
                   <AnimatedCheck />
                   <h3 className="pw-success-title">Payment successful!</h3>
-                  <p className="pw-success-text">Your payment has been verified and your download is unlocked. Redirecting you to the lab now…</p>
+                  <p className="pw-success-text">Your payment has been verified and access is now unlocked. Redirecting you to the lab to download your file...</p>
                   {paidOrderId && <p className="pw-success-order">Order #{paidOrderId}</p>}
                   <div className="pw-success-chips">
                     <span className="pw-success-chip"><Check size={11} strokeWidth={3} /> Payment confirmed</span>
-                    <span className="pw-success-chip"><Package size={11} strokeWidth={2.5} /> Download unlocked</span>
-                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> Returning to lab</span>
+                    <span className="pw-success-chip"><Package size={11} strokeWidth={2.5} /> Access unlocked</span>
+                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> Redirecting to lab</span>
                   </div>
                 </div>
               )}
