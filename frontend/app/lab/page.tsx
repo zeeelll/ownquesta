@@ -7,6 +7,40 @@ import { python } from '@codemirror/lang-python';
 import { keymap, EditorView } from '@codemirror/view';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Prec } from '@codemirror/state';
+import {
+  AlertTriangle,
+  BarChart3,
+  Bot,
+  Brain,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  Clock3,
+  Code2,
+  Construction,
+  Diamond,
+  Download,
+  FileText,
+  FlaskConical,
+  FolderOpen,
+  Hexagon,
+  LineChart,
+  Lock,
+  MessageCircle,
+  Microscope,
+  Play,
+  Search,
+  Send,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Trophy,
+  Wrench,
+  X,
+  Zap,
+} from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
 
@@ -988,7 +1022,7 @@ export default function LabPage() {
               {chatSending ? <SpinIcon size={11}/> : <Send size={13} />}
             </button>
           </div>
-        </div>}
+        </div>
       </div>
 
       {/* ── Payment Modal ── */}
