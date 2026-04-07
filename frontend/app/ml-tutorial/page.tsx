@@ -1661,6 +1661,8 @@ joblib.dump(full_pipe, 'churn_pipeline_v1.pkl')
 	},
 ];
 
+const TOTAL_STEPS = TUTORIAL_STEPS.length;
+
 /* ═══════════════════════════════════════════════════════════════
    CODE BLOCK COMPONENT
 ═══════════════════════════════════════════════════════════════ */
@@ -2291,8 +2293,8 @@ export default function MLTutorialPage() {
 			const saved = localStorage.getItem(STORAGE_KEY);
 			if (!saved) return;
 			const parsed = JSON.parse(saved) as { activeStep?: number; completedSteps?: number[] };
-			const nc = Array.from(new Set((parsed.completedSteps ?? []).filter((s) => s >= 1 && s <= 8))).sort((a, b) => a - b);
-			const sa = parsed.activeStep && parsed.activeStep >= 1 && parsed.activeStep <= 8 ? parsed.activeStep : 1;
+			const nc = Array.from(new Set((parsed.completedSteps ?? []).filter((s) => s >= 1 && s <= TOTAL_STEPS))).sort((a, b) => a - b);
+			const sa = parsed.activeStep && parsed.activeStep >= 1 && parsed.activeStep <= TOTAL_STEPS ? parsed.activeStep : 1;
 			setCompletedSteps(nc);
 			setActiveStep(sa);
 		} catch {
@@ -2314,12 +2316,13 @@ export default function MLTutorialPage() {
 		setCompletedSteps((prev) => (prev.includes(id) ? prev : [...prev, id].sort((a, b) => a - b)));
 
 	const handleStepClick = (id: number) => {
+		markCompleted(id);
 		setActiveStep(id);
 	};
 
 	const goNext = () => {
 		markCompleted(activeStep);
-		if (activeStep < 8) setActiveStep((c) => c + 1);
+		if (activeStep < TOTAL_STEPS) setActiveStep((c) => c + 1);
 	};
 	const goPrevious = () => {
 		if (activeStep > 1) setActiveStep((c) => c - 1);
@@ -2357,7 +2360,7 @@ export default function MLTutorialPage() {
 						<div className="mb-3 rounded-xl border border-cyan-300/25 bg-[#131a3d]/80 p-3">
 							<div className="mb-2 flex items-center justify-between text-sm">
 									<span className="text-cyan-200">Progress</span>
-									<span className="font-semibold text-white">{completedSteps.length}/8 completed</span>
+									<span className="font-semibold text-white">{completedSteps.length}/{TOTAL_STEPS} completed</span>
 							</div>
 									<div className="h-2 overflow-hidden rounded-full bg-white/10">
 									<div
@@ -2416,7 +2419,7 @@ export default function MLTutorialPage() {
 					<section ref={mainContentRef} className="bg-[#0c122c]/90 p-5 backdrop-blur-xl sm:p-6 lg:h-full lg:overflow-y-auto lg:p-8">
 						<div className="mb-5 flex flex-wrap items-center justify-between gap-3">
 							<div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-300/10 px-3 py-1 text-xs font-semibold tracking-[0.15em] text-cyan-100">
-								Step {String(activeStepData.id).padStart(2, '0')} of 08
+								Step {String(activeStepData.id).padStart(2, '0')} of {String(TOTAL_STEPS).padStart(2, '0')}
 							</div>
 							<button
 								type="button"
@@ -2472,7 +2475,7 @@ export default function MLTutorialPage() {
 								<button
 									type="button"
 									onClick={goNext}
-									disabled={activeStepData.id === 8}
+									disabled={activeStepData.id === TOTAL_STEPS}
 									className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-gradient-to-r from-cyan-400/30 to-indigo-400/30 px-4 py-2 text-sm font-semibold text-cyan-50 transition hover:from-cyan-300/40 hover:to-indigo-300/40 disabled:cursor-not-allowed disabled:opacity-45"
 								>
 									Next
