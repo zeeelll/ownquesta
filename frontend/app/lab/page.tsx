@@ -1881,17 +1881,23 @@ interface CBProps { cell: Cell; index: number; total: number; onRun(): void; onC
 function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMoveDown, onDelete, onToggleOut }: CBProps) {
   const isRunning = cell.status === 'running';
   const hasOut    = cell.out !== null;
-  const borderColor = isRunning ? 'rgba(99,102,241,0.55)' : cell.status === 'error' ? 'rgba(239,68,68,0.35)' : cell.status === 'done' ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.07)';
+  const stateTheme = isRunning
+    ? { border: 'rgba(99,102,241,0.55)', bg: 'rgba(99,102,241,0.08)', glow: 'rgba(99,102,241,0.28)', numColor: '#818cf8' }
+    : cell.status === 'done'
+      ? { border: 'rgba(74,222,128,0.28)', bg: 'rgba(74,222,128,0.06)', glow: 'rgba(74,222,128,0.2)', numColor: '#4ade80' }
+      : cell.status === 'error'
+        ? { border: 'rgba(239,68,68,0.35)', bg: 'rgba(239,68,68,0.07)', glow: 'rgba(239,68,68,0.22)', numColor: '#f87171' }
+        : { border: 'rgba(255,255,255,0.07)', bg: 'rgba(255,255,255,0.03)', glow: 'rgba(255,255,255,0.05)', numColor: '#64748b' };
   const statusDot = { idle: { color: '#475569', icon: '○' }, running: { color: '#818cf8', icon: '●' }, done: { color: '#4ade80', icon: '✓' }, error: { color: '#f87171', icon: '✕' } }[cell.status];
   const charts = cell.out?.charts ?? [];
   return (
     <div style={{
       marginBottom: 14, borderRadius: 14,
-      border: `1px solid ${STATE.border}`,
-      background: `linear-gradient(135deg, ${STATE.bg}, rgba(8,10,22,0.97))`,
+      border: `1px solid ${stateTheme.border}`,
+      background: `linear-gradient(135deg, ${stateTheme.bg}, rgba(8,10,22,0.97))`,
       overflow: 'hidden',
       transition: 'border-color 0.3s, box-shadow 0.3s',
-      boxShadow: `0 2px 24px ${STATE.glow}, 0 1px 0 rgba(255,255,255,0.04) inset`,
+      boxShadow: `0 2px 24px ${stateTheme.glow}, 0 1px 0 rgba(255,255,255,0.04) inset`,
       position: 'relative',
     }}>
       {/* Left accent bar */}
@@ -1908,7 +1914,7 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
       }} />
 
       {/* ── Header toolbar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 18px', background: 'rgba(0,0,0,0.28)', borderBottom: `1px solid ${STATE.border}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 14px 8px 18px', background: 'rgba(0,0,0,0.28)', borderBottom: `1px solid ${stateTheme.border}` }}>
 
         {/* Cell index badge */}
         <div style={{
@@ -1916,7 +1922,7 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
         }}>
           <span style={{
             fontFamily: "'Fira Code','Consolas',monospace", fontSize: 11, fontWeight: 700,
-            color: STATE.numColor, letterSpacing: '0.04em', lineHeight: 1,
+            color: stateTheme.numColor, letterSpacing: '0.04em', lineHeight: 1,
             textShadow: isRunning ? '0 0 10px rgba(129,140,248,0.8)' : cell.status === 'done' ? '0 0 8px rgba(74,222,128,0.6)' : 'none',
           }}>
             {isRunning ? '[*]' : `[${index + 1}]`}
@@ -1942,11 +1948,11 @@ function CellBlock({ cell, index, total, onRun, onCode, onInsert, onMoveUp, onMo
           }}>
             <span style={{
               width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-              background: STATE.numColor,
-              boxShadow: `0 0 6px ${STATE.numColor}`,
+              background: stateTheme.numColor,
+              boxShadow: `0 0 6px ${stateTheme.numColor}`,
               animation: isRunning ? 'cellPing 1.4s ease infinite' : 'none',
             }} />
-            <span style={{ fontSize: 10, fontWeight: 600, color: STATE.numColor, letterSpacing: '0.06em', textTransform: 'uppercase' as const, fontFamily: "'Fira Code',monospace" }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: stateTheme.numColor, letterSpacing: '0.06em', textTransform: 'uppercase' as const, fontFamily: "'Fira Code',monospace" }}>
               {isRunning ? 'running' : 'error'}
             </span>
           </div>
