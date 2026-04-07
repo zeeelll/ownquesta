@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import ActivityTracker from "./components/ActivityTracker";
+import AppBoot from "./components/AppBoot";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ActivityTracker />
-        {children}
+        <AppBoot>{children}</AppBoot>
       </body>
     </html>
   );
