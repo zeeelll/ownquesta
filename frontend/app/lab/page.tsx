@@ -839,9 +839,9 @@ export default function LabPage() {
       {/* Header */}
       <header style={{ height: 52, flexShrink: 0, background: 'rgba(8,14,30,0.82)', backdropFilter: 'blur(14px)', borderBottom: `1px solid ${LAB_THEME.border}`, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => router.push('/dashboard')} title="Back to Dashboard"
+          <button onClick={() => router.push('/dashboard')} title="Dashboard"
             style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '4px 10px', color: '#94a3b8', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}>
-            ← Dashboard
+            Dashboard
           </button>
           <div style={{ width: 1, height: 14, background: LAB_THEME.border }} />
           <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#2563eb,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dbeafe', boxShadow: `0 0 12px ${LAB_THEME.accentGlow}` }}>
