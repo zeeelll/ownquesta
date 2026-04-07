@@ -32,6 +32,8 @@ type CheckoutStep = 'details' | 'processing' | 'success';
 type PaymentMethod = 'paypal' | 'card' | 'upi';
 type UpiAppKey = (typeof UPI_APP_OPTIONS)[number]['key'];
 
+const PAYPAL_AVAILABLE = false;
+
 export default function PaymentPage() {
   const router = useRouter();
   const [step, setStep] = useState<CheckoutStep>('details');
@@ -157,6 +159,11 @@ export default function PaymentPage() {
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
+    if (paymentMethod === 'paypal' && !PAYPAL_AVAILABLE) {
+      nextErrors.general = 'PayPal is coming soon. Please choose Card or UPI.';
+      setErrors(nextErrors);
+      return false;
+    }
     if (!name.trim()) nextErrors.name = 'Full name is required.';
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       nextErrors.email =
@@ -333,7 +340,7 @@ export default function PaymentPage() {
           ? 'Download the trained model instantly and keep the export files behind their own payment gate.'
           : 'Your paid file starts downloading automatically right after payment confirmation.',
     },
-    { icon: <Lock size={14} strokeWidth={2.2} />, text: 'Choose PayPal, debit/credit card, or UPI with a smooth return back to Ownquesta' },
+    { icon: <Lock size={14} strokeWidth={2.2} />, text: 'Choose debit/credit card or UPI with a smooth return back to Ownquesta' },
   ];
 
   return (
@@ -791,29 +798,10 @@ export default function PaymentPage() {
 
                   {paymentMethod === 'paypal' ? (
                     <div className="space-y-4">
-                      <Field label="Full name" error={errors.name}>
-                        <input
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          placeholder="John Doe"
-                          className={`pay-input${errors.name ? ' has-error' : ''}`}
-                        />
-                      </Field>
-
-                      <Field label="PayPal email" error={errors.email}>
-                        <input
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="john@example.com"
-                          type="email"
-                          className={`pay-input${errors.email ? ' has-error' : ''}`}
-                        />
-                      </Field>
-
                       <div className="paypal-note">
-                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-300 mb-2">PayPal checkout</p>
+                        <p className="text-[10px] font-bold tracking-[0.15em] uppercase text-sky-300 mb-2">PayPal</p>
                         <p className="text-sm text-[#dbeafe] leading-relaxed">
-                          Use your PayPal balance or any linked Visa / MasterCard. The payment will appear under the Ownquesta account and return straight back to the lab after confirmation.
+                          PayPal payment is coming soon. Please use Card or UPI for now.
                         </p>
                       </div>
                     </div>
@@ -1001,14 +989,14 @@ export default function PaymentPage() {
                   {/* Pay button */}
                   <button
                     onClick={handleCheckout}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || (paymentMethod === 'paypal' && !PAYPAL_AVAILABLE)}
                     className={`pay-btn mt-5 ${paymentMethod === 'paypal' ? 'paypal-pay' : paymentMethod === 'card' ? 'card-pay' : 'upi-pay'}`}
-                    style={{ opacity: isSubmitting ? 0.9 : 1 }}
+                    style={{ opacity: isSubmitting || (paymentMethod === 'paypal' && !PAYPAL_AVAILABLE) ? 0.9 : 1 }}
                   >
                     {isSubmitting
                       ? 'Starting secure checkout…'
                       : paymentMethod === 'paypal'
-                        ? `Pay $${price.toFixed(2)} with PayPal`
+                        ? 'PayPal is coming soon'
                         : paymentMethod === 'card'
                           ? `Pay $${price.toFixed(2)} by Card`
                           : selectedUpiApp
