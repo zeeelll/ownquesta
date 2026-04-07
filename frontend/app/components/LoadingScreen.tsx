@@ -9,7 +9,7 @@ interface LoadingScreenProps {
 
 const LOGO_LOOPS = 3;
 
-export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingScreenProps) {
+export default function LoadingScreen({ onComplete, duration = 6200 }: LoadingScreenProps) {
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
@@ -32,13 +32,14 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
         isComplete ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
       style={{
-        background: '#000000',
+        background:
+          'radial-gradient(circle at 50% 40%, rgba(124,58,237,0.14) 0%, rgba(0,0,0,0) 38%), radial-gradient(circle at 50% 60%, rgba(167,139,250,0.09) 0%, rgba(0,0,0,0) 46%), #000000',
       }}
     >
       <style>{`
         @keyframes logoIn {
           0% {
-            transform: scale(0.65);
+            transform: scale(0.5);
             opacity: 0;
           }
           100% {
@@ -68,20 +69,20 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
         }
 
         .logo-container {
-          animation: logoIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          animation: logoIn 1.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
         .glow-ring {
-          animation: glowBreath 2.2s ease-in-out infinite;
+          animation: glowBreath 3.8s ease-in-out infinite;
         }
       `}</style>
 
       <div className="absolute inset-0 overflow-hidden">
         <div
-          className="glow-ring absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full"
+          className="glow-ring absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[760px] h-[760px] rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(124,58,237,0.24) 0%, transparent 72%)',
-            filter: 'blur(70px)',
+            background: 'radial-gradient(circle, rgba(124,58,237,0.28) 0%, transparent 72%)',
+            filter: 'blur(90px)',
           }}
         />
       </div>
@@ -90,13 +91,13 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
         <div className="logo-container">
           <div
             style={{
-              filter: 'drop-shadow(0 0 10px rgba(167,139,250,0.9)) drop-shadow(0 0 26px rgba(109,40,217,0.6)) brightness(1.42)',
+              filter: 'drop-shadow(0 0 18px rgba(167,139,250,0.95)) drop-shadow(0 0 38px rgba(109,40,217,0.7)) brightness(1.5)',
               lineHeight: 0,
             }}
           >
             <svg
-              width="min(44vw, 260px)"
-              height="min(44vw, 260px)"
+              width="min(72vw, 460px)"
+              height="min(72vw, 460px)"
               viewBox="0 0 100 100"
               fill="none"
               overflow="visible"
@@ -159,7 +160,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-out)"
-                  style={{ animation: `ownq-dash 1.2s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.4s linear ${LOGO_LOOPS}` }}
                 />
                 <path
                   d={P}
@@ -170,7 +171,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-in)"
-                  style={{ animation: `ownq-dash 1.2s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.4s linear ${LOGO_LOOPS}` }}
                 />
               </g>
 
@@ -185,7 +186,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-out)"
-                  style={{ animation: `ownq-dash 1.35s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.8s linear ${LOGO_LOOPS}` }}
                 />
                 <path
                   d={P}
@@ -196,7 +197,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-in)"
-                  style={{ animation: `ownq-dash 1.35s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.8s linear ${LOGO_LOOPS}` }}
                 />
               </g>
 
@@ -211,7 +212,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-out)"
-                  style={{ animation: `ownq-dash 1.1s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.1s linear ${LOGO_LOOPS}` }}
                 />
                 <path
                   d={P}
@@ -222,7 +223,7 @@ export default function LoadingScreen({ onComplete, duration = 4300 }: LoadingSc
                   strokeLinecap="round"
                   strokeDasharray={DA}
                   filter="url(#sg-in)"
-                  style={{ animation: `ownq-dash 1.1s linear ${LOGO_LOOPS}` }}
+                  style={{ animation: `ownq-dash 2.1s linear ${LOGO_LOOPS}` }}
                 />
               </g>
 
