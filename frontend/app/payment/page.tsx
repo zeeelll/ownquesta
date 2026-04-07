@@ -336,12 +336,12 @@ export default function PaymentPage() {
             <div className="pw-nav-right">
               <span className="pw-status-chip">
                 <span className={`pw-dot ${step === 'success' ? 'dot-green' : step === 'processing' ? 'dot-amber' : 'dot-violet'}`} />
-                {step === 'details' ? 'Secure checkout' : step === 'processing' ? 'Processing payment' : 'Returning to lab'}
+                {step === 'details' ? 'Secure checkout' : step === 'processing' ? 'Processing payment' : 'Returning to AutoML Playground'}
               </span>
               {step === 'details' && (
                 <Link href={returnPath} className="pw-back-btn">
                   <ArrowLeft size={14} strokeWidth={2.5} />
-                  <span>Back to Lab</span>
+                  <span>Back to AutoML Playground</span>
                 </Link>
               )}
             </div>
@@ -655,12 +655,12 @@ export default function PaymentPage() {
                 <div className="pw-fade-in pw-success">
                   <AnimatedCheck />
                   <h3 className="pw-success-title">Payment successful!</h3>
-                  <p className="pw-success-text">Your payment has been verified and access is now unlocked. Redirecting you to the lab to download your file...</p>
+                  <p className="pw-success-text">Your payment has been verified and access is now unlocked. Redirecting you to the AutoML Playground to download your file...</p>
                   {paidOrderId && <p className="pw-success-order">Order #{paidOrderId}</p>}
                   <div className="pw-success-chips">
                     <span className="pw-success-chip"><Check size={11} strokeWidth={3} /> Payment confirmed</span>
                     <span className="pw-success-chip"><Package size={11} strokeWidth={2.5} /> Access unlocked</span>
-                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> Redirecting to lab</span>
+                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> Redirecting to AutoML Playground</span>
                   </div>
                 </div>
               )}

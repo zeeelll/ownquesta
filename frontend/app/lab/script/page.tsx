@@ -509,7 +509,7 @@ export default function ScriptPage() {
   // ── Boot ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const raw = localStorage.getItem('lab_script_session');
-    if (!raw) { setScript('# No session data found. Go back to the Lab and click "Python Script".'); return; }
+    if (!raw) { setScript('# No session data found. Go back to the AutoML Playground and click "Python Script".'); return; }
     try {
       const { sessionId: sid, cells } = JSON.parse(raw) as { sessionId: string; cells: string[] };
       setSessionId(sid);

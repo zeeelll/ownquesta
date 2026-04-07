@@ -69,7 +69,7 @@ const helpCategories: HelpCategory[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Lab',
+    title: 'AutoML Playground',
     description: 'Work with Easy Mode or Code Mode and switch between workflows.',
     tags: ['Easy Mode', 'Code Mode'],
     icon: Bot,
@@ -109,7 +109,7 @@ const helpCategories: HelpCategory[] = [
 const issueTypes = [
   { value: 'account', label: 'Account / Login' },
   { value: 'dashboard', label: 'Dashboard / Navigation' },
-  { value: 'lab', label: 'Lab / Model Training' },
+  { value: 'lab', label: 'AutoML Playground / Model Training' },
   { value: 'upload', label: 'Dataset Upload' },
   { value: 'prediction', label: 'Prediction / Accuracy' },
   { value: 'payment', label: 'Payment / Download Issue' },
@@ -122,7 +122,7 @@ const flowSteps = [
   'Profile',
   'Dashboard',
   'Create Project',
-  'Lab',
+  'AutoML Playground',
   'Upload Dataset',
   'Select Target',
   'Train Model',
@@ -152,7 +152,7 @@ const topHighlights = [
 const faqs = [
   {
     q: 'How do I create my first project from the dashboard?',
-    a: 'Open Dashboard, click Create Project, choose your dataset and model objective, then continue to the Lab to configure training.',
+    a: 'Open Dashboard, click Create Project, choose your dataset and model objective, then continue to the AutoML Playground to configure training.',
   },
   {
     q: 'Which dataset formats are supported for upload?',
@@ -507,7 +507,7 @@ export default function HelpPage() {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-[linear-gradient(180deg,rgba(13,26,49,0.9)_0%,rgba(8,17,35,0.9)_100%)] p-6 shadow-[0_16px_45px_rgba(0,0,0,0.32)]">
-            <p className="mb-4 text-sm text-[#c0d1ef]">Home → Login/Register → Profile → Dashboard → Create Project → Lab → Upload Dataset → Select Target → Train Model → Test with Real Data → Get Accuracy → Download Model</p>
+            <p className="mb-4 text-sm text-[#c0d1ef]">Home → Login/Register → Profile → Dashboard → Create Project → AutoML Playground → Upload Dataset → Select Target → Train Model → Test with Real Data → Get Accuracy → Download Model</p>
             <div className="flex flex-wrap items-center gap-2">
               {flowSteps.map((step, index) => (
                 <div key={step} className="flex items-center gap-2">

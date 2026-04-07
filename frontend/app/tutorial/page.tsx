@@ -36,7 +36,7 @@ const LOCAL_QUICK_ANSWERS = [
     answer: `After sign in, you land on the authenticated home page at /home. It greets you by name and gives you a single Go to Dashboard button, so you can move straight into the workspace.`,
   },
   {
-    patterns: ['what is the automl playground', 'automl playground', 'what happens in lab'],
+    patterns: ['what is the automl playground', 'automl playground', 'what happens in automl playground'],
     answer: `The AutoML Playground is your ML workspace. Easy Mode is the no-code path: upload a CSV or Excel file, pick the target column if you know it, click Analyse, review the suggested models, and train one. Code Mode opens a notebook-style workflow for users who want custom Python.`,
   },
   {
@@ -516,7 +516,7 @@ function DashboardMockup() {
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 mb-3">
           <div className="text-[7px] font-bold uppercase tracking-widest text-white/30 mb-2">ML Pipeline Stages</div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-            {[{ n: '1', title: 'Upload Dataset', sub: 'CSV / Excel file loaded into the lab', color: '#7c3aed' }, { n: '2', title: 'EDA & Analysis', sub: 'AI profiles data and suggests models', color: '#6d28d9' }, { n: '3', title: 'Model Training', sub: 'Full ML pipeline generated & executed', color: '#5b21b6' }, { n: '4', title: 'Evaluation', sub: 'Predictions tested with real inputs', color: '#4c1d95' }].map((s) => (<div key={s.n} className="flex items-start gap-2"><div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[7px] font-bold flex-shrink-0 mt-0.5" style={{ background: s.color }}>{s.n}</div><div><div className="text-white text-[8px] font-semibold leading-none mb-0.5">{s.title}</div><div className="text-white/35 text-[7px] leading-tight">{s.sub}</div></div></div>))}
+            {[{ n: '1', title: 'Upload Dataset', sub: 'CSV / Excel file loaded into AutoML Playground', color: '#7c3aed' }, { n: '2', title: 'EDA & Analysis', sub: 'AI profiles data and suggests models', color: '#6d28d9' }, { n: '3', title: 'Model Training', sub: 'Full ML pipeline generated & executed', color: '#5b21b6' }, { n: '4', title: 'Evaluation', sub: 'Predictions tested with real inputs', color: '#4c1d95' }].map((s) => (<div key={s.n} className="flex items-start gap-2"><div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[7px] font-bold flex-shrink-0 mt-0.5" style={{ background: s.color }}>{s.n}</div><div><div className="text-white text-[8px] font-semibold leading-none mb-0.5">{s.title}</div><div className="text-white/35 text-[7px] leading-tight">{s.sub}</div></div></div>))}
           </div>
         </div>
         <div>
@@ -1386,7 +1386,7 @@ export default function TutorialPage() {
     },
     5: {
       summary: 'The AutoML Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
-      actions: ['Open the lab from your chosen project on the dashboard.', 'Choose the mode that matches how you want to work.', 'Move to dataset upload and analysis after the mode is active.'],
+      actions: ['Open the AutoML Playground from your chosen project on the dashboard.', 'Choose the mode that matches how you want to work.', 'Move to dataset upload and analysis after the mode is active.'],
       buttons: [
         { name: 'Easy Mode', behavior: 'Starts the guided visual workflow.', outcome: 'The AI handles the model pipeline step by step.' },
         { name: 'Code Mode', behavior: 'Starts the notebook workflow.', outcome: 'You can inspect and edit the generated Python cells.' },
@@ -1394,7 +1394,7 @@ export default function TutorialPage() {
       note: 'Transition: Mode selection -> Upload dataset step.',
     },
     6: {
-      summary: 'This is the data setup stage. You upload the dataset, pick the target column, and let the lab know what the model should learn.',
+      summary: 'This is the data setup stage. You upload the dataset, pick the target column, and let the AutoML Playground know what the model should learn.',
       actions: ['Upload a CSV or Excel file and confirm that the file appears in the right panel.', 'Set the target column when you already know the label you want to predict.', 'Click Analyse so Ownquesta can start the automated data check and model prep.'],
       buttons: [
         { name: 'Upload CSV / Excel', behavior: 'Ingests the dataset file.', outcome: 'Your data is ready for analysis.' },
@@ -1791,7 +1791,7 @@ export default function TutorialPage() {
     1: 'Start on the public landing page and decide whether to read, sign in, or get help.',
     2: 'Use the same auth flow to sign in, register, or recover access.',
     3: 'See the authenticated home page and jump straight to your workspace.',
-    4: 'Create projects, inspect stats, and move into the lab.',
+    4: 'Create projects, inspect stats, and move into the AutoML Playground.',
     5: 'Switch between guided Easy Mode and notebook-style Code Mode.',
     6: 'Upload dataset and set prediction target column.',
     7: 'Run automated analysis and review model suggestions.',
@@ -1871,7 +1871,7 @@ export default function TutorialPage() {
               >
                 <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase font-semibold text-violet-300/80 mb-3">Tutorial Overview</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Ownquesta App User Flow</h1>
-                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, the authenticated Home page, Dashboard, Lab, payment, and final downloads.</p>
+                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, the authenticated Home page, Dashboard, AutoML Playground, payment, and final downloads.</p>
               </motion.div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">

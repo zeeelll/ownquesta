@@ -813,7 +813,7 @@ export default function LabPage() {
           <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#2563eb,#0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#dbeafe', boxShadow: `0 0 12px ${LAB_THEME.accentGlow}` }}>
             <AutoMlIcon size={14} />
           </div>
-          <span style={{ fontWeight: 700, fontSize: 14 }}>AutoMl Playground</span>
+          <span style={{ fontWeight: 700, fontSize: 14 }}>AutoML Playground</span>
           <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase' as const, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.35)', color: '#67e8f9' }}>BETA</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
