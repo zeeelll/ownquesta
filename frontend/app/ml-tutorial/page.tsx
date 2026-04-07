@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
 	ArrowLeft,
@@ -2172,26 +2172,28 @@ function renderSection(section: Section, index: number) {
 						{section.data?.matrix ? (
 							<div className="overflow-x-auto">
 								<table className="w-full border-collapse text-xs">
-									{section.data.matrix.map((row: string[], i: number) => (
-										<tr key={i}>
-											{row.map((cell: string, j: number) => (
-												<td
-													key={j}
-													className={`border border-white/10 p-3 whitespace-pre-line ${
-														i === 0 || j === 0
-															? 'bg-indigo-400/10 font-semibold text-indigo-100'
-															: j === 1 && i === 2
-															? 'text-amber-200'
-															: j === 2 && i === 1
-															? 'text-orange-200'
-															: 'bg-[#0f1e39]/40 text-[#dce8ff]'
-													}`}
-												>
-													{cell}
-												</td>
-											))}
-										</tr>
-									))}
+									<tbody>
+										{section.data.matrix.map((row: string[], i: number) => (
+											<tr key={i}>
+												{row.map((cell: string, j: number) => (
+													<td
+														key={j}
+														className={`border border-white/10 p-3 whitespace-pre-line ${
+															i === 0 || j === 0
+																? 'bg-indigo-400/10 font-semibold text-indigo-100'
+																: j === 1 && i === 2
+																? 'text-amber-200'
+																: j === 2 && i === 1
+																? 'text-orange-200'
+																: 'bg-[#0f1e39]/40 text-[#dce8ff]'
+														}`}
+													>
+														{cell}
+													</td>
+												))}
+											</tr>
+										))}
+									</tbody>
 								</table>
 								{section.data.calculations && (
 									<div className="mt-4 rounded bg-cyan-400/5 p-3 space-y-1">
@@ -2281,11 +2283,6 @@ export default function MLTutorialPage() {
 	const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 	const mainContentRef = useRef<HTMLElement | null>(null);
 
-	const highestCompleted = useMemo(
-		() => (completedSteps.length ? Math.max(...completedSteps) : 0),
-		[completedSteps],
-	);
-	const unlockedUntil = Math.min(TUTORIAL_STEPS.length, highestCompleted + 1);
 	const progressPercent = (completedSteps.length / TUTORIAL_STEPS.length) * 100;
 
 	useEffect(() => {
@@ -2296,9 +2293,8 @@ export default function MLTutorialPage() {
 			const parsed = JSON.parse(saved) as { activeStep?: number; completedSteps?: number[] };
 			const nc = Array.from(new Set((parsed.completedSteps ?? []).filter((s) => s >= 1 && s <= 8))).sort((a, b) => a - b);
 			const sa = parsed.activeStep && parsed.activeStep >= 1 && parsed.activeStep <= 8 ? parsed.activeStep : 1;
-			const maxU = Math.min(8, (nc.length ? Math.max(...nc) : 0) + 1);
 			setCompletedSteps(nc);
-			setActiveStep(Math.min(sa, maxU));
+			setActiveStep(sa);
 		} catch {
 			setActiveStep(1);
 			setCompletedSteps([]);
@@ -2318,7 +2314,6 @@ export default function MLTutorialPage() {
 		setCompletedSteps((prev) => (prev.includes(id) ? prev : [...prev, id].sort((a, b) => a - b)));
 
 	const handleStepClick = (id: number) => {
-		if (id > unlockedUntil) return;
 		setActiveStep(id);
 	};
 
@@ -2377,16 +2372,15 @@ export default function MLTutorialPage() {
 								const StepIcon = step.icon;
 								const isCompleted = completedSteps.includes(step.id);
 								const isActive = activeStep === step.id;
-								const isLocked = step.id > unlockedUntil;
+								const isLocked = false;
 								return (
 									<button
 										key={step.id}
 										type="button"
 										onClick={() => handleStepClick(step.id)}
-										disabled={isLocked}
 										className={`group relative w-full overflow-hidden rounded-xl p-[1px] text-left transition-all duration-300 ${
 											isActive ? 'scale-[1.01] shadow-[0_0_24px_rgba(129,140,248,0.45)]' : 'hover:scale-[1.01]'
-										} ${isLocked ? 'cursor-not-allowed opacity-65 blur-[0.4px]' : ''}`}
+										}`}
 										style={{
 											background: isActive
 												? 'linear-gradient(130deg,rgba(34,211,238,.95),rgba(99,102,241,.95),rgba(236,72,153,.9))'
