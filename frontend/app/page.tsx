@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 import Logo from './components/Logo';
 import NeuralBackground from './components/NeuralBackground';
 
@@ -14,6 +15,7 @@ type AuthUser = {
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [avatarError, setAvatarError] = useState(false);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
@@ -63,7 +65,9 @@ export default function Home() {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest('#user-dropdown')) setUserDropdownOpen(false);
+      const target = e.target as HTMLElement;
+      if (!target.closest('#user-dropdown')) setUserDropdownOpen(false);
+      if (!target.closest('#nav-menu')) setMenuOpen(false);
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
@@ -96,32 +100,69 @@ export default function Home() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           {!user?.authenticated ? (
-            <>
-              <Link
-                href="/login"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
+            <div id="nav-menu" className="relative">
+              {/* Single menu trigger button */}
+              <motion.button
+                onClick={() => setMenuOpen(prev => !prev)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm tracking-wide bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] transition-all duration-300 select-none"
+                whileTap={{ scale: 0.95 }}
               >
-                Sign In
-              </Link>
-              <Link
-                href="/about"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
-              >
-                About
-              </Link>
-              <Link
-                href="/tutorial"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
-              >
-                Tutorial
-              </Link>
-              <Link
-                href="/help"
-                className="px-4 sm:px-5 md:px-6 py-2 md:py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-300 bg-gradient-to-r from-[#6e54c8] to-[#7c49a9] hover:from-[#7c62d6] hover:to-[#8a57b7] hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(110,84,200,0.4)] tracking-wide"
-              >
-                Help
-              </Link>
-            </>
+                <motion.span
+                  animate={{ rotate: menuOpen ? 45 : 0 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex flex-col justify-center items-center w-4 h-4"
+                >
+                  {menuOpen ? (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                  )}
+                </motion.span>
+                Menu
+              </motion.button>
+
+              {/* Animated dropdown */}
+              <AnimatePresence>
+                {menuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                    className="absolute top-full right-0 mt-3 bg-[rgba(10,8,28,0.92)] backdrop-blur-2xl rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.55)] border border-white/[0.09] overflow-hidden min-w-[170px]"
+                  >
+                    {[
+                      { href: '/login', label: 'Sign In', icon: <><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></> },
+                      { href: '/about', label: 'About', icon: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></> },
+                      { href: '/tutorial', label: 'Tutorial', icon: <><polygon points="5 3 19 12 5 21 5 3"/></> },
+                      { href: '/help', label: 'Help', icon: <><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></> },
+                    ].map((item, i) => (
+                      <motion.div
+                        key={item.href}
+                        initial={{ opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06, duration: 0.22, ease: 'easeOut' }}
+                      >
+                        <Link
+                          href={item.href}
+                          onClick={() => setMenuOpen(false)}
+                          className="flex items-center gap-3 px-5 py-3.5 text-sm font-medium text-[#d8d0f5] hover:text-white hover:bg-white/[0.06] transition-all duration-200 border-b border-white/[0.05] last:border-b-0"
+                        >
+                          <svg className="w-4 h-4 text-[#a87edf] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            {item.icon}
+                          </svg>
+                          {item.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           ) : (
             <div id="user-dropdown" className="relative">
               <div
