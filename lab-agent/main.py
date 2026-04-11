@@ -106,6 +106,25 @@ def _sse(event: dict) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
+def _clean_reply_text(reply: str) -> str:
+    """Return plain chat text even if the model echoed a JSON wrapper."""
+    text = (reply or "").strip()
+    if not text:
+        return ""
+
+    if text.startswith("{"):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                nested = parsed.get("reply")
+                if isinstance(nested, str) and nested.strip():
+                    return nested.strip()
+        except Exception:
+            pass
+
+    return text
+
+
 def _guard_fix(
     agent: MLAgent,
     session_id: str,
@@ -560,16 +579,17 @@ def v2_chat(req: V2ChatRequest):
                 pass
 
     # Update history
+    reply_text = _clean_reply_text(result.get("reply", ""))
     history = history + [
         {"role": "user",      "content": req.message},
-        {"role": "assistant", "content": result.get("reply", "")},
+        {"role": "assistant", "content": reply_text},
     ]
     if req.session_id in v2_sessions:
         v2_sessions[req.session_id]["chat_history"] = history[-20:]
 
     return {
         "action":        result.get("action", "explain"),
-        "reply":         result.get("reply", ""),
+        "reply":         reply_text,
         "code":          code,
         "title":         result.get("title", ""),
         "is_chart":      result.get("is_chart", False),
@@ -596,9 +616,10 @@ def v2_predict(req: V2PredictRequest):
 
     try:
         agent = _get_agent()
+        normalized_inputs = {str(key).strip(): value for key, value in req.input_values.items()}
         code  = agent.generate_predict(
             feature_columns=state.get("feature_columns", []),
-            input_values=req.input_values,
+            input_values=normalized_inputs,
             problem_type=state.get("problem_type", "classification"),
             target_column=state.get("target_column", "label"),
         )
@@ -609,8 +630,40 @@ def v2_predict(req: V2PredictRequest):
     except Exception as exc:
         raise HTTPException(500, f"Could not generate prediction code: {exc}")
 
-    stdout, error, _ = _exec(req.session_id, code)
-    return {"code": code, "output": stdout, "error": error}
+    stdout, error, charts = _exec(req.session_id, code)
+    recovery_attempted = False
+
+    if error:
+        recovery_attempted = True
+        fixed_code, fixed_stdout, fixed_error, fixed_charts = code, stdout, error, charts
+        for _attempt in range(MAX_FIX_ATTEMPTS):
+            fix = agent.fix_error(fixed_code, fixed_error or "", state)
+            if fix.get("needs_search") and fix.get("search_query"):
+                query = fix["search_query"]
+                sr = agent.web_search(query)
+                if sr:
+                    fix = agent.fix_error(fixed_code, fixed_error or "", state, sr)
+
+            new_fixed = (fix.get("fixed_code") or "").strip()
+            if not new_fixed or new_fixed == fixed_code:
+                break
+
+            new_stdout, new_err, new_charts = _exec(req.session_id, new_fixed)
+            if not new_err:
+                fixed_code, fixed_stdout, fixed_error, fixed_charts = new_fixed, new_stdout, None, new_charts
+                break
+
+            fixed_code, fixed_stdout, fixed_error, fixed_charts = new_fixed, new_stdout, new_err, new_charts
+
+        code, stdout, error, charts = fixed_code, fixed_stdout, fixed_error, fixed_charts
+
+    return {
+        "code": code,
+        "output": stdout,
+        "error": error,
+        "charts": charts,
+        "recovery_attempted": recovery_attempted,
+    }
 
 
 # ── V2: Context ───────────────────────────────────────────────────────────────
