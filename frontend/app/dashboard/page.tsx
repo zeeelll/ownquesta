@@ -130,7 +130,7 @@ function stageIcon(stage: Stage, size = 13) {
 
 // ── Stylesheet ────────────────────────────────────────────────────────────────
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -144,10 +144,10 @@ const STYLES = `
     --rim1:   rgba(255,255,255,0.08);
     --rim2:   rgba(255,255,255,0.12);
     --rim3:   rgba(255,255,255,0.18);
-    --txt0:   #f1f5f9;
-    --txt1:   #94a3b8;
-    --txt2:   #4b6082;
-    --txt3:   #253147;
+    --txt0:   #e6eef8;
+    --txt1:   #b0c4de;
+    --txt2:   #8499b8;
+    --txt3:   #4a6080;
     --ind:    #6366f1;
     --ind-l:  #818cf8;
     --ind-xl: #a5b4fc;
@@ -159,8 +159,8 @@ const STYLES = `
     --r-lg:   16px;
     --r-xl:   22px;
     --r-2xl:  28px;
-    --font-display: 'Bricolage Grotesque', sans-serif;
-    --font-body:    'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Chillax', ui-sans-serif, system-ui, sans-serif;
+    --font-body:    'Chillax', ui-sans-serif, system-ui, sans-serif;
     --font-mono:    'JetBrains Mono', monospace;
   }
 
@@ -531,8 +531,8 @@ const STYLES = `
   /* ── Project table ── */
   .proj-table { width:100%; border-collapse:collapse; }
   .proj-table th {
-    font-family:var(--font-mono); font-size:9px; font-weight:400;
-    letter-spacing:0.12em; text-transform:uppercase; color:var(--txt2);
+    font-family:var(--font-body); font-size:11px; font-weight:600;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--txt1);
     padding:12px 14px; text-align:left; border-bottom:1px solid var(--rim0); white-space:nowrap;
   }
   .proj-table td { padding:13px 14px; border-bottom:1px solid rgba(255,255,255,0.026); font-size:12px; font-family:var(--font-body); }
@@ -628,8 +628,8 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
       <div style={{ padding:"22px 24px", position:"relative", zIndex:1 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
           <p style={{
-            fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-            letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
+            fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
+            letterSpacing:"0.08em", textTransform:"uppercase", color:"var(--txt1)",
           }}>{label}</p>
           <div style={{
             width:34, height:34, borderRadius:10, flexShrink:0,
@@ -647,8 +647,8 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
         }}>{value}</p>
         {sub && (
           <p style={{
-            fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)",
-            marginTop:8, letterSpacing:"0.05em",
+            fontFamily:"var(--font-body)", fontSize:11, color:"var(--txt2)",
+            marginTop:8, letterSpacing:"0.02em",
           }}>{sub}</p>
         )}
         <div style={{
@@ -765,11 +765,11 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
           <div style={{ marginBottom:2 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)",
-                letterSpacing:"0.1em", textTransform:"uppercase",
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:600, color:"var(--txt1)",
+                letterSpacing:"0.05em", textTransform:"uppercase",
               }}>Pipeline</span>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, fontWeight:500,
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
                 color: finished ? "#34d399" : "#a5b4fc",
               }}>{pct}%</span>
             </div>
@@ -1239,11 +1239,33 @@ export default function DashboardPage() {
     return () => document.removeEventListener("click", h);
   },[]);
 
+  // Guard against bfcache restore after logout.
+  // When the user swipes back, the browser may resurrect this page from its
+  // Back-Forward Cache without remounting React (so normal useEffects don't
+  // re-run). The `pageshow` event fires in that case with event.persisted=true.
+  // We re-verify the session and redirect to login if it's gone.
+  useEffect(()=>{
+    const handlePageShow = async (e: PageTransitionEvent) => {
+      if (!e.persisted) return; // normal load — already handled by loadData
+      try {
+        await api("/api/auth/me");
+        // session still valid — nothing to do
+      } catch {
+        // session gone (logged out in another tab, or we just logged out)
+        window.location.replace("/login");
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   const handleLogout = async () => {
     const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
     try { await fetch(`${BASE}/api/auth/logout`,{method:"POST",credentials:"include"}); } catch {}
     localStorage.removeItem("userAvatar");
-    window.location.href = "/";
+    // replace() removes /dashboard from back-history so the browser
+    // back-gesture cannot return to this page after logout
+    window.location.replace("/");
   };
 
   const handleDelete = (p:Project) => setDeleteTarget(p);
@@ -1480,9 +1502,9 @@ export default function DashboardPage() {
           backdropFilter:"blur(28px)",
         }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            <span style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)", letterSpacing:"0.12em", textTransform:"uppercase" }}>Dashboard</span>
+            <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:500, color:"var(--txt2)", letterSpacing:"0.04em" }}>Dashboard</span>
             <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="var(--txt3)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            <span style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt1)", letterSpacing:"0.12em", textTransform:"uppercase" }}>Workspace</span>
+            <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:600, color:"var(--txt1)", letterSpacing:"0.04em" }}>Workspace</span>
           </div>
 
           {/* User dropdown */}
@@ -1560,8 +1582,8 @@ export default function DashboardPage() {
                 animation:"pulse-dot 2.4s ease infinite",
               }}/>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-                letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:500,
+                letterSpacing:"0.06em", textTransform:"uppercase", color:"var(--txt1)",
               }}>AI-Powered ML Pipeline · Live</span>
             </div>
 
@@ -1577,7 +1599,7 @@ export default function DashboardPage() {
               }}>ML Workspace</span>
             </h1>
             <p style={{
-              fontFamily:"var(--font-body)", fontSize:13, color:"var(--txt2)",
+              fontFamily:"var(--font-body)", fontSize:14, color:"var(--txt1)",
               marginTop:10, fontWeight:400, lineHeight:1.7, maxWidth:420,
             }}>
               Upload a dataset, let the AI profile it, select the best model, train and evaluate — all in one streamlined pipeline.
@@ -1605,9 +1627,9 @@ export default function DashboardPage() {
               background:"linear-gradient(180deg,var(--ind),var(--vio))", flexShrink:0,
             }}/>
             <p style={{
-              fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-              letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
-            }}>Ml Pipeline</p>
+              fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
+              letterSpacing:"0.08em", textTransform:"uppercase", color:"var(--txt1)",
+            }}>ML Pipeline</p>
           </div>
 
           <div className="leg-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
@@ -1657,7 +1679,7 @@ export default function DashboardPage() {
                     color:"var(--txt0)", marginBottom:2, letterSpacing:"-0.01em",
                   }}>{s.label}</p>
                   <p style={{
-                    fontFamily:"var(--font-body)", fontSize:10, color:"var(--txt2)", lineHeight:1.4,
+                    fontFamily:"var(--font-body)", fontSize:11, color:"var(--txt1)", lineHeight:1.5,
                   }}>{s.desc}</p>
                 </div>
                 <span style={{
