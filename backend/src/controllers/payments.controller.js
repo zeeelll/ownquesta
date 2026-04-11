@@ -1,17 +1,38 @@
 const { sendNotificationEmail } = require("../utils/email");
+const Payment = require("../models/Payment");
+const User = require("../models/User");
 
 const normalizeText = (value, maxLength = 200) => String(value ?? "").trim().slice(0, maxLength);
+
+const normalizeProductType = (paymentType, product) => {
+  const value = String(paymentType || product || "").toLowerCase();
+  if (value.includes("python") || value.includes(".py") || value.includes("script") || value === "py") {
+    return "py";
+  }
+  if (value.includes("ipynb") || value.includes("notebook") || value.includes("jupyter")) {
+    return "ipynb";
+  }
+  if (value.includes("model") || value.includes("trained-model")) {
+    return "model";
+  }
+  return "other";
+};
 
 exports.sendPaymentSuccessEmail = async (req, res) => {
   try {
     const email = normalizeText(req.body?.email, 160).toLowerCase();
     const customerName = normalizeText(req.body?.customerName, 120) || "Customer";
     const orderId = normalizeText(req.body?.orderId, 80);
+    const sessionId = normalizeText(req.body?.sessionId, 120);
+    const paymentType = normalizeText(req.body?.paymentType, 40).toLowerCase();
     const product = normalizeText(req.body?.product, 120) || "Trained Model";
     const modelName = normalizeText(req.body?.modelName, 120) || "Trained Model";
     const method = normalizeText(req.body?.method, 40).toUpperCase() || "N/A";
     const gateway = normalizeText(req.body?.gateway, 40).toUpperCase() || "RAZORPAY";
+    const gatewayOrderId = normalizeText(req.body?.gatewayOrderId, 120);
     const gatewayPaymentId = normalizeText(req.body?.gatewayPaymentId, 120) || "N/A";
+    const gatewaySignature = normalizeText(req.body?.gatewaySignature, 200);
+    const status = normalizeText(req.body?.status, 30).toLowerCase() || "paid";
     const paidAt = normalizeText(req.body?.paidAt, 80) || new Date().toISOString();
     const amountInr = Number(req.body?.amountInr || 0);
 
@@ -21,6 +42,33 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
         error: "Email, orderId and amountInr are required.",
       });
     }
+
+    const user = await User.findOne({ email }).select("_id").lean();
+    const normalizedProductType = normalizeProductType(paymentType, product);
+
+    const paymentRecord = await Payment.findOneAndUpdate(
+      { orderId },
+      {
+        $set: {
+          sessionId,
+          userId: user?._id || null,
+          customerName,
+          customerEmail: email,
+          product,
+          productType: normalizedProductType,
+          modelName,
+          method,
+          gateway,
+          gatewayOrderId,
+          gatewayPaymentId,
+          gatewaySignature,
+          amountInr,
+          status: status === "failed" ? "failed" : status === "created" ? "created" : "paid",
+          paidAt: paidAt ? new Date(paidAt) : new Date(),
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
     const paidAtDisplay = new Date(paidAt).toLocaleString();
     const amountDisplay = Number(amountInr).toFixed(2);
@@ -62,7 +110,7 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
       });
     }
 
-    return res.json({ success: true });
+    return res.json({ success: true, paymentId: paymentRecord._id });
   } catch (error) {
     console.error("Error sending payment confirmation email:", error);
     return res.status(500).json({

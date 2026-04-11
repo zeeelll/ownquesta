@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats } from "@/services/api";
+import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats, getAdminPayments } from "@/services/api";
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 import {
@@ -29,6 +29,8 @@ import {
   Clock,
   Globe,
   Smartphone,
+  Wallet,
+  CreditCard,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -110,6 +112,36 @@ interface HelpTicket {
   } | string | null;
 }
 
+interface AdminPayment {
+  _id: string;
+  orderId: string;
+  sessionId?: string;
+  customerName: string;
+  customerEmail: string;
+  product: string;
+  productType: 'model' | 'py' | 'ipynb' | 'other';
+  modelName?: string;
+  method: string;
+  gateway: string;
+  gatewayPaymentId?: string;
+  amountInr: number;
+  status: 'created' | 'paid' | 'failed';
+  paidAt?: string;
+  createdAt: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | string | null;
+}
+
+interface PaymentSummary {
+  total: number;
+  paid: number;
+  revenueInr: number;
+}
+
 const formatProjectStage = (stage?: string) =>
   (stage || 'initialized')
     .replace(/_/g, ' ')
@@ -136,6 +168,20 @@ const helpSeverityBadgeClass = (severity?: string) => {
   if (severity === 'high') return 'bg-orange-500/15 text-orange-300 border border-orange-500/30';
   if (severity === 'medium') return 'bg-blue-500/15 text-blue-300 border border-blue-500/30';
   return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
+};
+
+const paymentStatusBadgeClass = (status?: string) => {
+  if (status === 'paid') return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+  if (status === 'created') return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+  if (status === 'failed') return 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+  return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
+};
+
+const paymentTypeLabel = (productType?: string) => {
+  if (productType === 'py') return '.py';
+  if (productType === 'ipynb') return 'ipynb';
+  if (productType === 'model') return 'Model';
+  return 'Other';
 };
 
 const isProjectActivity = (action?: string) => (action || '').startsWith('project_');
@@ -220,10 +266,13 @@ export default function AdminPage() {
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [allActivities, setAllActivities] = useState<any[]>([]);
   const [helpTickets, setHelpTickets] = useState<HelpTicket[]>([]);
+  const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({ total: 0, paid: 0, revenueInr: 0 });
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [projectStats, setProjectStats] = useState<ProjectStats>({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
   const [projectError, setProjectError] = useState('');
   const [supportError, setSupportError] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   const [showActivities, setShowActivities] = useState(false);
   const [activityView, setActivityView] = useState<'user' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState("");
@@ -236,7 +285,10 @@ export default function AdminPage() {
   const [activitySearch, setActivitySearch] = useState<string>('');
   const [helpSearch, setHelpSearch] = useState<string>('');
   const [helpStatusFilter, setHelpStatusFilter] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'activities' | 'support' | 'settings'>('dashboard');
+  const [paymentSearch, setPaymentSearch] = useState<string>('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'payments' | 'activities' | 'support' | 'settings'>('dashboard');
   const router = useRouter();
 
   useEffect(() => {
@@ -268,6 +320,9 @@ export default function AdminPage() {
     if (activeTab === 'projects' && projects.length === 0) {
       handleLoadProjects();
     }
+    if (activeTab === 'payments' && payments.length === 0) {
+      handleLoadPayments();
+    }
     if (activeTab === 'support' && helpTickets.length === 0) {
       handleLoadHelpTickets();
     }
@@ -288,6 +343,11 @@ export default function AdminPage() {
     if (activeTab !== 'support') {
       setHelpSearch('');
       setHelpStatusFilter('all');
+    }
+    if (activeTab !== 'payments') {
+      setPaymentSearch('');
+      setPaymentStatusFilter('all');
+      setPaymentTypeFilter('all');
     }
   }, [activeTab]);
 
@@ -352,6 +412,30 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const filteredPayments = payments.filter((payment) => {
+    const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
+    const query = paymentSearch.trim().toLowerCase();
+
+    const matchesSearch = !query || [
+      payment.orderId,
+      payment.customerName,
+      payment.customerEmail,
+      payment.product,
+      payment.modelName,
+      payment.method,
+      payment.gateway,
+      payment.gatewayPaymentId,
+      payment.sessionId,
+      linkedUser?.name,
+      linkedUser?.email,
+    ].some((value) => (value || '').toString().toLowerCase().includes(query));
+
+    const matchesStatus = paymentStatusFilter === 'all' || payment.status === paymentStatusFilter;
+    const matchesType = paymentTypeFilter === 'all' || payment.productType === paymentTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   const refreshUsers = useCallback(async (showLoader = false) => {
     if (showLoader) setActionLoading('reload-users');
     try {
@@ -412,12 +496,19 @@ export default function AdminPage() {
       }
 
       try {
-        const [activityResponse, helpResponse] = await Promise.all([
+        const [activityResponse, helpResponse, paymentResponse] = await Promise.all([
           getAllActivities(100),
-          getAdminHelpTickets(100)
+          getAdminHelpTickets(100),
+          getAdminPayments(100)
         ]);
         setAllActivities(activityResponse.activities || []);
         setHelpTickets(helpResponse.tickets || []);
+        setPayments(paymentResponse.payments || []);
+        setPaymentSummary({
+          total: paymentResponse.summary?.total || 0,
+          paid: paymentResponse.summary?.paid || 0,
+          revenueInr: paymentResponse.summary?.revenueInr || 0,
+        });
       } catch (activityErr: any) {
         console.warn('Unable to preload admin monitoring data:', activityErr?.message || activityErr);
       }
@@ -606,6 +697,26 @@ export default function AdminPage() {
     }
   };
 
+  const handleLoadPayments = async () => {
+    setActionLoading('load-payments');
+    setPaymentError('');
+    try {
+      const response = await getAdminPayments(250, paymentStatusFilter, paymentTypeFilter, paymentSearch);
+      setPayments(response.payments || []);
+      setPaymentSummary({
+        total: response.summary?.total || 0,
+        paid: response.summary?.paid || 0,
+        revenueInr: response.summary?.revenueInr || 0,
+      });
+    } catch (err: any) {
+      setPayments([]);
+      setPaymentSummary({ total: 0, paid: 0, revenueInr: 0 });
+      setPaymentError(err.message || 'Failed to load payments');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleMaintenanceMode = async () => {
     setActionLoading('maintenance-mode');
     try {
@@ -710,6 +821,7 @@ export default function AdminPage() {
               { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { key: 'users',     icon: Users,    label: 'User Management' },
               { key: 'projects',  icon: Monitor,  label: 'Projects' },
+              { key: 'payments',  icon: Wallet,   label: 'Payments' },
               { key: 'activities',icon: Activity,  label: 'Activity Log' },
               { key: 'support',   icon: MessageSquare, label: 'Help Requests' },
               { key: 'settings',  icon: Settings,  label: 'Settings' },
@@ -824,7 +936,7 @@ export default function AdminPage() {
                 <Activity className="h-5 w-5 mr-2 text-cyan-400" />
                 Quick Actions
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
                 <Button
                   onClick={() => setActiveTab('users')}
                   className="quick-action-btn quick-action-blue flex items-center justify-center space-x-2 h-12"
@@ -845,6 +957,13 @@ export default function AdminPage() {
                 >
                   <Activity className="h-4 w-4" />
                   <span>View Activities</span>
+                </Button>
+                <Button
+                  onClick={() => setActiveTab('payments')}
+                  className="quick-action-btn quick-action-emerald flex items-center justify-center space-x-2 h-12"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span>Payments</span>
                 </Button>
                 <Button
                   onClick={() => setActiveTab('support')}
@@ -1192,6 +1311,180 @@ export default function AdminPage() {
                 <div className="text-center py-16">
                   <div className="text-5xl mb-4 opacity-30">📁</div>
                   <p className="text-slate-400 text-sm font-mono">No projects match the current filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════
+            PAYMENTS TAB
+        ══════════════════════════════════════ */}
+        {activeTab === 'payments' && (
+          <div className="space-y-6 fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Wallet className="h-3.5 w-3.5 mr-2" />Total Payments</p>
+                    <p className="stat-number">{paymentSummary.total}</p>
+                    <p className="stat-sub">Stored records</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><Wallet className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-emerald">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><CheckCircle className="h-3.5 w-3.5 mr-2" />Successful</p>
+                    <p className="stat-number">{paymentSummary.paid}</p>
+                    <p className="stat-sub">Paid transactions</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-emerald"><CheckCircle className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-purple">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><CreditCard className="h-3.5 w-3.5 mr-2" />Revenue (INR)</p>
+                    <p className="stat-number">₹{paymentSummary.revenueInr.toFixed(2)}</p>
+                    <p className="stat-sub">From paid records</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-purple"><CreditCard className="h-6 w-6" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel-card p-6">
+              <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+                <div>
+                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payment Transactions</h3>
+                  <p className="text-slate-500 text-sm font-mono">Model, .py, and ipynb payment records captured from checkout confirmations.</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+                  <div className="relative w-full xl:min-w-[240px]">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search order, email, model, method..."
+                      value={paymentSearch}
+                      onChange={(e) => setPaymentSearch(e.target.value)}
+                      className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                    />
+                  </div>
+
+                  <select
+                    value={paymentTypeFilter}
+                    onChange={(e) => setPaymentTypeFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="model">Model</option>
+                    <option value="py">.py</option>
+                    <option value="ipynb">ipynb</option>
+                    <option value="other">Other</option>
+                  </select>
+
+                  <select
+                    value={paymentStatusFilter}
+                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="created">Created</option>
+                    <option value="failed">Failed</option>
+                  </select>
+
+                  <Button
+                    onClick={() => handleLoadPayments()}
+                    className="quick-action-btn quick-action-blue flex items-center space-x-2"
+                    disabled={actionLoading === 'load-payments'}
+                  >
+                    {actionLoading === 'load-payments'
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Wallet className="h-4 w-4" />}
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {paymentError && (
+              <div className="panel-card p-4 border border-rose-500/20 bg-rose-500/10 text-rose-200 text-sm">
+                {paymentError}
+              </div>
+            )}
+
+            <div className="panel-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="table-th">Order</th>
+                      <th className="table-th">Customer</th>
+                      <th className="table-th">Product</th>
+                      <th className="table-th">Amount</th>
+                      <th className="table-th">Method</th>
+                      <th className="table-th">Paid At</th>
+                      <th className="table-th">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {filteredPayments.map((payment) => {
+                      const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
+
+                      return (
+                        <tr key={payment._id} className="table-row-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{payment.orderId}</div>
+                              <div className="text-xs text-slate-500 font-mono">Session: {payment.sessionId || '—'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{payment.customerName || 'Customer'}</div>
+                              <div className="text-xs text-slate-500 font-mono">{payment.customerEmail}</div>
+                              {linkedUser && (
+                                <div className="text-[11px] text-slate-600 font-mono mt-1">User: {linkedUser.name || linkedUser.email}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="action-chip action-chip-blue">{paymentTypeLabel(payment.productType)}</span>
+                              <span>{payment.modelName || payment.product || '—'}</span>
+                            </div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">{payment.product || '—'}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300 font-mono">₹{Number(payment.amountInr || 0).toFixed(2)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{(payment.method || 'N/A').toUpperCase()}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">{(payment.gateway || 'N/A').toUpperCase()}</div>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-500 font-mono">
+                            {new Date(payment.paidAt || payment.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${paymentStatusBadgeClass(payment.status)}`}>
+                              {(payment.status || 'created').toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredPayments.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="text-5xl mb-4 opacity-30">💳</div>
+                  <p className="text-slate-400 text-sm font-mono">No payment records match the current filters.</p>
                 </div>
               )}
             </div>

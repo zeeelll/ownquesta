@@ -156,6 +156,16 @@ export async function getAdminProjectStats() {
   return api('/api/admin/projects/stats');
 }
 
+export async function getAdminPayments(limit?: number, status?: string, productType?: string, search?: string) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  if (status && status !== 'all') params.append('status', status);
+  if (productType && productType !== 'all') params.append('productType', productType);
+  if (search?.trim()) params.append('search', search.trim());
+  const query = params.toString();
+  return api(`/api/admin/payments${query ? `?${query}` : ''}`);
+}
+
 export async function getUserProjectsForAdmin(userId: string) {
   return api(`/api/admin/users/${userId}/projects`);
 }

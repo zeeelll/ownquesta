@@ -78,21 +78,32 @@ export async function POST(request: NextRequest) {
     if (payment?.customerEmail) {
       setImmediate(async () => {
         try {
+          const paymentType = payment.product === 'python-script'
+            ? 'py'
+            : payment.product === 'jupyter-notebook'
+              ? 'ipynb'
+              : 'model';
+
           await fetch(`${BACKEND_BASE}/api/payments/notify-success`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+              sessionId: payment.sessionId,
               email: payment.customerEmail,
               customerName: payment.customerName,
               orderId: payment.orderId,
+              paymentType,
               product: payment.product,
               modelName: payment.modelName,
               method: payment.method,
               gateway: payment.gateway,
+              gatewayOrderId: payment.gatewayOrderId,
               gatewayPaymentId: payment.gatewayPaymentId,
+              gatewaySignature: payment.gatewaySignature,
               amountInr: payment.amountInr,
+              status: payment.status,
               paidAt: payment.paidAt,
             }),
             cache: 'no-store',

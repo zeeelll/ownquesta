@@ -27,6 +27,9 @@ router.get("/help-tickets", helpController.getHelpTickets);
 router.get("/projects", adminController.getAllProjects);
 router.get("/projects/stats", adminController.getProjectStats);
 
+// Payment routes
+router.get("/payments", adminController.getAllPayments);
+
 // Admin registration endpoint
 router.post("/register-admin", authController.registerAdmin);
 
