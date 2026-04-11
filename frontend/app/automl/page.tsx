@@ -588,6 +588,10 @@ export default function LabPage() {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       for await (const ev of readSSE(r)) {
         const type = ev.type as string;
+        if (type === 'model_selected') {
+          const m = ev.model as { id?: string; display_name?: string; provider?: string };
+          addMsg({ type: 'info', text: `Using AI model: **${m.display_name || m.id || 'default'}**${m.provider ? ` (${m.provider})` : ''}` });
+        }
         if (type === 'status')        addMsg({ type: 'info',     text: ev.text as string });
         if (type === 'code_cell')     addCellFromSSE(ev.code as string, ev.output as string, ev.error as string|null, ev.charts as string[]);
         if (type === 'analysis')      { addMsg({ type: 'analysis', analysis: ev.data as AnalysisData }); const ad = ev.data as AnalysisData; updateProjectProgress('eda_completed', { problemType: ad.problem_type, targetColumn: ad.target_column }); }
@@ -617,6 +621,10 @@ export default function LabPage() {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       for await (const ev of readSSE(r)) {
         const type = ev.type as string;
+        if (type === 'model_selected') {
+          const m = ev.model as { id?: string; display_name?: string; provider?: string };
+          addMsg({ type: 'info', text: `Using AI model: **${m.display_name || m.id || 'default'}**${m.provider ? ` (${m.provider})` : ''}` });
+        }
         if (type === 'status')    addMsg({ type: 'info',     text: ev.text as string });
         if (type === 'reasoning') addMsg({ type: 'pipeline', reasoning: ev.text as string });
         if (type === 'code_cell') addCellFromSSE(ev.code as string, ev.output as string, ev.error as string|null, ev.charts as string[]);
@@ -648,6 +656,9 @@ export default function LabPage() {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json();
       addCellFromSSE(d.code, d.output ?? '', d.error ?? null, []);
+      if (d.model_used?.display_name || d.model_used?.id) {
+        addMsg({ type: 'info', text: `Prediction used AI model: **${d.model_used.display_name || d.model_used.id}**` });
+      }
       addMsg({ type: 'ai', text: d.error ? `Prediction error: ${d.error}` : `Prediction result:\n\`\`\`\n${d.output}\n\`\`\`` });
       if (!d.error) updateProjectProgress('evaluated');
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
@@ -664,6 +675,9 @@ export default function LabPage() {
       const r = await fetch(`${AGENT_URL}/v2/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: session, message: msg, model_id: selectedAiModelId }) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = await r.json();
+      if (d.model_used?.display_name || d.model_used?.id) {
+        addMsg({ type: 'info', text: `Chat used AI model: **${d.model_used.display_name || d.model_used.id}**` });
+      }
       if (d.action === 'execute' && d.code) {
         for (const ge of (d.guard_events ?? []) as Array<Record<string,unknown>>) {
           const gt = ge.type as string;

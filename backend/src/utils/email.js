@@ -1,8 +1,11 @@
 const nodemailer = require('nodemailer');
 
 const emailDebug = process.env.EMAIL_DEBUG === 'true';
+const EMAIL_USER = process.env.EMAIL_USER || 'ownquesta@gmail.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'ownquesta@gmail.com';
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'OwnQuesta';
 
-if ((process.env.EMAIL_HOST || '').includes('hostinger.com') && (process.env.EMAIL_USER || '').endsWith('@gmail.com')) {
+if ((process.env.EMAIL_HOST || '').includes('hostinger.com') && EMAIL_USER.endsWith('@gmail.com')) {
   console.warn('EMAIL config warning: hostinger SMTP is being used with a Gmail address. Use Hostinger mailbox credentials or switch to Gmail SMTP.');
 }
 
@@ -12,7 +15,7 @@ const transporter = nodemailer.createTransport({
   port: process.env.EMAIL_PORT,
   secure: process.env.EMAIL_SECURE === 'true',
   auth: {
-    user: process.env.EMAIL_USER,
+    user: EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
@@ -31,7 +34,7 @@ const transporter = nodemailer.createTransport({
 
 const sendWelcomeEmail = async (to, name) => {
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+    from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
     to,
     subject: 'Welcome to Ownquesta',
     html: `
@@ -80,7 +83,7 @@ const sendWelcomeEmail = async (to, name) => {
 
 const sendNotificationEmail = async (to, subject, html) => {
   const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM}>`,
+    from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
     to,
     subject,
     html,

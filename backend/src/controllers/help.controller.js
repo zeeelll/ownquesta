@@ -1,6 +1,7 @@
 const HelpTicket = require("../models/HelpTicket");
 const User = require("../models/User");
 const ActivityService = require("../services/activity.service");
+const { sendNotificationEmail } = require("../utils/email");
 
 const allowedSeverities = new Set(["low", "medium", "high", "urgent"]);
 
@@ -19,10 +20,35 @@ const sanitizeProofFiles = (proofFiles = []) => {
     }));
 };
 
+const buildHelpRequestConfirmationEmail = ({ name, ticketId, subject, issueType, pageArea, severity, proofCount }) => {
+  const safeName = name || "User";
+  const safeSubject = subject || "Help Request";
+  const safeIssueType = issueType || "other";
+  const safePageArea = pageArea || "Other";
+  const safeSeverity = (severity || "medium").toUpperCase();
+
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 20px; color: #0f172a;">
+      <h2 style="margin: 0 0 12px;">Help Request Received</h2>
+      <p style="margin: 0 0 10px;">Hi ${safeName},</p>
+      <p style="margin: 0 0 16px;">Your help request has been submitted to the Ownquesta support team. We will review it and update you soon.</p>
+      <div style="border: 1px solid #dbeafe; border-radius: 10px; padding: 14px; background: #f8fbff;">
+        <p style="margin: 0 0 8px;"><strong>Ticket ID:</strong> ${ticketId}</p>
+        <p style="margin: 0 0 8px;"><strong>Subject:</strong> ${safeSubject}</p>
+        <p style="margin: 0 0 8px;"><strong>Issue Type:</strong> ${safeIssueType}</p>
+        <p style="margin: 0 0 8px;"><strong>Page:</strong> ${safePageArea}</p>
+        <p style="margin: 0 0 8px;"><strong>Severity:</strong> ${safeSeverity}</p>
+        <p style="margin: 0;"><strong>Attachments:</strong> ${proofCount}</p>
+      </div>
+      <p style="margin: 16px 0 0;">Keep this Ticket ID for complaint status tracking on the Help page.</p>
+    </div>
+  `;
+};
+
 exports.createHelpTicket = async (req, res) => {
   try {
-    const name = normalizeText(req.body?.name || req.user?.name, 120);
-    const email = normalizeText(req.body?.email || req.user?.email, 160).toLowerCase();
+    const name = normalizeText(req.user?.name || req.body?.name, 120);
+    const email = normalizeText(req.user?.email || req.body?.email, 160).toLowerCase();
     const issueType = normalizeText(req.body?.issueType || "other", 60).toLowerCase() || "other";
     const pageArea = normalizeText(req.body?.pageArea || "Other", 80) || "Other";
     const severity = allowedSeverities.has(req.body?.severity) ? req.body.severity : "medium";
@@ -78,6 +104,33 @@ exports.createHelpTicket = async (req, res) => {
         }
       );
     }
+
+    // Send confirmation in background so SMTP failures do not block ticket creation.
+    setImmediate(async () => {
+      try {
+        const html = buildHelpRequestConfirmationEmail({
+          name,
+          ticketId,
+          subject,
+          issueType,
+          pageArea,
+          severity,
+          proofCount: proofFiles.length,
+        });
+
+        const result = await sendNotificationEmail(
+          email,
+          `Help Request Received - ${ticketId}`,
+          html
+        );
+
+        if (!result?.ok) {
+          console.warn("Help request confirmation email failed:", result?.error?.message || result?.error);
+        }
+      } catch (emailErr) {
+        console.warn("Help request confirmation email failed:", emailErr?.message || emailErr);
+      }
+    });
 
     return res.status(201).json({
       success: true,
