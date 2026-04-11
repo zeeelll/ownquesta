@@ -509,7 +509,7 @@ exports.sendSignupOtp = async (req, res) => {
     if (existing) return res.status(400).json({ message: 'Email already used' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 2 * 60 * 1000);
+    const expiry = new Date(Date.now() + 1 * 60 * 1000);
 
     await SignupOtp.findOneAndUpdate(
       { email: normalizedEmail },
@@ -528,7 +528,7 @@ exports.sendSignupOtp = async (req, res) => {
         <h2 style="color: #8b5cf6;">Verify Your Ownquesta Account</h2>
         <p>Your signup OTP is:</p>
         <p><strong style="font-size: 24px; color: #8b5cf6;">${otp}</strong></p>
-        <p><strong style="color: #dc2626;">This OTP expires in 2 minutes.</strong></p>
+        <p><strong style="color: #dc2626;">This OTP expires in 1 minute.</strong></p>
         <p>If you did not request this, please ignore this email.</p>
         <br>
         <p>Best regards,<br>Ownquesta Team</p>
@@ -570,7 +570,7 @@ exports.verifySignupOtp = async (req, res) => {
     record.verified = true;
     record.verifiedAt = new Date();
     record.otp = null;
-    record.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    record.expiresAt = new Date(Date.now() + 1 * 60 * 1000);
     await record.save();
 
     res.json({ message: 'Signup OTP verified successfully' });
@@ -591,7 +591,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+    const expiry = new Date(Date.now() + 1 * 60 * 1000); // 1 minute
 
     // Save OTP to user
     user.resetOtp = otp;
@@ -623,7 +623,7 @@ exports.forgotPassword = async (req, res) => {
         <p>Hello ${user.name},</p>
         <p>You requested a password reset for your Ownquesta account.</p>
         <p>Your OTP code is: <strong style="font-size: 24px; color: #8b5cf6;">${otp}</strong></p>
-        <p><strong style="color: #dc2626;">⚠️ This code will expire in 2 minutes.</strong> Please use it immediately.</p>
+        <p><strong style="color: #dc2626;">⚠️ This code will expire in 1 minute.</strong> Please use it immediately.</p>
         <p>If you didn't request this, please ignore this email.</p>
         <br>
         <p>Best regards,<br>Ownquesta Team</p>
