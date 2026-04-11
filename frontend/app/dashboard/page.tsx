@@ -129,15 +129,15 @@ const STYLES = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg0:    #060912;
-    --bg1:    #090e1c;
-    --bg2:    #0c1325;
-    --bg3:    #101828;
-    --bg4:    #141f35;
-    --rim0:   rgba(255,255,255,0.035);
-    --rim1:   rgba(255,255,255,0.06);
-    --rim2:   rgba(255,255,255,0.09);
-    --rim3:   rgba(255,255,255,0.13);
+    --bg0:    #0a0a0a;
+    --bg1:    #111111;
+    --bg2:    #161616;
+    --bg3:    #1a1a1a;
+    --bg4:    #1f1f1f;
+    --rim0:   rgba(255,255,255,0.05);
+    --rim1:   rgba(255,255,255,0.08);
+    --rim2:   rgba(255,255,255,0.12);
+    --rim3:   rgba(255,255,255,0.18);
     --txt0:   #f1f5f9;
     --txt1:   #94a3b8;
     --txt2:   #4b6082;
@@ -191,7 +191,7 @@ const STYLES = `
 
   /* ── Surface ── */
   .surface {
-    background: linear-gradient(160deg, rgba(13,19,38,0.95) 0%, rgba(9,14,28,0.98) 100%);
+    background: linear-gradient(160deg, rgba(22,22,22,0.95) 0%, rgba(14,14,14,0.98) 100%);
     border: 1px solid var(--rim1);
     border-radius: var(--r-xl);
     backdrop-filter: blur(20px);
@@ -217,7 +217,7 @@ const STYLES = `
   }
   .gc-inner {
     border-radius: calc(var(--r-xl) - 1px);
-    background:linear-gradient(165deg,#0d1425 0%,#080d1b 100%);
+    background:linear-gradient(165deg,#181818 0%,#0f0f0f 100%);
     overflow:hidden;
     position:relative;
   }
@@ -228,7 +228,7 @@ const STYLES = `
     border-radius:var(--r-xl);
     overflow:hidden;
     transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
-    background:linear-gradient(155deg,var(--bg3) 0%,var(--bg2) 100%);
+    background:linear-gradient(155deg,#1c1c1c 0%,#141414 100%);
     border:1px solid var(--rim1);
   }
   .stat-card:hover {
@@ -256,7 +256,7 @@ const STYLES = `
   .btn-primary:hover::after { background:rgba(255,255,255,0.04); }
   .btn-primary:active { transform:scale(0.97) !important; }
   .btn-primary:disabled {
-    background:linear-gradient(140deg,#1a2035,#1e263a);
+    background:linear-gradient(140deg,#1a1a1a,#222222);
     color:var(--txt3); box-shadow:none; cursor:not-allowed; transform:none !important;
   }
 
@@ -292,7 +292,7 @@ const STYLES = `
   /* ── Input ── */
   .input {
     width:100%;
-    background:rgba(255,255,255,0.025);
+    background:rgba(255,255,255,0.03);
     border:1px solid var(--rim1);
     border-radius:var(--r-sm);
     color:var(--txt0);
@@ -1166,7 +1166,7 @@ export default function DashboardPage() {
         <div style={{
           height:56, borderBottom:"1px solid var(--rim0)",
           display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding:"0 28px", background:"rgba(6,9,18,0.8)",
+          padding:"0 28px", background:"rgba(10,10,10,0.8)",
         }}>
           <div className="skel" style={{ width:120, height:26 }}/>
           <div style={{ display:"flex", gap:10 }}>
@@ -1210,31 +1210,31 @@ export default function DashboardPage() {
       {/* ── Background atmosphere ── */}
       <div style={{ position:"fixed", inset:0, zIndex:0, pointerEvents:"none" }}>
         {/* Base gradient */}
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(170deg,#060b18 0%,#050910 50%,#040711 100%)" }}/>
+        <div style={{ position:"absolute", inset:0, background:"linear-gradient(170deg,#0a0a0a 0%,#080808 50%,#060606 100%)" }}/>
         {/* Fine dot grid */}
         <div style={{
-          position:"absolute", inset:0, opacity:0.022,
-          backgroundImage:"radial-gradient(circle, rgba(148,163,184,0.9) 1px, transparent 1px)",
+          position:"absolute", inset:0, opacity:0.03,
+          backgroundImage:"radial-gradient(circle, rgba(200,200,200,0.9) 1px, transparent 1px)",
           backgroundSize:"32px 32px",
         }}/>
         {/* Ambient glows */}
         <div style={{
           position:"absolute", top:"8%", left:"30%", width:700, height:700,
-          background:"radial-gradient(circle,rgba(99,102,241,0.045) 0%,transparent 65%)",
+          background:"radial-gradient(circle,rgba(139,92,246,0.06) 0%,transparent 65%)",
           borderRadius:"50%", animation:"bg-drift 24s ease infinite",
         }}/>
         <div style={{
           position:"absolute", bottom:"12%", right:"8%", width:460, height:460,
-          background:"radial-gradient(circle,rgba(192,132,252,0.035) 0%,transparent 65%)",
+          background:"radial-gradient(circle,rgba(167,139,250,0.045) 0%,transparent 65%)",
           borderRadius:"50%", animation:"bg-drift 32s ease infinite reverse",
         }}/>
         <div style={{
           position:"absolute", top:"50%", left:"2%", width:260, height:260,
-          background:"radial-gradient(circle,rgba(52,211,153,0.022) 0%,transparent 65%)",
+          background:"radial-gradient(circle,rgba(52,211,153,0.03) 0%,transparent 65%)",
           borderRadius:"50%",
         }}/>
         {/* SVG grain texture */}
-        <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.012 }}>
+        <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.015 }}>
           <filter id="grain">
             <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/>
             <feColorMatrix type="saturate" values="0"/>
@@ -1276,7 +1276,7 @@ export default function DashboardPage() {
         display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:"0 26px",
         borderBottom:"1px solid var(--rim0)",
-        background:"rgba(5,8,17,0.82)",
+        background:"rgba(8,8,8,0.88)",
         backdropFilter:"blur(28px)",
       }}>
         {/* Bottom accent line */}
