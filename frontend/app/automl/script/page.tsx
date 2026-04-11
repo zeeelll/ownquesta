@@ -697,18 +697,37 @@ export default function ScriptPage() {
     }
   };
 
+  const openExportPaymentPage = useCallback((type: DownloadType) => {
+    if (!sessionId) {
+      setChatMsgs(p => [...p, { role: 'assistant', content: 'Build or reload the script session before starting payment.' }]);
+      return;
+    }
+
+    const exportLabel = type === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
+
+    const params = new URLSearchParams({
+      source: 'script',
+      session: sessionId,
+      model: exportLabel,
+      product: type === 'py' ? 'python-script' : 'jupyter-notebook',
+      price: String(DOWNLOAD_PRICE),
+    });
+
+    router.push(`/payment?${params.toString()}`);
+  }, [router, sessionId]);
+
   // ── Download click handlers — first download free, then payment ───────────
   const handleDownloadPy = () => {
     if (paidTypes.has('py')) { doDownloadPy(); return; }
     if (claimFreeDownload('py')) { doDownloadPy(); return; }
-    setPayModal('py');
+    openExportPaymentPage('py');
   };
 
   const handleDownloadNotebook = () => {
     if (dlNotebook) return;
     if (paidTypes.has('ipynb')) { doDownloadNotebook(); return; }
     if (claimFreeDownload('ipynb')) { void doDownloadNotebook(); return; }
-    setPayModal('ipynb');
+    openExportPaymentPage('ipynb');
   };
 
   // ── Payment success ───────────────────────────────────────────────────────
