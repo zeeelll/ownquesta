@@ -44,6 +44,8 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
         </div>
 
         <p style="margin: 14px 0 0;">If you face any issue with access or download, reply to this email with your Order ID.</p>
+        <p style="margin: 12px 0 6px;"><strong>Best regards,</strong></p>
+        <p style="margin: 0;"><strong>OwnQuesta Support Team</strong><br/>On behalf of ZS Brother<br/>Explainable AutoML Workflow Platform</p>
       </div>
     `;
 
