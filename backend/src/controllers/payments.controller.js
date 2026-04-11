@@ -1,0 +1,71 @@
+const { sendNotificationEmail } = require("../utils/email");
+
+const normalizeText = (value, maxLength = 200) => String(value ?? "").trim().slice(0, maxLength);
+
+exports.sendPaymentSuccessEmail = async (req, res) => {
+  try {
+    const email = normalizeText(req.body?.email, 160).toLowerCase();
+    const customerName = normalizeText(req.body?.customerName, 120) || "Customer";
+    const orderId = normalizeText(req.body?.orderId, 80);
+    const product = normalizeText(req.body?.product, 120) || "Trained Model";
+    const modelName = normalizeText(req.body?.modelName, 120) || "Trained Model";
+    const method = normalizeText(req.body?.method, 40).toUpperCase() || "N/A";
+    const gateway = normalizeText(req.body?.gateway, 40).toUpperCase() || "RAZORPAY";
+    const gatewayPaymentId = normalizeText(req.body?.gatewayPaymentId, 120) || "N/A";
+    const paidAt = normalizeText(req.body?.paidAt, 80) || new Date().toISOString();
+    const amountInr = Number(req.body?.amountInr || 0);
+
+    if (!email || !orderId || !(amountInr > 0)) {
+      return res.status(400).json({
+        success: false,
+        error: "Email, orderId and amountInr are required.",
+      });
+    }
+
+    const paidAtDisplay = new Date(paidAt).toLocaleString();
+    const amountDisplay = Number(amountInr).toFixed(2);
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; padding: 20px; color: #0f172a;">
+        <h2 style="margin: 0 0 10px;">Payment Successful</h2>
+        <p style="margin: 0 0 12px;">Hi ${customerName},</p>
+        <p style="margin: 0 0 14px;">Thank you for your payment. Your transaction has been completed successfully.</p>
+
+        <p style="margin: 0 0 8px;"><strong>Payment Details:</strong></p>
+        <div style="border: 1px solid #dbeafe; border-radius: 10px; padding: 14px; background: #f8fbff;">
+          <p style="margin: 0 0 8px;"><strong>Order ID:</strong> ${orderId}</p>
+          <p style="margin: 0 0 8px;"><strong>Paid On:</strong> ${paidAtDisplay}</p>
+          <p style="margin: 0 0 8px;"><strong>Amount:</strong> INR ${amountDisplay}</p>
+          <p style="margin: 0 0 8px;"><strong>Payment Method:</strong> ${method}</p>
+          <p style="margin: 0 0 8px;"><strong>Gateway:</strong> ${gateway}</p>
+          <p style="margin: 0 0 8px;"><strong>Gateway Payment ID:</strong> ${gatewayPaymentId}</p>
+          <p style="margin: 0 0 8px;"><strong>Product:</strong> ${product}</p>
+          <p style="margin: 0;"><strong>Model:</strong> ${modelName}</p>
+        </div>
+
+        <p style="margin: 14px 0 0;">If you face any issue with access or download, reply to this email with your Order ID.</p>
+      </div>
+    `;
+
+    const result = await sendNotificationEmail(
+      email,
+      `Payment Confirmation - ${orderId}`,
+      html
+    );
+
+    if (!result?.ok) {
+      return res.status(500).json({
+        success: false,
+        error: "Payment recorded, but confirmation email failed.",
+      });
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error("Error sending payment confirmation email:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Unable to send payment confirmation email.",
+    });
+  }
+};

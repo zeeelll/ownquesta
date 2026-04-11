@@ -3,6 +3,11 @@ import crypto from 'node:crypto';
 import Razorpay from 'razorpay';
 import { confirmPaymentRecord, getPaymentRecord } from '../_store';
 
+const BACKEND_BASE =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:5000';
+
 function getRazorpayClient() {
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -69,6 +74,34 @@ export async function POST(request: NextRequest) {
       gatewayPaymentId: razorpayPaymentId,
       gatewaySignature: razorpaySignature,
     });
+
+    if (payment?.customerEmail) {
+      setImmediate(async () => {
+        try {
+          await fetch(`${BACKEND_BASE}/api/payments/notify-success`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: payment.customerEmail,
+              customerName: payment.customerName,
+              orderId: payment.orderId,
+              product: payment.product,
+              modelName: payment.modelName,
+              method: payment.method,
+              gateway: payment.gateway,
+              gatewayPaymentId: payment.gatewayPaymentId,
+              amountInr: payment.amountInr,
+              paidAt: payment.paidAt,
+            }),
+            cache: 'no-store',
+          });
+        } catch {
+          // Keep payment confirmation successful even if email fails.
+        }
+      });
+    }
 
     return NextResponse.json({ success: true, payment });
   } catch (error: any) {
