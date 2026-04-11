@@ -4,10 +4,33 @@ const emailDebug = process.env.EMAIL_DEBUG === 'true';
 const EMAIL_USER = process.env.EMAIL_USER || 'ownquesta@gmail.com';
 const EMAIL_FROM = process.env.EMAIL_FROM || 'ownquesta@gmail.com';
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'OwnQuesta';
+const INTRO_SIGNATURE_HTML = `
+  <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #e2e8f0; color: #334155;">
+    <p style="margin: 0 0 8px;"><strong>Best regards,</strong></p>
+    <p style="margin: 0;"><strong>ZS Brother</strong><br/>Founder, OwnQuesta<br/>Explainable AutoML Workflow Platform</p>
+  </div>
+`;
+const SUPPORT_SIGNATURE_HTML = `
+  <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #e2e8f0; color: #334155;">
+    <p style="margin: 0 0 8px;"><strong>Best regards,</strong></p>
+    <p style="margin: 0;"><strong>OwnQuesta Support Team</strong></p>
+  </div>
+`;
 
 if ((process.env.EMAIL_HOST || '').includes('hostinger.com') && EMAIL_USER.endsWith('@gmail.com')) {
   console.warn('EMAIL config warning: hostinger SMTP is being used with a Gmail address. Use Hostinger mailbox credentials or switch to Gmail SMTP.');
 }
+
+const withSignature = (html, signatureHtml) => {
+  const raw = String(html || '');
+  if (!raw.trim()) return signatureHtml;
+
+  if (raw.includes('</body>')) {
+    return raw.replace('</body>', `${signatureHtml}\n</body>`);
+  }
+
+  return `${raw}\n${signatureHtml}`;
+};
 
 // Create transporter with multiple fallback options
 const transporter = nodemailer.createTransport({
@@ -37,7 +60,7 @@ const sendWelcomeEmail = async (to, name) => {
     from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
     to,
     subject: 'Welcome to OwnQuesta - Start Your ML Journey',
-    html: `
+    html: withSignature(`
       <!DOCTYPE html>
       <html>
       <body style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px; line-height: 1.55; color: #0f172a;">
@@ -85,10 +108,10 @@ const sendWelcomeEmail = async (to, name) => {
         </ul>
 
         <p style="margin: 0 0 8px;">Need help? Visit the Help Page or explore the tutorials. We are here to make your ML journey smooth and successful.</p>
-        <p style="margin: 0; font-weight: 600;">Happy modeling!<br/>The OwnQuesta Team</p>
+        <p style="margin: 0; font-weight: 600;">Happy modeling!</p>
       </body>
       </html>
-    `,
+    `, INTRO_SIGNATURE_HTML),
   };
 
   try {
@@ -113,7 +136,7 @@ const sendNotificationEmail = async (to, subject, html) => {
     from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
     to,
     subject,
-    html,
+    html: withSignature(html, SUPPORT_SIGNATURE_HTML),
   };
 
   try {
