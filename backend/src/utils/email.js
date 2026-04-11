@@ -24,6 +24,9 @@ if ((process.env.EMAIL_HOST || '').includes('hostinger.com') && EMAIL_USER.endsW
 const withSignature = (html, signatureHtml) => {
   const raw = String(html || '');
   if (!raw.trim()) return signatureHtml;
+  if (/Best regards,/i.test(raw) || /ZS Brother/i.test(raw) || /OwnQuesta Support Team/i.test(raw)) {
+    return raw;
+  }
 
   if (raw.includes('</body>')) {
     return raw.replace('</body>', `${signatureHtml}\n</body>`);
