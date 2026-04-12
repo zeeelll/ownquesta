@@ -1087,7 +1087,17 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-    try { await fetch(`${BASE}/api/auth/logout`,{method:"POST",credentials:"include"}); } catch {}
+    try {
+      await fetch(`${BASE}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPath: typeof window !== "undefined" ? window.location.pathname : "/dashboard",
+          lastAction: "manual_logout_from_dashboard"
+        })
+      });
+    } catch {}
     localStorage.removeItem("userAvatar");
     window.location.href = "/";
   };

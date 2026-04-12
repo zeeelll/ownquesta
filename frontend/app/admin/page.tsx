@@ -199,7 +199,7 @@ const matchesActivityFilter = (activity: any, filter: string) => {
   if (filter === 'upload') return action.includes('upload');
   if (filter === 'project') return isProjectActivity(action);
   if (filter === 'delete') return action.includes('delete');
-  if (filter === 'navigation') return action === 'page_view';
+  if (filter === 'navigation') return action === 'page_view' || action === 'page_exit';
   if (filter === 'security') return action.startsWith('password_') || action.startsWith('two_factor');
 
   return true;
@@ -217,6 +217,9 @@ const getActivityAppearance = (action?: string) => {
   }
   if (action === 'page_view') {
     return { Icon: Globe, iconClass: 'text-cyan-400', chipClass: 'action-chip-blue' };
+  }
+  if (action === 'page_exit') {
+    return { Icon: Clock, iconClass: 'text-cyan-300', chipClass: 'action-chip-blue' };
   }
   if ((action || '').includes('help')) {
     return { Icon: MessageSquare, iconClass: 'text-fuchsia-400', chipClass: 'action-chip-purple' };
@@ -241,6 +244,44 @@ const getActivityAppearance = (action?: string) => {
   }
 
   return { Icon: Info, iconClass: 'text-slate-400', chipClass: 'action-chip-slate' };
+};
+
+const formatDuration = (durationMs?: number | null) => {
+  if (durationMs === null || durationMs === undefined || Number.isNaN(durationMs) || durationMs < 0) {
+    return null;
+  }
+
+  const totalSeconds = Math.round(durationMs / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes < 60) return `${minutes}m ${seconds}s`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
+const getActivityPage = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  return metadata.path || metadata.currentPath || metadata.page || null;
+};
+
+const getActivityDuration = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  const durationFromPage = typeof metadata.durationMs === 'number' ? metadata.durationMs : null;
+  const durationFromLogout = typeof metadata.sessionDurationMs === 'number' ? metadata.sessionDurationMs : null;
+  return durationFromPage ?? durationFromLogout;
+};
+
+const getActivityWorkLabel = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  if (metadata.source === 'web_app' && activity?.action === 'page_view') return 'Visited page';
+  if (metadata.source === 'web_app' && activity?.action === 'page_exit') return 'Left page';
+  if (activity?.action === 'logout') return 'Session ended';
+  if (activity?.action === 'login') return 'Session started';
+  return (activity?.action || 'activity').replace(/_/g, ' ');
 };
 
 export default function AdminPage() {
@@ -1573,6 +1614,9 @@ export default function AdminPage() {
                       .map((activity: any) => {
                         const activityAppearance = getActivityAppearance(activity.action);
                         const ActivityIcon = activityAppearance.Icon;
+                        const activityPage = getActivityPage(activity);
+                        const activityDuration = formatDuration(getActivityDuration(activity));
+                        const activityWork = getActivityWorkLabel(activity);
 
                         return (
                         <div key={activity._id} className="activity-row p-6 transition-colors">
@@ -1613,6 +1657,15 @@ export default function AdminPage() {
                                   </span>
                                 </div>
                                 <p className="text-slate-400 text-sm leading-relaxed">{activity.description}</p>
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                                  <span className="action-chip action-chip-slate">Work: {activityWork}</span>
+                                  {activityPage && (
+                                    <span className="action-chip action-chip-blue">Page: {String(activityPage)}</span>
+                                  )}
+                                  {activityDuration && (
+                                    <span className="action-chip action-chip-amber">Duration: {activityDuration}</span>
+                                  )}
+                                </div>
                               </div>
 
                               {activity.metadata && Object.keys(activity.metadata).length > 0 && (

@@ -3,6 +3,7 @@
 const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const User = require("../models/User");
+const Activity = require("../models/Activity");
 const SignupOtp = require("../models/SignupOtp");
 const speakeasy = require('speakeasy');
 const { sendNotificationEmail, sendWelcomeEmail } = require("../utils/email");
@@ -208,6 +209,43 @@ exports.logout = async (req, res) => {
     : null;
 
   if (actor) {
+    const requestBody = req.body && typeof req.body === "object" ? req.body : {};
+    let recentLogin = null;
+
+    try {
+      recentLogin = await Activity.findOne({ userId: actor.id, action: "login" })
+        .sort({ timestamp: -1 })
+        .select("timestamp metadata")
+        .lean();
+    } catch (error) {
+      console.warn("Unable to compute logout session duration:", error?.message || error);
+    }
+
+    const currentTimestamp = Date.now();
+    const loginTimestamp = recentLogin?.timestamp ? new Date(recentLogin.timestamp).getTime() : null;
+    const sessionDurationMs = loginTimestamp ? Math.max(currentTimestamp - loginTimestamp, 0) : null;
+
+    const referer = req.get("referer");
+    let refererPath = undefined;
+    if (referer) {
+      try {
+        refererPath = new URL(referer).pathname;
+      } catch {
+        refererPath = undefined;
+      }
+    }
+
+    const logoutMetadata = {
+      logoutMethod: actor.provider || 'session',
+      role: actor.role,
+      currentPath: typeof requestBody.currentPath === "string" ? requestBody.currentPath : refererPath,
+      lastAction: typeof requestBody.lastAction === "string" ? requestBody.lastAction : undefined,
+      sessionStartedAt: recentLogin?.timestamp ? new Date(recentLogin.timestamp).toISOString() : undefined,
+      sessionDurationMs,
+      sessionDurationSeconds: sessionDurationMs !== null ? Number((sessionDurationMs / 1000).toFixed(1)) : undefined,
+      loginMethod: recentLogin?.metadata?.loginMethod,
+    };
+
     await ActivityService.logActivity(
       actor.id,
       actor.email,
@@ -215,7 +253,7 @@ exports.logout = async (req, res) => {
       'logout',
       `${actor.role === 'admin' ? 'Admin' : 'User'} logged out`,
       req,
-      { logoutMethod: actor.provider || 'session', role: actor.role }
+      logoutMetadata
     );
   }
 
