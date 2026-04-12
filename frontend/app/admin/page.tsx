@@ -829,7 +829,7 @@ export default function AdminPage() {
 
       {/* ── HEADER ─────────────────────────────── */}
       <header className="admin-header sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="w-full px-4 sm:px-6 md:px-10 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <Logo size="md" variant="light" />
@@ -853,11 +853,11 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 md:px-10 py-5 md:py-7 min-h-[calc(100vh-72px)]">
 
         {/* ── TAB NAV ──────────────────────────── */}
         <div className="tab-nav-container mb-8">
-          <div className="flex space-x-1 p-1">
+          <div className="tab-nav-strip p-1">
             {([
               { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { key: 'users',     icon: Users,    label: 'User Management' },
@@ -870,7 +870,7 @@ export default function AdminPage() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`tab-btn flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all ${
+                className={`tab-btn flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all ${
                   activeTab === key ? 'tab-btn-active' : 'tab-btn-inactive'
                 }`}
               >
@@ -2314,6 +2314,11 @@ const adminStyles = `
     padding: 5px;
     backdrop-filter: blur(12px);
   }
+  .tab-nav-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
   .tab-btn {
     font-family: 'DM Sans', sans-serif;
     font-size: 0.8rem;
@@ -2321,6 +2326,8 @@ const adminStyles = `
     letter-spacing: 0.01em;
     border-radius: 10px;
     transition: all 0.2s ease;
+    min-height: 46px;
+    min-width: 0;
   }
   .tab-btn-active {
     background: linear-gradient(135deg, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.08) 100%);
@@ -2744,4 +2751,28 @@ const adminStyles = `
     border-radius: 2px;
   }
   .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,0.35); }
+
+  @media (max-width: 1280px) {
+    .tab-nav-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .tab-nav-container {
+      overflow-x: auto;
+    }
+
+    .tab-nav-strip {
+      display: flex;
+      gap: 0.35rem;
+      min-width: max-content;
+      padding-bottom: 0.15rem;
+    }
+
+    .tab-btn {
+      min-width: 150px;
+      white-space: nowrap;
+    }
+  }
 `;
