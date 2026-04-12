@@ -2,6 +2,7 @@
 
 const User = require("../models/User");
 const Project = require("../models/Project");
+const Payment = require("../models/Payment");
 const ActivityService = require("../services/activity.service");
 
 const ACTIVE_PROJECT_STAGES = ["dataset_uploaded", "eda_completed", "model_selected", "training"];
@@ -269,6 +270,63 @@ exports.getUserProjects = async (req, res) => {
     res.json({ projects });
   } catch (error) {
     console.error("Error fetching user projects:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get payment records for admin view
+exports.getAllPayments = async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 200, 500);
+    const status = typeof req.query.status === "string" ? req.query.status.trim().toLowerCase() : "";
+    const productType = typeof req.query.productType === "string" ? req.query.productType.trim().toLowerCase() : "";
+    const search = typeof req.query.search === "string" ? req.query.search.trim().toLowerCase() : "";
+
+    const query = {};
+    if (status && status !== "all") query.status = status;
+    if (productType && productType !== "all") query.productType = productType;
+
+    let payments = await Payment.find(query)
+      .populate("userId", "name email role")
+      .sort({ paidAt: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    if (search) {
+      payments = payments.filter((payment) => {
+        const linkedUser = payment.userId && typeof payment.userId === "object" ? payment.userId : null;
+        return [
+          payment.orderId,
+          payment.customerName,
+          payment.customerEmail,
+          payment.product,
+          payment.modelName,
+          payment.method,
+          payment.gateway,
+          payment.gatewayPaymentId,
+          payment.sessionId,
+          payment.productType,
+          linkedUser?.name,
+          linkedUser?.email,
+          linkedUser?.role,
+        ].some((value) => typeof value === "string" && value.toLowerCase().includes(search));
+      });
+    }
+
+    const summary = {
+      total: payments.length,
+      paid: payments.filter((payment) => payment.status === "paid").length,
+      revenueInr: Number(
+        payments
+          .filter((payment) => payment.status === "paid")
+          .reduce((sum, payment) => sum + Number(payment.amountInr || 0), 0)
+          .toFixed(2)
+      ),
+    };
+
+    res.json({ payments, summary });
+  } catch (error) {
+    console.error("Error fetching payments:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

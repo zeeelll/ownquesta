@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats } from "@/services/api";
+import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats, getAdminPayments } from "@/services/api";
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 import {
@@ -29,6 +29,8 @@ import {
   Clock,
   Globe,
   Smartphone,
+  Wallet,
+  CreditCard,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -110,6 +112,36 @@ interface HelpTicket {
   } | string | null;
 }
 
+interface AdminPayment {
+  _id: string;
+  orderId: string;
+  sessionId?: string;
+  customerName: string;
+  customerEmail: string;
+  product: string;
+  productType: 'model' | 'py' | 'ipynb' | 'other';
+  modelName?: string;
+  method: string;
+  gateway: string;
+  gatewayPaymentId?: string;
+  amountInr: number;
+  status: 'created' | 'paid' | 'failed';
+  paidAt?: string;
+  createdAt: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | string | null;
+}
+
+interface PaymentSummary {
+  total: number;
+  paid: number;
+  revenueInr: number;
+}
+
 const formatProjectStage = (stage?: string) =>
   (stage || 'initialized')
     .replace(/_/g, ' ')
@@ -138,6 +170,20 @@ const helpSeverityBadgeClass = (severity?: string) => {
   return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
 };
 
+const paymentStatusBadgeClass = (status?: string) => {
+  if (status === 'paid') return 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+  if (status === 'created') return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+  if (status === 'failed') return 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+  return 'bg-slate-500/15 text-slate-300 border border-slate-500/30';
+};
+
+const paymentTypeLabel = (productType?: string) => {
+  if (productType === 'py') return '.py';
+  if (productType === 'ipynb') return 'ipynb';
+  if (productType === 'model') return 'Model';
+  return 'Other';
+};
+
 const isProjectActivity = (action?: string) => (action || '').startsWith('project_');
 
 const matchesActivityFilter = (activity: any, filter: string) => {
@@ -153,7 +199,7 @@ const matchesActivityFilter = (activity: any, filter: string) => {
   if (filter === 'upload') return action.includes('upload');
   if (filter === 'project') return isProjectActivity(action);
   if (filter === 'delete') return action.includes('delete');
-  if (filter === 'navigation') return action === 'page_view';
+  if (filter === 'navigation') return action === 'page_view' || action === 'page_exit';
   if (filter === 'security') return action.startsWith('password_') || action.startsWith('two_factor');
 
   return true;
@@ -171,6 +217,9 @@ const getActivityAppearance = (action?: string) => {
   }
   if (action === 'page_view') {
     return { Icon: Globe, iconClass: 'text-cyan-400', chipClass: 'action-chip-blue' };
+  }
+  if (action === 'page_exit') {
+    return { Icon: Clock, iconClass: 'text-cyan-300', chipClass: 'action-chip-blue' };
   }
   if ((action || '').includes('help')) {
     return { Icon: MessageSquare, iconClass: 'text-fuchsia-400', chipClass: 'action-chip-purple' };
@@ -197,6 +246,44 @@ const getActivityAppearance = (action?: string) => {
   return { Icon: Info, iconClass: 'text-slate-400', chipClass: 'action-chip-slate' };
 };
 
+const formatDuration = (durationMs?: number | null) => {
+  if (durationMs === null || durationMs === undefined || Number.isNaN(durationMs) || durationMs < 0) {
+    return null;
+  }
+
+  const totalSeconds = Math.round(durationMs / 1000);
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes < 60) return `${minutes}m ${seconds}s`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
+const getActivityPage = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  return metadata.path || metadata.currentPath || metadata.page || null;
+};
+
+const getActivityDuration = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  const durationFromPage = typeof metadata.durationMs === 'number' ? metadata.durationMs : null;
+  const durationFromLogout = typeof metadata.sessionDurationMs === 'number' ? metadata.sessionDurationMs : null;
+  return durationFromPage ?? durationFromLogout;
+};
+
+const getActivityWorkLabel = (activity: any) => {
+  const metadata = activity?.metadata || {};
+  if (metadata.source === 'web_app' && activity?.action === 'page_view') return 'Visited page';
+  if (metadata.source === 'web_app' && activity?.action === 'page_exit') return 'Left page';
+  if (activity?.action === 'logout') return 'Session ended';
+  if (activity?.action === 'login') return 'Session started';
+  return (activity?.action || 'activity').replace(/_/g, ' ');
+};
+
 export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -220,10 +307,13 @@ export default function AdminPage() {
   const [userActivities, setUserActivities] = useState<any[]>([]);
   const [allActivities, setAllActivities] = useState<any[]>([]);
   const [helpTickets, setHelpTickets] = useState<HelpTicket[]>([]);
+  const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({ total: 0, paid: 0, revenueInr: 0 });
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [projectStats, setProjectStats] = useState<ProjectStats>({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
   const [projectError, setProjectError] = useState('');
   const [supportError, setSupportError] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   const [showActivities, setShowActivities] = useState(false);
   const [activityView, setActivityView] = useState<'user' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState("");
@@ -236,7 +326,10 @@ export default function AdminPage() {
   const [activitySearch, setActivitySearch] = useState<string>('');
   const [helpSearch, setHelpSearch] = useState<string>('');
   const [helpStatusFilter, setHelpStatusFilter] = useState<string>('all');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'activities' | 'support' | 'settings'>('dashboard');
+  const [paymentSearch, setPaymentSearch] = useState<string>('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'payments' | 'activities' | 'support' | 'settings'>('dashboard');
   const router = useRouter();
 
   useEffect(() => {
@@ -268,6 +361,9 @@ export default function AdminPage() {
     if (activeTab === 'projects' && projects.length === 0) {
       handleLoadProjects();
     }
+    if (activeTab === 'payments' && payments.length === 0) {
+      handleLoadPayments();
+    }
     if (activeTab === 'support' && helpTickets.length === 0) {
       handleLoadHelpTickets();
     }
@@ -288,6 +384,11 @@ export default function AdminPage() {
     if (activeTab !== 'support') {
       setHelpSearch('');
       setHelpStatusFilter('all');
+    }
+    if (activeTab !== 'payments') {
+      setPaymentSearch('');
+      setPaymentStatusFilter('all');
+      setPaymentTypeFilter('all');
     }
   }, [activeTab]);
 
@@ -352,6 +453,30 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const filteredPayments = payments.filter((payment) => {
+    const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
+    const query = paymentSearch.trim().toLowerCase();
+
+    const matchesSearch = !query || [
+      payment.orderId,
+      payment.customerName,
+      payment.customerEmail,
+      payment.product,
+      payment.modelName,
+      payment.method,
+      payment.gateway,
+      payment.gatewayPaymentId,
+      payment.sessionId,
+      linkedUser?.name,
+      linkedUser?.email,
+    ].some((value) => (value || '').toString().toLowerCase().includes(query));
+
+    const matchesStatus = paymentStatusFilter === 'all' || payment.status === paymentStatusFilter;
+    const matchesType = paymentTypeFilter === 'all' || payment.productType === paymentTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   const refreshUsers = useCallback(async (showLoader = false) => {
     if (showLoader) setActionLoading('reload-users');
     try {
@@ -412,12 +537,19 @@ export default function AdminPage() {
       }
 
       try {
-        const [activityResponse, helpResponse] = await Promise.all([
+        const [activityResponse, helpResponse, paymentResponse] = await Promise.all([
           getAllActivities(100),
-          getAdminHelpTickets(100)
+          getAdminHelpTickets(100),
+          getAdminPayments(100)
         ]);
         setAllActivities(activityResponse.activities || []);
         setHelpTickets(helpResponse.tickets || []);
+        setPayments(paymentResponse.payments || []);
+        setPaymentSummary({
+          total: paymentResponse.summary?.total || 0,
+          paid: paymentResponse.summary?.paid || 0,
+          revenueInr: paymentResponse.summary?.revenueInr || 0,
+        });
       } catch (activityErr: any) {
         console.warn('Unable to preload admin monitoring data:', activityErr?.message || activityErr);
       }
@@ -606,6 +738,26 @@ export default function AdminPage() {
     }
   };
 
+  const handleLoadPayments = async () => {
+    setActionLoading('load-payments');
+    setPaymentError('');
+    try {
+      const response = await getAdminPayments(250, paymentStatusFilter, paymentTypeFilter, paymentSearch);
+      setPayments(response.payments || []);
+      setPaymentSummary({
+        total: response.summary?.total || 0,
+        paid: response.summary?.paid || 0,
+        revenueInr: response.summary?.revenueInr || 0,
+      });
+    } catch (err: any) {
+      setPayments([]);
+      setPaymentSummary({ total: 0, paid: 0, revenueInr: 0 });
+      setPaymentError(err.message || 'Failed to load payments');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleToggleMaintenanceMode = async () => {
     setActionLoading('maintenance-mode');
     try {
@@ -677,7 +829,7 @@ export default function AdminPage() {
 
       {/* ── HEADER ─────────────────────────────── */}
       <header className="admin-header sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="w-full px-4 sm:px-6 md:px-10 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <Logo size="md" variant="light" />
@@ -701,15 +853,16 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 md:px-10 py-5 md:py-7 min-h-[calc(100vh-72px)]">
 
         {/* ── TAB NAV ──────────────────────────── */}
         <div className="tab-nav-container mb-8">
-          <div className="flex space-x-1 p-1">
+          <div className="tab-nav-strip p-1">
             {([
               { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { key: 'users',     icon: Users,    label: 'User Management' },
               { key: 'projects',  icon: Monitor,  label: 'Projects' },
+              { key: 'payments',  icon: Wallet,   label: 'Payments' },
               { key: 'activities',icon: Activity,  label: 'Activity Log' },
               { key: 'support',   icon: MessageSquare, label: 'Help Requests' },
               { key: 'settings',  icon: Settings,  label: 'Settings' },
@@ -717,7 +870,7 @@ export default function AdminPage() {
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
-                className={`tab-btn flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all ${
+                className={`tab-btn flex items-center justify-center space-x-2 py-3 px-4 rounded-lg font-medium transition-all ${
                   activeTab === key ? 'tab-btn-active' : 'tab-btn-inactive'
                 }`}
               >
@@ -824,7 +977,7 @@ export default function AdminPage() {
                 <Activity className="h-5 w-5 mr-2 text-cyan-400" />
                 Quick Actions
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
                 <Button
                   onClick={() => setActiveTab('users')}
                   className="quick-action-btn quick-action-blue flex items-center justify-center space-x-2 h-12"
@@ -845,6 +998,13 @@ export default function AdminPage() {
                 >
                   <Activity className="h-4 w-4" />
                   <span>View Activities</span>
+                </Button>
+                <Button
+                  onClick={() => setActiveTab('payments')}
+                  className="quick-action-btn quick-action-emerald flex items-center justify-center space-x-2 h-12"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span>Payments</span>
                 </Button>
                 <Button
                   onClick={() => setActiveTab('support')}
@@ -1199,6 +1359,180 @@ export default function AdminPage() {
         )}
 
         {/* ══════════════════════════════════════
+            PAYMENTS TAB
+        ══════════════════════════════════════ */}
+        {activeTab === 'payments' && (
+          <div className="space-y-6 fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Wallet className="h-3.5 w-3.5 mr-2" />Total Payments</p>
+                    <p className="stat-number">{paymentSummary.total}</p>
+                    <p className="stat-sub">Stored records</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><Wallet className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-emerald">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><CheckCircle className="h-3.5 w-3.5 mr-2" />Successful</p>
+                    <p className="stat-number">{paymentSummary.paid}</p>
+                    <p className="stat-sub">Paid transactions</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-emerald"><CheckCircle className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-purple">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><CreditCard className="h-3.5 w-3.5 mr-2" />Revenue (INR)</p>
+                    <p className="stat-number">₹{paymentSummary.revenueInr.toFixed(2)}</p>
+                    <p className="stat-sub">From paid records</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-purple"><CreditCard className="h-6 w-6" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="panel-card p-6">
+              <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
+                <div>
+                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payment Transactions</h3>
+                  <p className="text-slate-500 text-sm font-mono">Model, .py, and ipynb payment records captured from checkout confirmations.</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+                  <div className="relative w-full xl:min-w-[240px]">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search order, email, model, method..."
+                      value={paymentSearch}
+                      onChange={(e) => setPaymentSearch(e.target.value)}
+                      className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                    />
+                  </div>
+
+                  <select
+                    value={paymentTypeFilter}
+                    onChange={(e) => setPaymentTypeFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="model">Model</option>
+                    <option value="py">.py</option>
+                    <option value="ipynb">ipynb</option>
+                    <option value="other">Other</option>
+                  </select>
+
+                  <select
+                    value={paymentStatusFilter}
+                    onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="created">Created</option>
+                    <option value="failed">Failed</option>
+                  </select>
+
+                  <Button
+                    onClick={() => handleLoadPayments()}
+                    className="quick-action-btn quick-action-blue flex items-center space-x-2"
+                    disabled={actionLoading === 'load-payments'}
+                  >
+                    {actionLoading === 'load-payments'
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Wallet className="h-4 w-4" />}
+                    <span>Refresh</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {paymentError && (
+              <div className="panel-card p-4 border border-rose-500/20 bg-rose-500/10 text-rose-200 text-sm">
+                {paymentError}
+              </div>
+            )}
+
+            <div className="panel-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="table-th">Order</th>
+                      <th className="table-th">Customer</th>
+                      <th className="table-th">Product</th>
+                      <th className="table-th">Amount</th>
+                      <th className="table-th">Method</th>
+                      <th className="table-th">Paid At</th>
+                      <th className="table-th">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {filteredPayments.map((payment) => {
+                      const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
+
+                      return (
+                        <tr key={payment._id} className="table-row-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{payment.orderId}</div>
+                              <div className="text-xs text-slate-500 font-mono">Session: {payment.sessionId || '—'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{payment.customerName || 'Customer'}</div>
+                              <div className="text-xs text-slate-500 font-mono">{payment.customerEmail}</div>
+                              {linkedUser && (
+                                <div className="text-[11px] text-slate-600 font-mono mt-1">User: {linkedUser.name || linkedUser.email}</div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="action-chip action-chip-blue">{paymentTypeLabel(payment.productType)}</span>
+                              <span>{payment.modelName || payment.product || '—'}</span>
+                            </div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">{payment.product || '—'}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300 font-mono">₹{Number(payment.amountInr || 0).toFixed(2)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{(payment.method || 'N/A').toUpperCase()}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">{(payment.gateway || 'N/A').toUpperCase()}</div>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-500 font-mono">
+                            {new Date(payment.paidAt || payment.createdAt).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${paymentStatusBadgeClass(payment.status)}`}>
+                              {(payment.status || 'created').toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredPayments.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="text-5xl mb-4 opacity-30">💳</div>
+                  <p className="text-slate-400 text-sm font-mono">No payment records match the current filters.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════
             ACTIVITIES TAB
         ══════════════════════════════════════ */}
         {activeTab === 'activities' && (
@@ -1280,6 +1614,9 @@ export default function AdminPage() {
                       .map((activity: any) => {
                         const activityAppearance = getActivityAppearance(activity.action);
                         const ActivityIcon = activityAppearance.Icon;
+                        const activityPage = getActivityPage(activity);
+                        const activityDuration = formatDuration(getActivityDuration(activity));
+                        const activityWork = getActivityWorkLabel(activity);
 
                         return (
                         <div key={activity._id} className="activity-row p-6 transition-colors">
@@ -1320,6 +1657,15 @@ export default function AdminPage() {
                                   </span>
                                 </div>
                                 <p className="text-slate-400 text-sm leading-relaxed">{activity.description}</p>
+                                <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                                  <span className="action-chip action-chip-slate">Work: {activityWork}</span>
+                                  {activityPage && (
+                                    <span className="action-chip action-chip-blue">Page: {String(activityPage)}</span>
+                                  )}
+                                  {activityDuration && (
+                                    <span className="action-chip action-chip-amber">Duration: {activityDuration}</span>
+                                  )}
+                                </div>
                               </div>
 
                               {activity.metadata && Object.keys(activity.metadata).length > 0 && (
@@ -1899,41 +2245,61 @@ export default function AdminPage() {
 const adminStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  :root {
+    --admin-bg-0: #060b16;
+    --admin-bg-1: #0a1324;
+    --admin-bg-2: #101c33;
+    --admin-panel: rgba(14, 24, 42, 0.92);
+    --admin-panel-border: rgba(124, 156, 204, 0.28);
+    --admin-text-main: #f4f8ff;
+    --admin-text-soft: #d2def4;
+    --admin-text-muted: #9eb0cc;
+    --admin-cyan: #58e6ff;
+  }
+
   /* ── Root & Background ─────────────────────── */
   .admin-root {
-    background: #080c14;
+    background: var(--admin-bg-0);
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6,182,212,0.06) 0%, transparent 60%),
-      linear-gradient(180deg, #080c14 0%, #0a0f1a 100%);
+      radial-gradient(ellipse 90% 65% at 12% -8%, rgba(88,230,255,0.16) 0%, transparent 56%),
+      radial-gradient(ellipse 84% 70% at 92% 8%, rgba(59,130,246,0.12) 0%, transparent 58%),
+      linear-gradient(180deg, var(--admin-bg-2) 0%, var(--admin-bg-1) 35%, var(--admin-bg-0) 100%);
     font-family: 'DM Sans', sans-serif;
     position: relative;
+    color: var(--admin-text-main);
   }
   .admin-root::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image:
-      linear-gradient(rgba(6,182,212,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(6,182,212,0.03) 1px, transparent 1px);
-    background-size: 48px 48px;
+      linear-gradient(rgba(88,230,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,230,255,0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
     pointer-events: none;
     z-index: 0;
+    opacity: 0.42;
   }
   .admin-root > * { position: relative; z-index: 1; }
 
+  .admin-root .text-slate-600 { color: #90a3c3 !important; }
+  .admin-root .text-slate-500 { color: #a7b9d6 !important; }
+  .admin-root .text-slate-400 { color: #c6d6ee !important; }
+  .admin-root .text-slate-300 { color: #d8e5f8 !important; }
+
   /* ── Header ────────────────────────────────── */
   .admin-header {
-    background: rgba(8,12,20,0.92);
+    background: rgba(7, 14, 28, 0.9);
     backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(6,182,212,0.12);
-    box-shadow: 0 1px 0 rgba(6,182,212,0.05), 0 4px 24px rgba(0,0,0,0.4);
+    border-bottom: 1px solid rgba(88,230,255,0.28);
+    box-shadow: 0 1px 0 rgba(88,230,255,0.12), 0 14px 38px rgba(0,0,0,0.42);
   }
   .header-title {
     font-family: 'Syne', sans-serif;
     font-weight: 700;
     font-size: 1.1rem;
     letter-spacing: -0.01em;
-    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    background: linear-gradient(135deg, #f8fbff 0%, #b9ceef 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1962,11 +2328,17 @@ const adminStyles = `
 
   /* ── Tab Nav ───────────────────────────────── */
   .tab-nav-container {
-    background: rgba(15,20,32,0.8);
-    border: 1px solid rgba(30,41,59,0.8);
+    background: rgba(16, 27, 47, 0.88);
+    border: 1px solid rgba(122, 150, 196, 0.32);
     border-radius: 14px;
     padding: 5px;
     backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 12px 28px rgba(0,0,0,0.26);
+  }
+  .tab-nav-strip {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.3rem;
   }
   .tab-btn {
     font-family: 'DM Sans', sans-serif;
@@ -1975,35 +2347,37 @@ const adminStyles = `
     letter-spacing: 0.01em;
     border-radius: 10px;
     transition: all 0.2s ease;
+    min-height: 46px;
+    min-width: 0;
   }
   .tab-btn-active {
-    background: linear-gradient(135deg, rgba(6,182,212,0.2) 0%, rgba(6,182,212,0.08) 100%);
-    color: #67e8f9;
-    border: 1px solid rgba(6,182,212,0.3);
-    box-shadow: 0 0 20px rgba(6,182,212,0.1), inset 0 1px 0 rgba(6,182,212,0.1);
+    background: linear-gradient(135deg, rgba(88,230,255,0.28) 0%, rgba(34,211,238,0.12) 100%);
+    color: #dcf8ff;
+    border: 1px solid rgba(88,230,255,0.48);
+    box-shadow: 0 0 22px rgba(88,230,255,0.18), inset 0 1px 0 rgba(255,255,255,0.15);
   }
   .tab-btn-inactive {
-    color: #475569;
+    color: #b2c4df;
     border: 1px solid transparent;
   }
   .tab-btn-inactive:hover {
-    color: #94a3b8;
-    background: rgba(30,41,59,0.5);
+    color: #e6f1ff;
+    background: rgba(64, 89, 129, 0.45);
   }
 
   /* ── Panel Card ────────────────────────────── */
   .panel-card {
-    background: rgba(13,18,30,0.9);
-    border: 1px solid rgba(30,41,59,0.7);
+    background: var(--admin-panel);
+    border: 1px solid var(--admin-panel-border);
     border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.02);
+    box-shadow: 0 10px 34px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.06);
     backdrop-filter: blur(8px);
   }
   .panel-title {
     font-family: 'Syne', sans-serif;
     font-weight: 600;
     font-size: 1rem;
-    color: #e2e8f0;
+    color: #f5f9ff;
     letter-spacing: -0.01em;
   }
 
@@ -2041,7 +2415,7 @@ const adminStyles = `
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #64748b;
+    color: #9ab0d2;
     margin-bottom: 0.5rem;
   }
   .stat-number {
@@ -2053,7 +2427,7 @@ const adminStyles = `
   }
   .stat-sub {
     font-size: 0.7rem;
-    color: #475569;
+    color: #a8bddb;
     font-family: 'JetBrains Mono', monospace;
     margin-top: 0.25rem;
   }
@@ -2121,14 +2495,14 @@ const adminStyles = `
 
   .btn-outline-custom {
     background: transparent;
-    border: 1px solid rgba(51,65,85,0.8);
-    color: #94a3b8;
+    border: 1px solid rgba(124, 156, 204, 0.55);
+    color: #d2e3fb;
     border-radius: 10px;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
     transition: all 0.2s ease;
   }
-  .btn-outline-custom:hover { border-color: rgba(6,182,212,0.4); color: #67e8f9; background: rgba(6,182,212,0.05); }
+  .btn-outline-custom:hover { border-color: rgba(88,230,255,0.65); color: #effbff; background: rgba(88,230,255,0.12); }
 
   .btn-outline-amber {
     background: transparent;
@@ -2159,7 +2533,7 @@ const adminStyles = `
   }
 
   /* ── Table ─────────────────────────────────── */
-  .table-head { background: rgba(15,20,32,0.8); border-bottom: 1px solid rgba(30,41,59,0.6); }
+  .table-head { background: rgba(17, 30, 53, 0.9); border-bottom: 1px solid rgba(122,150,196,0.34); }
   .table-th {
     padding: 0.875rem 1.5rem;
     text-align: left;
@@ -2168,9 +2542,9 @@ const adminStyles = `
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #475569;
+    color: #9fb4d6;
   }
-  .table-row-hover:hover { background: rgba(6,182,212,0.03); }
+  .table-row-hover:hover { background: rgba(88,230,255,0.07); }
 
   .user-avatar {
     width: 36px; height: 36px;
@@ -2239,23 +2613,23 @@ const adminStyles = `
 
   /* ── Search Input ──────────────────────────── */
   .search-input {
-    background: rgba(15,20,32,0.9);
-    border: 1px solid rgba(30,41,59,0.8);
-    color: #e2e8f0;
+    background: rgba(10,20,38,0.92);
+    border: 1px solid rgba(123,151,194,0.42);
+    color: #f4f8ff;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.875rem;
     transition: all 0.2s ease;
     outline: none;
   }
-  .search-input::placeholder { color: #475569; }
+  .search-input::placeholder { color: #9bb0cf; }
   .search-input:focus {
-    border-color: rgba(6,182,212,0.4);
-    box-shadow: 0 0 0 3px rgba(6,182,212,0.06), 0 0 16px rgba(6,182,212,0.08);
+    border-color: rgba(88,230,255,0.72);
+    box-shadow: 0 0 0 3px rgba(88,230,255,0.15), 0 0 18px rgba(88,230,255,0.2);
   }
-  .search-input option { background: #0f1520; }
+  .search-input option { background: #0f1a2f; }
 
   /* ── Activity Feed ─────────────────────────── */
-  .activity-row:hover { background: rgba(6,182,212,0.02); }
+  .activity-row:hover { background: rgba(88,230,255,0.06); }
   .activity-avatar {
     width: 36px; height: 36px;
     border-radius: 10px;
@@ -2293,8 +2667,8 @@ const adminStyles = `
   .action-chip-slate  { background: rgba(51,65,85,0.4);   border-color: rgba(71,85,105,0.5);  color: #94a3b8; }
 
   .metadata-box {
-    background: rgba(8,12,20,0.8);
-    border: 1px solid rgba(30,41,59,0.6);
+    background: rgba(8, 16, 30, 0.86);
+    border: 1px solid rgba(118, 149, 194, 0.32);
   }
 
   /* ── Settings ──────────────────────────────── */
@@ -2311,14 +2685,14 @@ const adminStyles = `
     backdrop-filter: blur(8px);
   }
   .modal-card {
-    background: rgba(10,15,25,0.98);
-    border: 1px solid rgba(30,41,59,0.8);
+    background: rgba(8, 17, 33, 0.98);
+    border: 1px solid rgba(132, 164, 212, 0.35);
     border-radius: 20px;
     padding: 2rem;
     box-shadow:
-      0 24px 64px rgba(0,0,0,0.6),
-      0 0 0 1px rgba(6,182,212,0.05),
-      inset 0 1px 0 rgba(255,255,255,0.03);
+      0 28px 70px rgba(0,0,0,0.64),
+      0 0 0 1px rgba(88,230,255,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.05);
   }
   .modal-title {
     font-family: 'Syne', sans-serif;
@@ -2328,18 +2702,18 @@ const adminStyles = `
     letter-spacing: -0.02em;
   }
   .modal-close-btn {
-    color: #475569;
+    color: #9db4d7;
     font-size: 1.5rem;
     line-height: 1;
     width: 32px; height: 32px;
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s ease;
-    background: rgba(30,41,59,0.4);
-    border: 1px solid rgba(51,65,85,0.4);
+    background: rgba(35, 53, 84, 0.5);
+    border: 1px solid rgba(122, 150, 196, 0.45);
     cursor: pointer;
   }
-  .modal-close-btn:hover { color: #e2e8f0; background: rgba(51,65,85,0.6); }
+  .modal-close-btn:hover { color: #f8fbff; background: rgba(63, 88, 127, 0.65); }
 
   /* ── Form Fields ───────────────────────────── */
   .form-label {
@@ -2349,31 +2723,31 @@ const adminStyles = `
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #475569;
+    color: #9eb4d6;
     margin-bottom: 0.5rem;
   }
   .form-input {
-    background: rgba(8,12,20,0.9);
-    border: 1px solid rgba(30,41,59,0.8);
-    color: #e2e8f0;
+    background: rgba(9, 18, 34, 0.9);
+    border: 1px solid rgba(122, 150, 195, 0.44);
+    color: #f2f7ff;
     font-family: 'DM Sans', sans-serif;
     font-size: 0.875rem;
     outline: none;
     transition: all 0.2s ease;
   }
-  .form-input::placeholder { color: #334155; }
+  .form-input::placeholder { color: #89a0c2; }
   .form-input:focus {
-    border-color: rgba(6,182,212,0.45);
-    box-shadow: 0 0 0 3px rgba(6,182,212,0.07), 0 0 20px rgba(6,182,212,0.07);
+    border-color: rgba(88,230,255,0.72);
+    box-shadow: 0 0 0 3px rgba(88,230,255,0.14), 0 0 20px rgba(88,230,255,0.2);
   }
 
   /* ── Activity Modal Items ──────────────────── */
   .activity-modal-item {
-    background: rgba(15,20,32,0.7);
-    border: 1px solid rgba(30,41,59,0.6);
+    background: rgba(15, 27, 48, 0.78);
+    border: 1px solid rgba(121, 149, 194, 0.3);
     transition: border-color 0.15s ease;
   }
-  .activity-modal-item:hover { border-color: rgba(6,182,212,0.15); }
+  .activity-modal-item:hover { border-color: rgba(88,230,255,0.4); }
 
   /* ── Loader ────────────────────────────────── */
   .loader-ring {
@@ -2398,4 +2772,28 @@ const adminStyles = `
     border-radius: 2px;
   }
   .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,0.35); }
+
+  @media (max-width: 1280px) {
+    .tab-nav-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .tab-nav-container {
+      overflow-x: auto;
+    }
+
+    .tab-nav-strip {
+      display: flex;
+      gap: 0.35rem;
+      min-width: max-content;
+      padding-bottom: 0.15rem;
+    }
+
+    .tab-btn {
+      min-width: 150px;
+      white-space: nowrap;
+    }
+  }
 `;

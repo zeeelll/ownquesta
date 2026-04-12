@@ -76,7 +76,15 @@ export default function Home() {
   const handleLogout = async () => {
     try {
       setUserDropdownOpen(false);
-      await fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+      await fetch(`${BACKEND_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPath: typeof window !== 'undefined' ? window.location.pathname : '/',
+          lastAction: 'manual_logout_from_landing'
+        })
+      });
     } finally {
       window.location.href = '/';
     }

@@ -21,7 +21,7 @@ import {
   Workflow,
   type LucideIcon,
 } from 'lucide-react';
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 
@@ -238,6 +238,11 @@ function FaqItem({
 }
 
 export default function HelpPage() {
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000';
+
   const darkInputClass =
     'h-12 w-full rounded-2xl border border-white/10 bg-[#081224] px-4 text-sm text-white outline-none transition focus:border-[#80f6d8]/50 autofill:[-webkit-text-fill-color:#ffffff] autofill:shadow-[inset_0_0_0px_1000px_#081224]';
   const darkTextareaClass =
@@ -247,6 +252,8 @@ export default function HelpPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [isAuthenticatedUser, setIsAuthenticatedUser] = useState(false);
   const [issueType, setIssueType] = useState('other');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -272,6 +279,41 @@ export default function HelpPage() {
     const totalBytes = proofFiles.reduce((sum, file) => sum + file.size, 0);
     return (totalBytes / (1024 * 1024)).toFixed(2);
   }, [proofFiles]);
+
+  useEffect(() => {
+    const fetchAuthenticatedUser = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          setIsAuthenticatedUser(false);
+          return;
+        }
+
+        const data = await response.json();
+        const user = data?.user;
+        const userEmail = String(user?.email || '').trim();
+        const userName = String(user?.name || '').trim();
+
+        if (userEmail) {
+          setRegisteredEmail(userEmail);
+          setEmail(userEmail);
+          setStatusEmail(userEmail);
+          setIsAuthenticatedUser(true);
+        }
+
+        if (userName) {
+          setName((prev) => (prev.trim() ? prev : userName));
+        }
+      } catch {
+        setIsAuthenticatedUser(false);
+      }
+    };
+
+    fetchAuthenticatedUser();
+  }, [BACKEND_URL]);
 
   const handleProofChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []).slice(0, 5);
@@ -301,8 +343,9 @@ export default function HelpPage() {
   }, [searchTerm]);
 
   const validateForm = () => {
+    const emailToUse = (registeredEmail || email).trim();
     if (!name.trim()) return 'Please enter your name.';
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Please enter a valid email address.';
+    if (!emailToUse || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToUse)) return 'Please enter a valid email address.';
     if (!subject.trim()) return 'Please add a short issue subject.';
     if (message.trim().length < 20) return 'Please describe your issue with a little more detail.';
     return '';
@@ -324,9 +367,11 @@ export default function HelpPage() {
     setTicketId('');
 
     try {
+      const submitEmail = (registeredEmail || email).trim();
+
       const formData = new FormData();
       formData.append('name', name.trim());
-      formData.append('email', email.trim());
+      formData.append('email', submitEmail);
       formData.append('issueType', issueType);
       formData.append('pageArea', 'Help Page');
       formData.append('severity', 'medium');
@@ -347,10 +392,10 @@ export default function HelpPage() {
 
       setTicketId(data.ticketId ?? '');
       setStatusTicketId(data.ticketId ?? '');
-      setStatusEmail(email.trim());
+      setStatusEmail(submitEmail);
       setSubmitMessage(data.message || 'Your help request was submitted successfully.');
       setName('');
-      setEmail('');
+      setEmail(isAuthenticatedUser ? registeredEmail : '');
       setIssueType('other');
       setSubject('');
       setMessage('');
@@ -548,10 +593,14 @@ export default function HelpPage() {
                 <input
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={isAuthenticatedUser ? 'Using your registered account email' : 'Enter your email'}
                   type="email"
+                  readOnly={isAuthenticatedUser}
                   className={darkInputClass}
                 />
+                {isAuthenticatedUser && (
+                  <span className="mt-2 block text-xs text-[#9ec2dd]">Using your registered account email for this request.</span>
+                )}
               </label>
 
               <label className="block">

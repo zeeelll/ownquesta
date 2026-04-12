@@ -3,6 +3,7 @@
 const bcrypt = require("bcryptjs");
 const passport = require("passport");
 const User = require("../models/User");
+const Activity = require("../models/Activity");
 const SignupOtp = require("../models/SignupOtp");
 const speakeasy = require('speakeasy');
 const { sendNotificationEmail, sendWelcomeEmail } = require("../utils/email");
@@ -208,6 +209,43 @@ exports.logout = async (req, res) => {
     : null;
 
   if (actor) {
+    const requestBody = req.body && typeof req.body === "object" ? req.body : {};
+    let recentLogin = null;
+
+    try {
+      recentLogin = await Activity.findOne({ userId: actor.id, action: "login" })
+        .sort({ timestamp: -1 })
+        .select("timestamp metadata")
+        .lean();
+    } catch (error) {
+      console.warn("Unable to compute logout session duration:", error?.message || error);
+    }
+
+    const currentTimestamp = Date.now();
+    const loginTimestamp = recentLogin?.timestamp ? new Date(recentLogin.timestamp).getTime() : null;
+    const sessionDurationMs = loginTimestamp ? Math.max(currentTimestamp - loginTimestamp, 0) : null;
+
+    const referer = req.get("referer");
+    let refererPath = undefined;
+    if (referer) {
+      try {
+        refererPath = new URL(referer).pathname;
+      } catch {
+        refererPath = undefined;
+      }
+    }
+
+    const logoutMetadata = {
+      logoutMethod: actor.provider || 'session',
+      role: actor.role,
+      currentPath: typeof requestBody.currentPath === "string" ? requestBody.currentPath : refererPath,
+      lastAction: typeof requestBody.lastAction === "string" ? requestBody.lastAction : undefined,
+      sessionStartedAt: recentLogin?.timestamp ? new Date(recentLogin.timestamp).toISOString() : undefined,
+      sessionDurationMs,
+      sessionDurationSeconds: sessionDurationMs !== null ? Number((sessionDurationMs / 1000).toFixed(1)) : undefined,
+      loginMethod: recentLogin?.metadata?.loginMethod,
+    };
+
     await ActivityService.logActivity(
       actor.id,
       actor.email,
@@ -215,7 +253,7 @@ exports.logout = async (req, res) => {
       'logout',
       `${actor.role === 'admin' ? 'Admin' : 'User'} logged out`,
       req,
-      { logoutMethod: actor.provider || 'session', role: actor.role }
+      logoutMetadata
     );
   }
 
@@ -509,7 +547,7 @@ exports.sendSignupOtp = async (req, res) => {
     if (existing) return res.status(400).json({ message: 'Email already used' });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 2 * 60 * 1000);
+    const expiry = new Date(Date.now() + 1 * 60 * 1000);
 
     await SignupOtp.findOneAndUpdate(
       { email: normalizedEmail },
@@ -528,7 +566,7 @@ exports.sendSignupOtp = async (req, res) => {
         <h2 style="color: #8b5cf6;">Verify Your Ownquesta Account</h2>
         <p>Your signup OTP is:</p>
         <p><strong style="font-size: 24px; color: #8b5cf6;">${otp}</strong></p>
-        <p><strong style="color: #dc2626;">This OTP expires in 2 minutes.</strong></p>
+        <p><strong style="color: #dc2626;">This OTP expires in 1 minute.</strong></p>
         <p>If you did not request this, please ignore this email.</p>
         <br>
         <p>Best regards,<br>Ownquesta Team</p>
@@ -570,7 +608,7 @@ exports.verifySignupOtp = async (req, res) => {
     record.verified = true;
     record.verifiedAt = new Date();
     record.otp = null;
-    record.expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    record.expiresAt = new Date(Date.now() + 1 * 60 * 1000);
     await record.save();
 
     res.json({ message: 'Signup OTP verified successfully' });
@@ -591,7 +629,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiry = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+    const expiry = new Date(Date.now() + 1 * 60 * 1000); // 1 minute
 
     // Save OTP to user
     user.resetOtp = otp;
@@ -623,7 +661,7 @@ exports.forgotPassword = async (req, res) => {
         <p>Hello ${user.name},</p>
         <p>You requested a password reset for your Ownquesta account.</p>
         <p>Your OTP code is: <strong style="font-size: 24px; color: #8b5cf6;">${otp}</strong></p>
-        <p><strong style="color: #dc2626;">⚠️ This code will expire in 2 minutes.</strong> Please use it immediately.</p>
+        <p><strong style="color: #dc2626;">⚠️ This code will expire in 1 minute.</strong> Please use it immediately.</p>
         <p>If you didn't request this, please ignore this email.</p>
         <br>
         <p>Best regards,<br>Ownquesta Team</p>

@@ -1,5 +1,5 @@
 """
-agents.py – OpenAI-powered ML agents for Lab Playground
+agents.py – OpenAI-powered ML agents for AutoML Playground
 
 Roles:
   1. analyze()          – profile data, feature engineering, top 3 model suggestions
@@ -60,6 +60,19 @@ When analysing a dataset you always:
   • Spot quality issues (nulls, skew, cardinality)
   • Propose feature-engineering steps and write clean Python code for them
   • Recommend the top 3 scikit-learn models with clear reasoning
+    • Include safe preprocessing for missing values, datetime parts, and high-cardinality / zero-variance columns
+    • Preserve feature names after preprocessing and encoding
+    • Prefer train-only fitting for any scaler / encoder / imputer logic
+
+Required preprocessing rules your feature_engineering_code must follow:
+    - Missing values: use SimpleImputer with mean / median / most_frequent based on dtype
+    - Encode categoricals with pd.get_dummies() or OneHotEncoder, then store trained_columns = X_train.columns.tolist()
+    - After preprocessing, always store feature_names = X.columns.tolist()
+    - Extract datetime parts when a datetime column is detected
+    - Drop columns with >50% missing values, zero variance, or cardinality >95%
+    - If a model needs scaling, use StandardScaler for tree-based models only when necessary, and MinMaxScaler for linear / neural models
+    - Never fit preprocessing on test data
+    - End with a clear print() statement showing the processed shape
 """
 
 _ANALYSIS_USER = """\
@@ -79,7 +92,7 @@ Return EXACTLY the following JSON (no extra keys, no markdown outside the block)
   "feature_analysis": "<what columns exist, their types, any quality issues>",
   "missing_values_note": "<how to handle NaN — drop / impute / flag>",
   "feature_engineering_reasoning": "<what transformations are needed and why>",
-  "feature_engineering_code": "<complete Python — 'df' is already in scope; use pandas/sklearn; end with print('Feature engineering done. Shape:', df_processed.shape) or similar>",
+    "feature_engineering_code": "<complete Python — 'df' is already in scope; use pandas/sklearn; create df_processed = df.copy(); save feature_names = X.columns.tolist() after preprocessing; keep trained_columns = X_train.columns.tolist() after encoding; use train-only fitting for scaler/encoder/imputer; end with print('Feature engineering done. Shape:', df_processed.shape) or similar>",
   "models": [
     {{
       "rank": 1,
@@ -106,6 +119,19 @@ Always use seaborn with dark theme for any visualisation:
   plt.style.use('dark_background')
   plt.rcParams.update({{'figure.facecolor':'#0d1117','axes.facecolor':'#161b22','text.color':'#e6edf3','axes.labelcolor':'#8b949e','xtick.color':'#8b949e','ytick.color':'#8b949e'}})
 Never call plt.show() — the backend captures figures automatically.
+
+MANDATORY TRAINING AND PREPROCESSING RULES:
+    - Always create a preprocessing pipeline with train-only fitting.
+    - Always save pipeline = Pipeline([scaler, encoder]) or equivalent before fitting the model.
+    - Always store feature_names = X.columns.tolist() immediately after preprocessing.
+    - After get_dummies() always store trained_columns = X_train.columns.tolist().
+    - Before any prediction, reindex input with X_input = X_input.reindex(columns=trained_columns, fill_value=0).
+    - Use SimpleImputer(mean/median/most_frequent) based on dtype for missing values.
+    - If datetime columns exist, extract year / month / day / hour parts instead of passing datetimes directly.
+    - Drop columns with more than 50% missing values, zero variance, or cardinality above 95%.
+    - Use StandardScaler for tree-based models only when needed; use MinMaxScaler for linear / neural models.
+    - For prediction code, always run pipeline.transform(X_input) after reindexing when a preprocessing pipeline exists.
+    - Never allow a feature mismatch between train and predict paths.
 """
 
 _PIPELINE_USER = """\
@@ -130,6 +156,15 @@ For regression: include RMSE, MAE, R² score and a seaborn residual plot.
 Include StratifiedKFold cross-validation for classification (KFold for regression) if dataset has < 5000 rows.
 Save the trained model to a variable called `model`. List the exact feature column names used for X.
 Add print statements so each cell has visible output. Do NOT call plt.show().
+
+For every pipeline cell that builds features, obey these rules exactly:
+    - Clean numeric-looking strings first, then handle datetime columns, then drop high-missing / zero-variance / high-cardinality columns.
+    - After encoding, always set trained_columns = X_train.columns.tolist().
+    - Before prediction, always align X_input to trained_columns with fill_value=0.
+    - Save feature_names = X.columns.tolist() after preprocessing.
+    - If feature encoding is done with pd.get_dummies(), ensure train and test columns match before fitting.
+    - If a preprocessing pipeline exists, fit it only on train data and use pipeline.transform() for test / prediction inputs.
+    - Return prediction, probability, top 3 important features, and a plain-English reason in any generated prediction cell.
 
 Return EXACTLY:
 {{
@@ -161,6 +196,24 @@ Rules:
 • Wrap numeric results, dataframes, and computation outputs in print()
 • If no useful printable output can be produced, use action="explain" instead
 
+Prediction and feature-mismatch rules:
+• When the question is about prediction, schema mismatch, feature alignment, or missing columns, always use the trained_columns pattern.
+• Always reindex inputs before prediction: X_input = X_input.reindex(columns=trained_columns, fill_value=0)
+• If a preprocessing pipeline exists, use pipeline.transform(X_input) before model.predict().
+• If you return prediction text, follow the required format with Prediction, Confidence, Reason, Key Features, and Suggestion.
+
+Model-choice reasoning rules:
+• If the user asks why a specific model was chosen, answer using the actual dataset context, not generic ML theory.
+• Ground the reply in: feature types, missing values, cardinality, outliers, dataset size, class balance, and whether the target is classification or regression.
+• Mention at least one concrete signal from the dataset profile or feature analysis.
+• Do not say a model is "robust" or "handles complexity" unless the context really supports that claim.
+• Prefer this structure in the reply:
+    1) Dataset signals
+    2) Why the model fits those signals
+    3) Trade-off versus the runner-up model
+    4) Caveat or fallback option
+• Keep the tone plain and specific; avoid filler like "several factors" or "good balance" without evidence.
+
 Respond ONLY with valid JSON:
 {{
   "action": "explain" | "execute",
@@ -183,8 +236,17 @@ _PREDICT_CODE_SYS = """\
 You are an ML engineer. Given a trained sklearn model (variable 'model') in scope,
 feature column names, and user-provided input values, generate Python code
 to make a prediction and print the result clearly.
-Handle type conversions (int/float for numeric, str for categorical).
-Also print a confidence / probability breakdown if the model supports predict_proba.
+
+Hard requirements:
+    - Build X_input as a single-row DataFrame from the user values.
+    - Strip whitespace from column names and values when needed.
+    - Always run X_input = X_input.reindex(columns=trained_columns, fill_value=0).
+    - If a preprocessing pipeline exists, always run X_input = pipeline.transform(X_input) before model.predict().
+    - Handle type conversions (int/float for numeric, str for categorical).
+    - If datetime fields are present, convert or extract datetime parts before prediction.
+    - Print Prediction, Confidence, Reason, Key Features, and Suggestion in plain English.
+    - If predict_proba exists, print a probability breakdown.
+    - If top 3 important features are available, report them; otherwise explain that feature importance is unavailable.
 Respond ONLY with the Python code — no markdown fences, no explanation.
 """
 
@@ -199,6 +261,14 @@ Known API changes to fix automatically:
   - pandas >= 2.0: DataFrame.append() removed → use pd.concat()
   - pandas >= 2.0: fillna() with numeric value on object column needs explicit cast
   - matplotlib: plt.show() must never be called (backend captures automatically)
+
+Prediction and feature-mismatch fixes you must apply automatically:
+    - ValueError features mismatch: reindex input to trained_columns with fill_value=0
+    - KeyError: strip whitespace from column names, then check spelling and exact column presence
+    - Shape error after get_dummies(): rebuild aligned train/test columns with X_train, X_test = X_train.align(X_test, join='left', axis=1, fill_value=0)
+    - Missing prediction preprocessing: add pipeline.transform(X_input) after alignment when a preprocessing pipeline exists
+    - Prediction output must include Prediction, Confidence, Reason, Key Features, and Suggestion
+    - If a model exposes feature_importances_ or coef_, use it for top 3 feature ranking; otherwise degrade gracefully
 
 Rules:
   • Fix ONLY the broken part — keep everything else identical
@@ -320,7 +390,21 @@ class MLAgent:
     def _ctx_str(self, context: dict) -> str:
         return json.dumps(
             {k: context.get(k) for k in
-             ["filename", "problem_type", "target_column", "stage", "dataset_summary"]},
+             [
+                 "filename",
+                 "problem_type",
+                 "target_column",
+                 "stage",
+                 "selected_model",
+                 "dataset_summary",
+                 "feature_analysis",
+                 "missing_values_note",
+                 "preprocessing_recommendations",
+                 "eda_summary",
+                 "feature_importance_notes",
+                 "feature_columns",
+                 "models",
+             ]},
             ensure_ascii=False,
         )
 
@@ -487,8 +571,8 @@ class MLAgent:
             return _extract_json(raw)
         except ValueError:
             return {
-                "fixed_code": "",
-                "explanation": raw[:300],
+                "fixed_code": failed_code,
+                "explanation": raw[:300] or "Guard agent could not parse a fix; keeping the previous code unchanged.",
                 "needs_search": False,
                 "search_query": "",
             }

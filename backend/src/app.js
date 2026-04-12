@@ -18,6 +18,7 @@ const adminRoutes = require("./routes/admin.routes");
 const genRoutes = require("./routes/gen.routes");
 const projectRoutes = require("./routes/project.routes");
 const helpRoutes = require("./routes/help.routes");
+const paymentsRoutes = require("./routes/payments.routes");
 
 require("./config/passport");
 
@@ -81,4 +82,5 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/gen", genRoutes);
 app.use("/api/user/projects", projectRoutes);
 app.use("/api/help", helpRoutes);
+app.use("/api/payments", paymentsRoutes);
 module.exports = app;

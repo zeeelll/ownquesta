@@ -215,7 +215,15 @@ export default function LoginPage() {
   const handleLogoutFromLogin = () => {
     setLoading(true);
     setCurrentUser({ authenticated: false });
-    fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
+    fetch(`${BACKEND_URL}/api/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPath: typeof window !== 'undefined' ? window.location.pathname : '/login',
+        lastAction: 'manual_logout_from_login'
+      })
+    })
       .finally(() => setTimeout(() => window.location.replace('/'), 100));
   };
 

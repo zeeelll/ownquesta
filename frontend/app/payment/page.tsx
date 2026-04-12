@@ -179,6 +179,12 @@ export default function PaymentPage() {
 
   const downloadTarget = product === 'python-script' ? 'py' : product === 'jupyter-notebook' ? 'ipynb' : 'trained-model';
   const exportTypes    = product === 'python-script' ? ['py'] : product === 'jupyter-notebook' ? ['ipynb'] : [];
+  const paymentTypeLabel =
+    downloadTarget === 'trained-model'
+      ? 'Model Payment'
+      : downloadTarget === 'py'
+        ? '.py Payment'
+        : 'ipynb Payment';
   const checkoutTitle  = downloadTarget === 'trained-model' ? 'Unlock trained model download' : downloadTarget === 'py' ? 'Unlock Python script download' : 'Unlock Jupyter notebook download';
   const productSummary = downloadTarget === 'trained-model' ? `${modelName} trained model (.pkl)` : downloadTarget === 'py' ? 'Python pipeline export (.py)' : 'Jupyter notebook export (.ipynb)';
   const productDetails = downloadTarget === 'trained-model' ? 'Trained .pkl model only' : downloadTarget === 'py' ? 'Python script file only' : 'Notebook file only';
@@ -336,7 +342,7 @@ export default function PaymentPage() {
             <div className="pw-nav-right">
               <span className="pw-status-chip">
                 <span className={`pw-dot ${step === 'success' ? 'dot-green' : step === 'processing' ? 'dot-amber' : 'dot-violet'}`} />
-                {step === 'details' ? 'Secure checkout' : step === 'processing' ? 'Processing payment' : 'Returning to AutoML Playground'}
+                {step === 'details' ? paymentTypeLabel : step === 'processing' ? `Processing ${paymentTypeLabel}` : 'Returning to AutoML Playground'}
               </span>
               {step === 'details' && (
                 <Link href={returnPath} className="pw-back-btn">
@@ -360,6 +366,7 @@ export default function PaymentPage() {
                 <span className="pw-gradient-text">Ownquesta</span>{' '}
                 export checkout
               </h1>
+              <p className="pw-subtitle" style={{ marginBottom: 8 }}>{paymentTypeLabel}</p>
               <p className="pw-subtitle">Your export is ready. Complete secure payment to instantly unlock and download your selected file.</p>
 
               <StepIndicator current={step} />
