@@ -6,9 +6,10 @@ import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { fetchAvailableModels, type AIModel } from '../../../lib/aiModels';
+import { trackDownloadAccess } from '../../../services/api';
 
-const AGENT_URL = 'http://localhost:8020';
-const LAB_URL   = 'http://localhost:8010';
+const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
+const LAB_URL   = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
 
 // ── SSE reader ────────────────────────────────────────────────────────────────
 async function* readSSE(response: Response): AsyncGenerator<Record<string, unknown>> {
@@ -504,6 +505,7 @@ export default function ScriptPage() {
   // Payment modal state
   const [payModal,   setPayModal]   = useState<DownloadType | null>(null);
   const [paidTypes,  setPaidTypes]  = useState<Set<DownloadType>>(new Set());
+  const [paidOrderIds, setPaidOrderIds] = useState<Partial<Record<DownloadType, string>>>({});
   const [dlNotebook, setDlNotebook] = useState(false);
 
   // ── Boot ──────────────────────────────────────────────────────────────────
@@ -608,11 +610,26 @@ export default function ScriptPage() {
   }, [isRunning, sessionId, script]);
 
   // ── Actual download helpers (called AFTER payment) ────────────────────────
-  const doDownloadPy = useCallback(() => {
+  const doDownloadPy = useCallback(async (accessType: 'free' | 'paid') => {
     triggerDownload(script, 'pipeline.py', 'text/x-python');
-  }, [script]);
+    try {
+      await trackDownloadAccess({
+        sessionId,
+        orderId: accessType === 'paid' ? (paidOrderIds.py || '') : '',
+        modelName: 'Python Script (.py)',
+        productType: 'py',
+        fileName: 'pipeline.py',
+        source: 'script-editor',
+        accessType,
+        amountInr: accessType === 'paid' ? DOWNLOAD_PRICE : 0,
+        metadata: { page: 'automl/script' },
+      });
+    } catch {
+      // keep download non-blocking
+    }
+  }, [script, sessionId, paidOrderIds]);
 
-  const doDownloadNotebook = useCallback(async () => {
+  const doDownloadNotebook = useCallback(async (accessType: 'free' | 'paid') => {
     if (dlNotebook || !sessionId) return;
     setDlNotebook(true);
     try {
@@ -627,13 +644,28 @@ export default function ScriptPage() {
         const blob  = await res.blob();
         const fname = res.headers.get('content-disposition')?.match(/filename="?([^"]+)"?/)?.[1] ?? 'pipeline.ipynb';
         triggerDownload(await blob.text(), fname, 'application/json');
+        try {
+          await trackDownloadAccess({
+            sessionId,
+            orderId: accessType === 'paid' ? (paidOrderIds.ipynb || '') : '',
+            modelName: 'Jupyter Notebook (.ipynb)',
+            productType: 'ipynb',
+            fileName: fname,
+            source: 'script-editor',
+            accessType,
+            amountInr: accessType === 'paid' ? DOWNLOAD_PRICE : 0,
+            metadata: { page: 'automl/script' },
+          });
+        } catch {
+          // keep download non-blocking
+        }
       }
     } catch {
       // silent
     } finally {
       setDlNotebook(false);
     }
-  }, [dlNotebook, sessionId, script]);
+  }, [dlNotebook, sessionId, script, paidOrderIds]);
 
   useEffect(() => {
     if (!sessionId || typeof window === 'undefined') return;
@@ -650,6 +682,7 @@ export default function ScriptPage() {
         sessionId?: string;
         product?: string;
         downloadTarget?: DownloadType | 'trained-model';
+        orderId?: string;
       };
 
       if (!payment.paid) return;
@@ -665,12 +698,15 @@ export default function ScriptPage() {
       if (!target) return;
 
       setPaidTypes(prev => new Set([...prev, target]));
+      if (payment.orderId) {
+        setPaidOrderIds(prev => ({ ...prev, [target]: payment.orderId as string }));
+      }
       sessionStorage.removeItem('ownquesta_model_payment');
       window.history.replaceState({}, '', window.location.pathname);
 
       window.setTimeout(() => {
-        if (target === 'py') doDownloadPy();
-        if (target === 'ipynb') void doDownloadNotebook();
+        if (target === 'py') void doDownloadPy('paid');
+        if (target === 'ipynb') void doDownloadNotebook('paid');
       }, 150);
     } catch {
       // ignore invalid payment cache
@@ -718,15 +754,15 @@ export default function ScriptPage() {
 
   // ── Download click handlers — first download free, then payment ───────────
   const handleDownloadPy = () => {
-    if (paidTypes.has('py')) { doDownloadPy(); return; }
-    if (claimFreeDownload('py')) { doDownloadPy(); return; }
+    if (paidTypes.has('py')) { void doDownloadPy('paid'); return; }
+    if (claimFreeDownload('py')) { void doDownloadPy('free'); return; }
     openExportPaymentPage('py');
   };
 
   const handleDownloadNotebook = () => {
     if (dlNotebook) return;
-    if (paidTypes.has('ipynb')) { doDownloadNotebook(); return; }
-    if (claimFreeDownload('ipynb')) { void doDownloadNotebook(); return; }
+    if (paidTypes.has('ipynb')) { void doDownloadNotebook('paid'); return; }
+    if (claimFreeDownload('ipynb')) { void doDownloadNotebook('free'); return; }
     openExportPaymentPage('ipynb');
   };
 
@@ -761,8 +797,8 @@ export default function ScriptPage() {
 
     setPayModal(null);
     setTimeout(() => {
-      if (type === 'py') doDownloadPy();
-      if (type === 'ipynb') doDownloadNotebook();
+      if (type === 'py') void doDownloadPy('paid');
+      if (type === 'ipynb') void doDownloadNotebook('paid');
     }, 300);
   };
 

@@ -124,8 +124,15 @@ MANDATORY TRAINING AND PREPROCESSING RULES:
     - Always create a preprocessing pipeline with train-only fitting.
     - Always save pipeline = Pipeline([scaler, encoder]) or equivalent before fitting the model.
     - Always store feature_names = X.columns.tolist() immediately after preprocessing.
+    - After model.fit(), always persist artifacts with:
+      joblib.dump(X_train.columns.tolist(), 'feature_names.pkl')
+      joblib.dump(model, 'model.pkl')
     - After get_dummies() always store trained_columns = X_train.columns.tolist().
     - Before any prediction, reindex input with X_input = X_input.reindex(columns=trained_columns, fill_value=0).
+    - Add and use a helper named auto_fix_features(model, input_data) before prediction.
+    - In auto_fix_features, check model.n_features_in_ against incoming feature count and auto-align when mismatched.
+    - In auto_fix_features, prefer model.feature_names_in_ and fallback to joblib.load('feature_names.pkl').
+    - In auto_fix_features, add missing features with 0 and reorder columns to training feature order.
     - Use SimpleImputer(mean/median/most_frequent) based on dtype for missing values.
     - If datetime columns exist, extract year / month / day / hour parts instead of passing datetimes directly.
     - Drop columns with more than 50% missing values, zero variance, or cardinality above 95%.
@@ -162,8 +169,10 @@ For every pipeline cell that builds features, obey these rules exactly:
     - After encoding, always set trained_columns = X_train.columns.tolist().
     - Before prediction, always align X_input to trained_columns with fill_value=0.
     - Save feature_names = X.columns.tolist() after preprocessing.
+    - Always save feature_names.pkl with model.pkl right after fitting.
     - If feature encoding is done with pd.get_dummies(), ensure train and test columns match before fitting.
     - If a preprocessing pipeline exists, fit it only on train data and use pipeline.transform() for test / prediction inputs.
+    - In prediction cells, run auto_fix_features(model, input_data) before model.predict().
     - Return prediction, probability, top 3 important features, and a plain-English reason in any generated prediction cell.
 
 Return EXACTLY:

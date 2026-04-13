@@ -22,7 +22,7 @@ export default function Chatbot({ userId }: ChatbotProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const FASTAPI_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://127.0.0.1:8000';
+  const FASTAPI_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_FASTAPI_URL || 'http://127.0.0.1:8000';
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -54,31 +54,15 @@ export default function Chatbot({ userId }: ChatbotProps) {
       return;
     }
 
-    try {
-      const response = await fetch(`${FASTAPI_URL}/conversation/history/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Clear messages and show fresh greeting
-      const greetingMessage: Message = {
-        id: 'greeting-' + Date.now(),
-        type: 'bot',
-        content: `🧹 Chat history cleared! Let's start fresh. How can I help you?`,
-        timestamp: new Date()
-      };
-      setMessages([greetingMessage]);
-      setInputValue('');
-    } catch (error) {
-      console.error('Clear chat error:', error);
-      alert('Failed to clear chat history. Please try again.');
-    }
+    // Questa endpoint is stateless; clear local transcript only.
+    const greetingMessage: Message = {
+      id: 'greeting-' + Date.now(),
+      type: 'bot',
+      content: `🧹 Chat history cleared! Let's start fresh. How can I help you?`,
+      timestamp: new Date()
+    };
+    setMessages([greetingMessage]);
+    setInputValue('');
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -99,16 +83,20 @@ export default function Chatbot({ userId }: ChatbotProps) {
     setIsLoading(true);
     setHasError(false);
 
+    const history = messages
+      .filter((msg) => !msg.id.startsWith('greeting'))
+      .map((msg) => ({ role: msg.type === 'user' ? 'user' : 'assistant', content: msg.content }));
+
     try {
-      const response = await fetch(`${FASTAPI_URL}/conversation/chat`, {
+      const response = await fetch(`${FASTAPI_URL}/questa/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          user_id: userId,
-          message: inputValue
+          message: inputValue,
+          history,
         })
       });
 
@@ -122,7 +110,7 @@ export default function Chatbot({ userId }: ChatbotProps) {
       const botMessage: Message = {
         id: 'bot-' + Date.now(),
         type: 'bot',
-        content: data.message || data.response || 'I understand. Can you tell me more?',
+        content: data.reply || data.message || data.response || 'I understand. Can you tell me more?',
         timestamp: new Date()
       };
 

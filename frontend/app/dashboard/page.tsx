@@ -1315,6 +1315,14 @@ export default function DashboardPage() {
             Home
           </button>
 
+          <button onClick={() => router.push('/my-downloads')} className="nav-pill">
+            My Downloads
+          </button>
+
+          <button onClick={() => router.push('/my-deployments')} className="nav-pill">
+            My Deployments
+          </button>
+
           {/* User dropdown */}
           <div id="user-menu" style={{ position:"relative" }}>
             <button

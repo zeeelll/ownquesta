@@ -3,6 +3,7 @@
 const User = require("../models/User");
 const Project = require("../models/Project");
 const Payment = require("../models/Payment");
+const DownloadAccess = require("../models/DownloadAccess");
 const ActivityService = require("../services/activity.service");
 
 const ACTIVE_PROJECT_STAGES = ["dataset_uploaded", "eda_completed", "model_selected", "training"];
@@ -313,9 +314,49 @@ exports.getAllPayments = async (req, res) => {
       });
     }
 
+    const downloadQuery = {};
+    if (productType && productType !== "all") downloadQuery.productType = productType;
+
+    let downloads = await DownloadAccess.find(downloadQuery)
+      .populate("userId", "name email role")
+      .sort({ downloadedAt: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    if (status && status !== "all") {
+      if (status === "paid") {
+        downloads = downloads.filter((record) => record.accessType === "paid");
+      } else if (status === "created" || status === "failed") {
+        downloads = [];
+      }
+    }
+
+    if (search) {
+      downloads = downloads.filter((record) => {
+        const linkedUser = record.userId && typeof record.userId === "object" ? record.userId : null;
+        return [
+          record.orderId,
+          record.customerName,
+          record.customerEmail,
+          record.modelName,
+          record.fileName,
+          record.source,
+          record.productType,
+          record.accessType,
+          record.sessionId,
+          linkedUser?.name,
+          linkedUser?.email,
+          linkedUser?.role,
+        ].some((value) => typeof value === "string" && value.toLowerCase().includes(search));
+      });
+    }
+
     const summary = {
       total: payments.length,
       paid: payments.filter((payment) => payment.status === "paid").length,
+      freeDownloads: downloads.filter((record) => record.accessType === "free").length,
+      paidDownloads: downloads.filter((record) => record.accessType === "paid").length,
+      downloadEvents: downloads.length,
       revenueInr: Number(
         payments
           .filter((payment) => payment.status === "paid")
@@ -324,7 +365,7 @@ exports.getAllPayments = async (req, res) => {
       ),
     };
 
-    res.json({ payments, summary });
+    res.json({ payments, downloads, summary });
   } catch (error) {
     console.error("Error fetching payments:", error);
     res.status(500).json({ message: "Server error" });

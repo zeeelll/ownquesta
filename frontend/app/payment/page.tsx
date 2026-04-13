@@ -177,17 +177,38 @@ export default function PaymentPage() {
   const orderId = useMemo(() => sessionId ? `OQ-${sessionId.slice(0, 8).toUpperCase()}` : 'OQ-INSTANT-DL', [sessionId]);
   const upiApproxAmount = useMemo(() => parseFloat((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);
 
+  const isDeployProduct = product === 'mlops-deploy';
   const downloadTarget = product === 'python-script' ? 'py' : product === 'jupyter-notebook' ? 'ipynb' : 'trained-model';
-  const exportTypes    = product === 'python-script' ? ['py'] : product === 'jupyter-notebook' ? ['ipynb'] : [];
+  const exportTypes    = product === 'python-script' ? ['py'] : product === 'jupyter-notebook' ? ['ipynb'] : ['py', 'ipynb'];
   const paymentTypeLabel =
-    downloadTarget === 'trained-model'
+    isDeployProduct
+      ? 'Deploy Payment'
+      : downloadTarget === 'trained-model'
       ? 'Model Payment'
       : downloadTarget === 'py'
         ? '.py Payment'
         : 'ipynb Payment';
-  const checkoutTitle  = downloadTarget === 'trained-model' ? 'Unlock trained model download' : downloadTarget === 'py' ? 'Unlock Python script download' : 'Unlock Jupyter notebook download';
-  const productSummary = downloadTarget === 'trained-model' ? `${modelName} trained model (.pkl)` : downloadTarget === 'py' ? 'Python pipeline export (.py)' : 'Jupyter notebook export (.ipynb)';
-  const productDetails = downloadTarget === 'trained-model' ? 'Trained .pkl model only' : downloadTarget === 'py' ? 'Python script file only' : 'Notebook file only';
+  const checkoutTitle  = isDeployProduct
+    ? 'Unlock MLOps deployment'
+    : downloadTarget === 'trained-model'
+      ? 'Unlock trained model download'
+      : downloadTarget === 'py'
+        ? 'Unlock Python script download'
+        : 'Unlock Jupyter notebook download';
+  const productSummary = isDeployProduct
+    ? `${modelName} production deployment (FastAPI + Kubernetes)`
+    : downloadTarget === 'trained-model'
+      ? `${modelName} trained model (.pkl)`
+      : downloadTarget === 'py'
+        ? 'Python pipeline export (.py)'
+        : 'Jupyter notebook export (.ipynb)';
+  const productDetails = isDeployProduct
+    ? 'Managed MLOps deployment with monitoring and autoscaling'
+    : downloadTarget === 'trained-model'
+      ? 'Trained .pkl model only'
+      : downloadTarget === 'py'
+        ? 'Python script file only'
+        : 'Notebook file only';
 
   const upiPaymentLink = useMemo(() => {
     const p = new URLSearchParams({ pa: OWNQUESTA_UPI_ID, pn: OWNQUESTA_UPI_NAME, tn: `Ownquesta ${orderId}`, tr: orderId, am: upiApproxAmount.toString(), cu: 'INR' });
@@ -224,14 +245,20 @@ export default function PaymentPage() {
   // ── Simulated progress animation
   useEffect(() => {
     if (step !== 'processing') return;
-    const messages = ['Initiating secure connection...', 'Verifying payment signature...', 'Confirming with bank...', 'Unlocking your download...', 'Almost done...'];
+    const messages = [
+      'Initiating secure connection...',
+      'Verifying payment signature...',
+      'Confirming with bank...',
+      isDeployProduct ? 'Preparing deployment resources...' : 'Unlocking your download...',
+      'Almost done...',
+    ];
     let i = 0;
     const interval = setInterval(() => {
       setProgress(p => Math.min(p + Math.random() * 12 + 3, 90));
       if (i < messages.length) { setProgressText(messages[i++]); }
     }, 600);
     return () => clearInterval(interval);
-  }, [step]);
+  }, [step, isDeployProduct]);
 
   // ── Handlers
   const handleCopyUpi = useCallback(async () => {
@@ -271,8 +298,19 @@ export default function PaymentPage() {
     setProgress(100);
     setPaidOrderId(createdOrderId);
     setStep('success');
-    sessionStorage.setItem('ownquesta_model_payment', JSON.stringify({ paid: true, product, sessionId, modelName, price, paidAt: Date.now(), method: paymentMethod, orderId: createdOrderId, downloadTarget, unlocks: [downloadTarget], gateway: 'razorpay' }));
-    sessionStorage.setItem('ownquesta_export_access', JSON.stringify({ paid: true, sessionId, types: exportTypes, downloadTarget, orderId: createdOrderId, grantedAt: Date.now() }));
+    sessionStorage.setItem('ownquesta_model_payment', JSON.stringify({ paid: true, product, sessionId, modelName, price, paidAt: Date.now(), method: paymentMethod, orderId: createdOrderId, downloadTarget, unlocks: isDeployProduct ? ['deploy'] : [downloadTarget], gateway: 'razorpay' }));
+    if (isDeployProduct) {
+      sessionStorage.setItem('ownquesta_deploy_access', JSON.stringify({
+        paid: true,
+        sessionId,
+        modelName,
+        orderId: createdOrderId,
+        method: paymentMethod,
+        grantedAt: Date.now(),
+      }));
+    } else {
+      sessionStorage.setItem('ownquesta_export_access', JSON.stringify({ paid: true, sessionId, types: exportTypes, downloadTarget, orderId: createdOrderId, grantedAt: Date.now() }));
+    }
     setTimeout(() => { const p = new URLSearchParams(); p.set('payment', 'success'); if (sessionId) p.set('session', sessionId); router.push(`${returnPath}?${p.toString()}`); }, 1400);
   };
 

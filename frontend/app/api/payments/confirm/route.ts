@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
             ? 'py'
             : payment.product === 'jupyter-notebook'
               ? 'ipynb'
+              : payment.product === 'mlops-deploy'
+                ? 'deploy'
               : 'model';
 
           await fetch(`${BACKEND_BASE}/api/payments/notify-success`, {

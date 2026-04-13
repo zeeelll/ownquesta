@@ -10,7 +10,7 @@ const paymentSchema = new mongoose.Schema(
     product: { type: String, default: "trained-model" },
     productType: {
       type: String,
-      enum: ["model", "py", "ipynb", "other"],
+      enum: ["model", "py", "ipynb", "deploy", "other"],
       default: "model",
       index: true,
     },

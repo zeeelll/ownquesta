@@ -31,6 +31,7 @@ import {
   Smartphone,
   Wallet,
   CreditCard,
+  Gift,
   AlertTriangle,
   CheckCircle,
   XCircle,
@@ -119,7 +120,7 @@ interface AdminPayment {
   customerName: string;
   customerEmail: string;
   product: string;
-  productType: 'model' | 'py' | 'ipynb' | 'other';
+  productType: 'model' | 'py' | 'ipynb' | 'deploy' | 'other';
   modelName?: string;
   method: string;
   gateway: string;
@@ -136,10 +137,35 @@ interface AdminPayment {
   } | string | null;
 }
 
+interface AdminDownloadAccess {
+  _id: string;
+  orderId?: string;
+  sessionId?: string;
+  customerName: string;
+  customerEmail: string;
+  modelName?: string;
+  productType: 'model' | 'py' | 'ipynb' | 'other';
+  fileName?: string;
+  source?: string;
+  accessType: 'free' | 'paid';
+  amountInr?: number;
+  downloadedAt?: string;
+  createdAt: string;
+  userId?: {
+    _id: string;
+    name?: string;
+    email?: string;
+    role?: string;
+  } | string | null;
+}
+
 interface PaymentSummary {
   total: number;
   paid: number;
   revenueInr: number;
+  freeDownloads: number;
+  paidDownloads: number;
+  downloadEvents: number;
 }
 
 const formatProjectStage = (stage?: string) =>
@@ -181,6 +207,7 @@ const paymentTypeLabel = (productType?: string) => {
   if (productType === 'py') return '.py';
   if (productType === 'ipynb') return 'ipynb';
   if (productType === 'model') return 'Model';
+  if (productType === 'deploy') return 'Deploy';
   return 'Other';
 };
 
@@ -308,7 +335,8 @@ export default function AdminPage() {
   const [allActivities, setAllActivities] = useState<any[]>([]);
   const [helpTickets, setHelpTickets] = useState<HelpTicket[]>([]);
   const [payments, setPayments] = useState<AdminPayment[]>([]);
-  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({ total: 0, paid: 0, revenueInr: 0 });
+  const [downloadAccesses, setDownloadAccesses] = useState<AdminDownloadAccess[]>([]);
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({ total: 0, paid: 0, revenueInr: 0, freeDownloads: 0, paidDownloads: 0, downloadEvents: 0 });
   const [projects, setProjects] = useState<AdminProject[]>([]);
   const [projectStats, setProjectStats] = useState<ProjectStats>({ total: 0, active: 0, completed: 0, initialized: 0, recent: 0, byStage: {} });
   const [projectError, setProjectError] = useState('');
@@ -477,6 +505,30 @@ export default function AdminPage() {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const filteredDownloadAccesses = downloadAccesses.filter((record) => {
+    const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
+    const query = paymentSearch.trim().toLowerCase();
+
+    const matchesSearch = !query || [
+      record.orderId,
+      record.customerName,
+      record.customerEmail,
+      record.modelName,
+      record.fileName,
+      record.source,
+      record.sessionId,
+      record.productType,
+      record.accessType,
+      linkedUser?.name,
+      linkedUser?.email,
+    ].some((value) => (value || '').toString().toLowerCase().includes(query));
+
+    const matchesType = paymentTypeFilter === 'all' || record.productType === paymentTypeFilter;
+    const matchesStatus = paymentStatusFilter === 'all' || (paymentStatusFilter === 'paid' ? record.accessType === 'paid' : false);
+
+    return matchesSearch && matchesType && matchesStatus;
+  });
+
   const refreshUsers = useCallback(async (showLoader = false) => {
     if (showLoader) setActionLoading('reload-users');
     try {
@@ -545,10 +597,14 @@ export default function AdminPage() {
         setAllActivities(activityResponse.activities || []);
         setHelpTickets(helpResponse.tickets || []);
         setPayments(paymentResponse.payments || []);
+        setDownloadAccesses(paymentResponse.downloads || []);
         setPaymentSummary({
           total: paymentResponse.summary?.total || 0,
           paid: paymentResponse.summary?.paid || 0,
           revenueInr: paymentResponse.summary?.revenueInr || 0,
+          freeDownloads: paymentResponse.summary?.freeDownloads || 0,
+          paidDownloads: paymentResponse.summary?.paidDownloads || 0,
+          downloadEvents: paymentResponse.summary?.downloadEvents || 0,
         });
       } catch (activityErr: any) {
         console.warn('Unable to preload admin monitoring data:', activityErr?.message || activityErr);
@@ -744,14 +800,19 @@ export default function AdminPage() {
     try {
       const response = await getAdminPayments(250, paymentStatusFilter, paymentTypeFilter, paymentSearch);
       setPayments(response.payments || []);
+      setDownloadAccesses(response.downloads || []);
       setPaymentSummary({
         total: response.summary?.total || 0,
         paid: response.summary?.paid || 0,
         revenueInr: response.summary?.revenueInr || 0,
+        freeDownloads: response.summary?.freeDownloads || 0,
+        paidDownloads: response.summary?.paidDownloads || 0,
+        downloadEvents: response.summary?.downloadEvents || 0,
       });
     } catch (err: any) {
       setPayments([]);
-      setPaymentSummary({ total: 0, paid: 0, revenueInr: 0 });
+      setDownloadAccesses([]);
+      setPaymentSummary({ total: 0, paid: 0, revenueInr: 0, freeDownloads: 0, paidDownloads: 0, downloadEvents: 0 });
       setPaymentError(err.message || 'Failed to load payments');
     } finally {
       setActionLoading(null);
@@ -1363,7 +1424,7 @@ export default function AdminPage() {
         ══════════════════════════════════════ */}
         {activeTab === 'payments' && (
           <div className="space-y-6 fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1396,13 +1457,35 @@ export default function AdminPage() {
                   <div className="stat-icon-bg stat-icon-purple"><CreditCard className="h-6 w-6" /></div>
                 </div>
               </div>
+
+              <div className="stat-card stat-card-emerald">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Download className="h-3.5 w-3.5 mr-2" />Paid Downloads</p>
+                    <p className="stat-number">{paymentSummary.paidDownloads}</p>
+                    <p className="stat-sub">Download access events</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-emerald"><Download className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Gift className="h-3.5 w-3.5 mr-2" />Free Downloads</p>
+                    <p className="stat-number">{paymentSummary.freeDownloads}</p>
+                    <p className="stat-sub">First free unlock events</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><Gift className="h-6 w-6" /></div>
+                </div>
+              </div>
             </div>
 
             <div className="panel-card p-6">
               <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
                 <div>
                   <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payment Transactions</h3>
-                  <p className="text-slate-500 text-sm font-mono">Model, .py, and ipynb payment records captured from checkout confirmations.</p>
+                  <p className="text-slate-500 text-sm font-mono">Paid transactions plus free/paid download access logs stored in MongoDB.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
@@ -1426,6 +1509,7 @@ export default function AdminPage() {
                     <option value="model">Model</option>
                     <option value="py">.py</option>
                     <option value="ipynb">ipynb</option>
+                    <option value="deploy">Deploy</option>
                     <option value="other">Other</option>
                   </select>
 
@@ -1526,6 +1610,66 @@ export default function AdminPage() {
                 <div className="text-center py-16">
                   <div className="text-5xl mb-4 opacity-30">💳</div>
                   <p className="text-slate-400 text-sm font-mono">No payment records match the current filters.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="panel-card overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-800/60">
+                <h4 className="text-sm font-semibold text-white">Download Access Log (Free + Paid)</h4>
+                <p className="text-xs text-slate-500 font-mono mt-1">Tracks each user download event including free first-download unlocks.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="table-th">User</th>
+                      <th className="table-th">Access</th>
+                      <th className="table-th">Type</th>
+                      <th className="table-th">File</th>
+                      <th className="table-th">Amount</th>
+                      <th className="table-th">Source</th>
+                      <th className="table-th">Downloaded At</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {filteredDownloadAccesses.map((record) => {
+                      const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
+                      const isFree = record.accessType === 'free';
+                      return (
+                        <tr key={record._id} className="table-row-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{linkedUser?.name || record.customerName || 'User'}</div>
+                              <div className="text-xs text-slate-500 font-mono">{linkedUser?.email || record.customerEmail || '—'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${isFree ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}`}>
+                              {isFree ? 'FREE' : 'PAID'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <span className="action-chip action-chip-blue">{paymentTypeLabel(record.productType)}</span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{record.fileName || record.modelName || '—'}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">Order: {record.orderId || 'FREE'}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300 font-mono">₹{Number(record.amountInr || 0).toFixed(2)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">{record.source || 'automl'}</td>
+                          <td className="px-6 py-4 text-xs text-slate-500 font-mono">{new Date(record.downloadedAt || record.createdAt).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredDownloadAccesses.length === 0 && (
+                <div className="text-center py-14">
+                  <div className="text-4xl mb-3 opacity-30">📥</div>
+                  <p className="text-slate-400 text-sm font-mono">No download access records match the current filters.</p>
                 </div>
               )}
             </div>

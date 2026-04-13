@@ -3,6 +3,7 @@
 const router = require("express").Router();
 const requireAuth = require("../middleware/auth.middleware");
 const ActivityService = require("../services/activity.service");
+const userAssetsController = require("../controllers/userAssets.controller");
 
 router.get("/dashboard", requireAuth, (req, res) => {
   res.json({ message: "Welcome Dashboard ✅", user: req.user });
@@ -48,5 +49,11 @@ router.post("/activity", requireAuth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+router.get("/downloads", requireAuth, userAssetsController.getMyDownloads);
+router.post("/downloads/track", requireAuth, userAssetsController.trackDownloadAccess);
+router.get("/deployments", requireAuth, userAssetsController.getMyDeployments);
+router.post("/deployments/provision", requireAuth, userAssetsController.provisionDeployment);
+router.patch("/deployments/:id/scale", requireAuth, userAssetsController.scaleDeployment);
 
 module.exports = router;

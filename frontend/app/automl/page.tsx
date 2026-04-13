@@ -26,6 +26,7 @@ import {
   Hexagon,
   LineChart,
   Lock,
+  Network,
   MessageCircle,
   Microscope,
   Play,
@@ -43,9 +44,10 @@ import {
 } from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
+import { trackDownloadAccess } from '../../services/api';
 
-const LAB_URL     = 'http://localhost:8010';
-const AGENT_URL   = 'http://localhost:8020';
+const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
+const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 const LAB_THEME = {
@@ -64,6 +66,7 @@ const LAB_THEME = {
 
 // ── Payment config ────────────────────────────────────────────────────────────
 const MODEL_DOWNLOAD_PRICE = 4.99;
+const MLOPS_DEPLOY_PRICE = 14.99;
 const FREE_DOWNLOADS_KEY = 'ownquesta_free_download_usage';
 
 // ── Restrictions ──────────────────────────────────────────────────────────────
@@ -360,6 +363,11 @@ export default function LabPage() {
   // ── Payment state ─────────────────────────────────────────────────────────
   const [showPayModal,   setShowPayModal]   = useState(false);
   const [modelPaid,      setModelPaid]      = useState(false);   // true once paid this session
+  const [deployPaid,     setDeployPaid]     = useState(false);
+  const [modelEvaluated, setModelEvaluated] = useState(false);
+  const [deployingMlops, setDeployingMlops] = useState(false);
+  const [deployInfo,     setDeployInfo]     = useState<{ endpointUrl?: string; status?: string } | null>(null);
+  const [paidDownloadOrderId, setPaidDownloadOrderId] = useState('');
 
   // Panel resize
   const [panelW, setPanelW] = useState(430);
@@ -403,10 +411,10 @@ export default function LabPage() {
     try {
       localStorage.setItem('automl_active_state', JSON.stringify({
         sid, analysisStage, selectedModel, featureColumns,
-        uploadedFilename, uploadedFilePath, targetCol, predictInputs,
+        uploadedFilename, uploadedFilePath, targetCol, predictInputs, modelEvaluated,
       }));
     } catch { /* storage full */ }
-  }, [sid, analysisStage, selectedModel, featureColumns, uploadedFilename, uploadedFilePath, targetCol, predictInputs]);
+  }, [sid, analysisStage, selectedModel, featureColumns, uploadedFilename, uploadedFilePath, targetCol, predictInputs, modelEvaluated]);
 
   useEffect(() => {
     if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
@@ -418,6 +426,7 @@ export default function LabPage() {
         featureColumns: string[]; uploadedFilename: string | null;
         uploadedFilePath: string | null; targetCol: string;
         predictInputs: Record<string, string>;
+        modelEvaluated?: boolean;
       };
       if (!s.sid) return;
       sidRef.current = s.sid; setSid(s.sid);
@@ -427,6 +436,7 @@ export default function LabPage() {
       if (s.uploadedFilename) setUploadedFilename(s.uploadedFilename);
       if (s.uploadedFilePath) setUploadedFilePath(s.uploadedFilePath);
       if (s.targetCol) setTargetCol(s.targetCol);
+      if (s.modelEvaluated) setModelEvaluated(true);
       const savedChat = localStorage.getItem(`automl_chat_${s.sid}`);
       if (savedChat) { try { const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider'); if (msgs.length > 0) setChatMsgs(msgs); } catch { /* corrupt */ } }
       const savedCells = localStorage.getItem(`automl_cells_${s.sid}`);
@@ -660,7 +670,10 @@ export default function LabPage() {
         addMsg({ type: 'info', text: `Prediction used AI model: **${d.model_used.display_name || d.model_used.id}**` });
       }
       addMsg({ type: 'ai', text: d.error ? `Prediction error: ${d.error}` : `Prediction result:\n\`\`\`\n${d.output}\n\`\`\`` });
-      if (!d.error) updateProjectProgress('evaluated');
+      if (!d.error) {
+        setModelEvaluated(true);
+        updateProjectProgress('evaluated');
+      }
     } catch (e: any) { addMsg({ type: 'error', text: e.message }); }
     finally { setPredicting(false); }
   }, [getSession, predictInputs, addMsg, addCellFromSSE, selectedAiModelId]);
@@ -705,10 +718,27 @@ export default function LabPage() {
   }, [sid, router]);
 
   // ── Download Model (actual logic, called after payment) ───────────────────
-  const doDownloadModel = useCallback(async () => {
+  const doDownloadModel = useCallback(async (accessType: 'free' | 'paid') => {
     const session = sid || sidRef.current; if (!session) return;
     setDownloadingModel(true);
     addMsg({ type: 'info', text: 'Serializing model... this may take a few seconds.' });
+    const trackDownload = async (filename: string) => {
+      try {
+        await trackDownloadAccess({
+          sessionId: session,
+          orderId: accessType === 'paid' ? paidDownloadOrderId : '',
+          modelName: selectedModel || 'Trained Model',
+          productType: 'model',
+          fileName: filename,
+          source: 'automl',
+          accessType,
+          amountInr: accessType === 'paid' ? MODEL_DOWNLOAD_PRICE : 0,
+          metadata: { page: 'automl', flow: 'model_download' },
+        });
+      } catch {
+        // Do not block download if tracking fails.
+      }
+    };
     try {
       const dedicated = await fetch(`${LAB_URL}/download-model?session_id=${session}`).catch(() => null);
       if (dedicated && dedicated.ok) {
@@ -716,6 +746,7 @@ export default function LabPage() {
         const disposition = dedicated.headers.get('content-disposition');
         const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? `model_${session.slice(0, 7)}.pkl`;
         triggerBlobDownload(blob, filename);
+        await trackDownload(filename);
         addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
         return;
       }
@@ -745,11 +776,12 @@ export default function LabPage() {
       const blob = new Blob([bytes], { type: 'application/octet-stream' });
       const filename = `trained_model_${session.slice(0, 7)}.pkl`;
       triggerBlobDownload(blob, filename);
+      await trackDownload(filename);
       addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
     } catch (e: any) {
       addMsg({ type: 'error', text: `Download failed: ${e.message}` });
     } finally { setDownloadingModel(false); }
-  }, [sid, addMsg]);
+  }, [sid, addMsg, paidDownloadOrderId, selectedModel]);
 
   // ── Checkout page / payment success ──────────────────────────────────────
   const openPaymentPage = useCallback(() => {
@@ -770,10 +802,65 @@ export default function LabPage() {
     router.push(`/payment?${params.toString()}`);
   }, [sid, selectedModel, router, addMsg]);
 
+  const openDeployPaymentPage = useCallback(() => {
+    const session = sid || sidRef.current;
+    if (!session) {
+      addMsg({ type: 'error', text: 'Complete training and evaluation before deploying to MLOps.' });
+      return;
+    }
+
+    const params = new URLSearchParams({
+      source: 'automl',
+      product: 'mlops-deploy',
+      session,
+      model: selectedModel ?? 'Trained Model',
+      price: String(MLOPS_DEPLOY_PRICE),
+    });
+
+    router.push(`/payment?${params.toString()}`);
+  }, [sid, selectedModel, router, addMsg]);
+
+  const provisionMlopsDeployment = useCallback(async (paymentOrderId: string, sessionId: string, model: string) => {
+    setDeployingMlops(true);
+    addMsg({ type: 'info', text: 'Provisioning MLOps deployment with monitoring and autoscaling...' });
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/user/deployments/provision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ paymentOrderId, sessionId, modelName: model }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || 'Unable to provision deployment.');
+      const deployment = data?.deployment ?? {};
+      setDeployInfo({ endpointUrl: deployment.endpointUrl, status: deployment.status });
+      addMsg({
+        type: 'ai',
+        text: `MLOps deployment is ready. Endpoint: ${deployment.endpointUrl || 'pending'}\n\nTemplate stack generated: FastAPI /predict, Dockerfile, Kubernetes deployment with HPA, MLflow tracking, CI/CD workflow, and Prometheus monitoring.`,
+      });
+    } catch (error: any) {
+      addMsg({ type: 'error', text: `Deployment provisioning failed: ${error.message}` });
+    } finally {
+      setDeployingMlops(false);
+    }
+  }, [addMsg]);
+
+  const deployToMlops = useCallback(() => {
+    if (!modelEvaluated) {
+      addMsg({ type: 'error', text: 'Run model evaluation first, then choose a deployment output method.' });
+      return;
+    }
+    if (deployPaid) {
+      router.push('/my-deployments');
+      return;
+    }
+    openDeployPaymentPage();
+  }, [modelEvaluated, deployPaid, router, openDeployPaymentPage, addMsg]);
+
   // ── Download Model click — first download free, then payment ──────────────
   const downloadModel = useCallback(() => {
     if (modelPaid) {
-      doDownloadModel();
+      void doDownloadModel('paid');
       return;
     }
 
@@ -789,7 +876,7 @@ export default function LabPage() {
             JSON.stringify({ ...usage, model: freeCount + 1 }),
           );
           addMsg({ type: 'info', text: 'Your first model download is free. Payment will be required from the second download.' });
-          doDownloadModel();
+          void doDownloadModel('free');
           return;
         }
       } catch {
@@ -804,7 +891,7 @@ export default function LabPage() {
   const handlePaySuccess = useCallback(() => {
     setModelPaid(true);
     setShowPayModal(false);
-    setTimeout(() => doDownloadModel(), 350);
+    setTimeout(() => void doDownloadModel('paid'), 350);
   }, [doDownloadModel]);
 
   useEffect(() => {
@@ -817,22 +904,34 @@ export default function LabPage() {
     if (!raw) return;
 
     try {
-      const payment = JSON.parse(raw) as { paid?: boolean; product?: string; sessionId?: string };
+      const payment = JSON.parse(raw) as { paid?: boolean; product?: string; sessionId?: string; modelName?: string; orderId?: string };
       const returnedSession = params.get('session') ?? payment.sessionId ?? '';
 
-      if (!payment.paid || payment.product !== 'trained-model' || !returnedSession) return;
+      if (!payment.paid || !returnedSession) return;
       if (sid && sid !== returnedSession) return;
 
       sidRef.current = returnedSession;
       if (sid !== returnedSession) setSid(returnedSession);
 
-      setModelPaid(true);
+      if (payment.product === 'trained-model') {
+        setModelPaid(true);
+        setPaidDownloadOrderId(payment.orderId || '');
+      }
+      if (payment.product === 'mlops-deploy') {
+        setDeployPaid(true);
+      }
       sessionStorage.removeItem('ownquesta_model_payment');
       window.history.replaceState({}, '', window.location.pathname);
-      addMsg({ type: 'info', text: 'Payment confirmed. Preparing your trained model download...' });
-      setTimeout(() => doDownloadModel(), 150);
+      if (payment.product === 'trained-model') {
+        addMsg({ type: 'info', text: 'Payment confirmed. Preparing your trained model download...' });
+        setTimeout(() => void doDownloadModel('paid'), 150);
+      }
+      if (payment.product === 'mlops-deploy' && payment.orderId) {
+        addMsg({ type: 'info', text: 'Payment confirmed. Provisioning MLOps infrastructure...' });
+        void provisionMlopsDeployment(payment.orderId, returnedSession, payment.modelName || selectedModel || 'Trained Model');
+      }
     } catch { /* ignore invalid payment state */ }
-  }, [sid, doDownloadModel, addMsg]);
+  }, [sid, doDownloadModel, addMsg, provisionMlopsDeployment, selectedModel]);
 
   // ── Reset ─────────────────────────────────────────────────────────────────
   const reset = () => {
@@ -842,7 +941,7 @@ export default function LabPage() {
     setUploadedFilename(null); setUploadedFilePath(null); setUploadErr(null); setTargetCol('');
     setChatMsgs([{ id: 'w', type: 'welcome', text: 'Upload a CSV or Excel dataset to begin. The AI agent will analyse it, suggest top models, and build a complete ML pipeline for you.' }]);
     setChatInput(''); setAnalysisStage('idle'); setSelectedModel(null); setFeatureColumns([]); setPredictInputs({});
-    setModelPaid(false);
+    setModelPaid(false); setDeployPaid(false); setModelEvaluated(false); setDeployInfo(null); setPaidDownloadOrderId('');
     localStorage.removeItem('automl_active_state');
   };
 
@@ -899,6 +998,26 @@ export default function LabPage() {
                 style={{ ...ghostBtn, color: '#60a5fa', borderColor: 'rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.08)', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Code2 size={12} /><span>Python Script</span>
               </button>
+
+              <button onClick={deployToMlops} disabled={deployingMlops}
+                style={{
+                  ...ghostBtn,
+                  color: deployingMlops ? '#475569' : deployPaid ? '#f9a8d4' : '#d8b4fe',
+                  borderColor: deployingMlops ? 'rgba(255,255,255,0.1)' : deployPaid ? 'rgba(244,114,182,0.4)' : 'rgba(192,132,252,0.45)',
+                  background: deployPaid ? 'rgba(244,114,182,0.1)' : 'rgba(192,132,252,0.1)',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                }}>
+                {deployingMlops
+                  ? <><SpinIcon size={10} /><span>Deploying...</span></>
+                  : deployPaid
+                    ? <><Network size={12} /><span>My Deployments</span></>
+                    : <><Lock size={12} /><span>Deploy MLOps</span>
+                        <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.35)', color: '#d8b4fe', marginLeft: 2 }}>
+                          ${MLOPS_DEPLOY_PRICE}
+                        </span>
+                      </>
+                }
+              </button>
             </>
           )}
           <button onClick={() => setEasyMode(e => !e)}
@@ -926,7 +1045,12 @@ export default function LabPage() {
               predicting={predicting}
               downloadingModel={downloadingModel}
               modelPaid={modelPaid}
+              deployPaid={deployPaid}
+              modelEvaluated={modelEvaluated}
+              deployingMlops={deployingMlops}
+              deployInfo={deployInfo}
               onDownloadModel={downloadModel}
+              onDeployMlops={deployToMlops}
               onOpenScript={openScriptEditor}
               onSendPrompt={(msg) => sendChat(msg)}
               featureColumns={featureColumns}
@@ -934,6 +1058,7 @@ export default function LabPage() {
               setPredictInputs={setPredictInputs}
               onPredict={predict}
               modelDownloadPrice={MODEL_DOWNLOAD_PRICE}
+              mlopsDeployPrice={MLOPS_DEPLOY_PRICE}
               chatMsgs={chatMsgs}
               onBuildPipeline={buildPipeline}
               uploading={uploading}
@@ -1409,8 +1534,10 @@ interface EasyModePanelProps {
   analysisStage: 'idle' | 'analyzed' | 'pipeline_built';
   uploadedFilename: string | null; cells: Cell[]; analyzing: boolean; buildingPipeline: boolean;
   selectedModel: string | null; chatSending: boolean; predicting: boolean;
-  downloadingModel: boolean; modelPaid: boolean; modelDownloadPrice: number;
-  onDownloadModel(): void; onOpenScript(): void; onSendPrompt(msg: string): void;
+  downloadingModel: boolean; modelPaid: boolean; deployPaid: boolean; modelEvaluated: boolean;
+  deployingMlops: boolean; deployInfo: { endpointUrl?: string; status?: string } | null;
+  modelDownloadPrice: number; mlopsDeployPrice: number;
+  onDownloadModel(): void; onDeployMlops(): void; onOpenScript(): void; onSendPrompt(msg: string): void;
   featureColumns: string[]; predictInputs: Record<string, string>;
   setPredictInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onPredict(): void;
@@ -1421,7 +1548,7 @@ interface EasyModePanelProps {
   onUploadClick(): void; onAnalyze(): void;
 }
 
-function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, modelDownloadPrice, onDownloadModel, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
+function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, deployPaid, modelEvaluated, deployingMlops, deployInfo, modelDownloadPrice, mlopsDeployPrice, onDownloadModel, onDeployMlops, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
   const [aiPrompt, setAiPrompt]         = useState('');
   const [testSize, setTestSize]         = useState(0.2);
   const [cvFolds, setCvFolds]           = useState(5);
@@ -1476,7 +1603,8 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
     { label: 'Upload',      done: !!uploadedFilename,                                            active: false },
     { label: 'Analyse',     done: analysisStage !== 'idle',                                      active: analyzing },
     { label: 'Train Model', done: analysisStage === 'pipeline_built',                            active: buildingPipeline },
-    { label: 'Done',        done: analysisStage === 'pipeline_built' && !buildingPipeline,       active: false },
+    { label: 'Evaluate',    done: modelEvaluated,                                                 active: predicting },
+    { label: 'Output',      done: modelPaid || deployPaid,                                        active: deployingMlops || downloadingModel },
   ];
   const busy = chatSending || analyzing || buildingPipeline;
   // Content gated behind FE review
@@ -1779,6 +1907,57 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       )}
 
+      {/* ── Output Method Decision (after model evaluation) ── */}
+      {analysisStage === 'pipeline_built' && (
+        <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(148,163,184,0.25)', overflow: 'hidden' }}>
+          <div style={{ padding: '10px 14px', background: 'rgba(148,163,184,0.08)', fontSize: 13, fontWeight: 700, color: '#cbd5e1', display: 'flex', gap: 6, alignItems: 'center' }}>
+            <Diamond size={13} /> Choose Output Method
+            <span style={{ marginLeft: 'auto', fontSize: 10, color: modelEvaluated ? '#4ade80' : '#fbbf24' }}>
+              {modelEvaluated ? 'Model evaluation complete' : 'Run model evaluation first'}
+            </span>
+          </div>
+          <div style={{ padding: '12px 14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+              <div style={{ width: 130, height: 130, transform: 'rotate(45deg)', borderRadius: 14, border: '1px solid rgba(148,163,184,0.35)', background: 'linear-gradient(135deg,rgba(51,65,85,0.35),rgba(30,41,59,0.55))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ transform: 'rotate(-45deg)', textAlign: 'center', color: '#e2e8f0', fontSize: 11, fontWeight: 700, lineHeight: 1.4 }}>
+                  Choose<br />Output Method
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button onClick={onDownloadModel} disabled={!modelEvaluated || downloadingModel}
+                style={{
+                  padding: '12px', borderRadius: 11, textAlign: 'left', cursor: (!modelEvaluated || downloadingModel) ? 'not-allowed' : 'pointer',
+                  background: modelPaid ? 'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(20,184,166,0.2))' : 'linear-gradient(135deg,rgba(16,185,129,0.14),rgba(20,184,166,0.14))',
+                  border: '1px solid rgba(45,212,191,0.45)', color: '#5eead4',
+                  display: 'flex', flexDirection: 'column', gap: 5,
+                }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13 }}><Download size={14} /> Download Files</span>
+                <span style={{ fontSize: 11, color: '#99f6e4' }}>.py, .ipynb, Python script exports</span>
+                {!modelPaid && <span style={{ fontSize: 11, color: '#2dd4bf' }}>Payment required from second model download • ${modelDownloadPrice}</span>}
+              </button>
+
+              <button onClick={onDeployMlops} disabled={!modelEvaluated || deployingMlops}
+                style={{
+                  padding: '12px', borderRadius: 11, textAlign: 'left', cursor: (!modelEvaluated || deployingMlops) ? 'not-allowed' : 'pointer',
+                  background: deployPaid ? 'linear-gradient(135deg,rgba(168,85,247,0.22),rgba(236,72,153,0.22))' : 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(236,72,153,0.15))',
+                  border: '1px solid rgba(216,180,254,0.45)', color: '#e9d5ff',
+                  display: 'flex', flexDirection: 'column', gap: 5,
+                }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13 }}><Network size={14} /> Deploy MLOps</span>
+                <span style={{ fontSize: 11, color: '#f5d0fe' }}>Production deployment with monitoring and autoscaling</span>
+                {!deployPaid && <span style={{ fontSize: 11, color: '#d8b4fe' }}>Deploy unlock • ${mlopsDeployPrice}</span>}
+              </button>
+            </div>
+            {deployInfo?.endpointUrl && (
+              <div style={{ marginTop: 10, padding: '9px 10px', borderRadius: 9, border: '1px solid rgba(216,180,254,0.35)', background: 'rgba(168,85,247,0.08)', fontSize: 11, color: '#f3e8ff' }}>
+                Deployment endpoint: {deployInfo.endpointUrl}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Adjust Settings ── */}
       {uploadedFilename && (
         <div style={{ marginBottom: 16, borderRadius: 12, border: '1px solid rgba(99,102,241,0.22)', overflow: 'hidden' }}>
@@ -1857,6 +2036,15 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
           <button onClick={onOpenScript}
             style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(96,165,250,0.14),rgba(59,130,246,0.14))', border: '1px solid rgba(96,165,250,0.45)', color: '#60a5fa', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
             <Code2 size={18} /><span>Open Python Script Editor</span>
+          </button>
+          <button onClick={onDeployMlops} disabled={deployingMlops || !modelEvaluated}
+            style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: (deployingMlops || !modelEvaluated) ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,rgba(168,85,247,0.16),rgba(236,72,153,0.16))', border: '1px solid rgba(216,180,254,0.45)', color: '#e9d5ff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
+            {deployingMlops
+              ? <><SpinIcon size={14} /><span>Provisioning MLOps...</span></>
+              : deployPaid
+                ? <><Network size={18} /><span>Manage MLOps Deployment</span></>
+                : <><Lock size={18} /><span>Deploy MLOps</span><span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'rgba(216,180,254,0.15)', border: '1px solid rgba(216,180,254,0.35)', color: '#d8b4fe' }}>${mlopsDeployPrice}</span></>
+            }
           </button>
           <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'center' }}>Run, edit, and export your pipeline as <code style={{ fontFamily: 'monospace' }}>.py</code> or <code style={{ fontFamily: 'monospace' }}>.ipynb</code></p>
         </div>

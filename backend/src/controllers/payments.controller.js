@@ -6,6 +6,9 @@ const normalizeText = (value, maxLength = 200) => String(value ?? "").trim().sli
 
 const normalizeProductType = (paymentType, product) => {
   const value = String(paymentType || product || "").toLowerCase();
+  if (value.includes("deploy") || value.includes("mlops") || value === "deploy") {
+    return "deploy";
+  }
   if (value.includes("python") || value.includes(".py") || value.includes("script") || value === "py") {
     return "py";
   }

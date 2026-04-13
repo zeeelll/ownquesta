@@ -133,6 +133,49 @@ export async function getAllActivities(limit?: number, skip?: number) {
   return api(`/api/admin/activities?${params.toString()}`);
 }
 
+export async function getMyDownloads() {
+  return api('/api/user/downloads');
+}
+
+export async function trackDownloadAccess(payload: {
+  sessionId?: string;
+  orderId?: string;
+  modelName?: string;
+  productType: 'model' | 'py' | 'ipynb' | 'other';
+  fileName?: string;
+  source?: string;
+  accessType: 'free' | 'paid';
+  amountInr?: number;
+  metadata?: Record<string, any>;
+}) {
+  return api('/api/user/downloads/track', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getMyDeployments() {
+  return api('/api/user/deployments');
+}
+
+export async function provisionMyDeployment(payload: {
+  paymentOrderId: string;
+  sessionId?: string;
+  modelName?: string;
+}) {
+  return api('/api/user/deployments/provision', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function scaleMyDeployment(id: string, replicas: number) {
+  return api(`/api/user/deployments/${id}/scale`, {
+    method: 'PATCH',
+    body: JSON.stringify({ replicas }),
+  });
+}
+
 export async function getAdminHelpTickets(limit?: number, status?: string, search?: string) {
   const params = new URLSearchParams();
   if (limit) params.append('limit', limit.toString());
