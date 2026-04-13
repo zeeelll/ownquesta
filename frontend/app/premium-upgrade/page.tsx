@@ -473,7 +473,7 @@ export default function PremiumUpgradePage() {
                 </>
               )}
 
-              <div className="w-full rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
+              <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
                 <div className="flex items-center justify-between gap-3 py-1">
                   <span>Premium MLOps plan</span>
                   <span className="font-semibold text-white">₹{checkout.price.toFixed(2)}</span>
