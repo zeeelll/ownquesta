@@ -2,6 +2,15 @@ const Payment = require("../models/Payment");
 const MlopsDeployment = require("../models/MlopsDeployment");
 const DownloadAccess = require("../models/DownloadAccess");
 
+function sanitizeOrderPart(value) {
+  return String(value || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 32);
+}
+
 function buildUserScope(req) {
   return {
     $or: [{ userId: req.user._id }, { customerEmail: String(req.user.email || "").toLowerCase() }],
@@ -117,12 +126,44 @@ exports.upgradeMembership = async (req, res) => {
   try {
     const plan = String(req.body?.plan || "premium-monthly").trim().toLowerCase();
     const amountInr = Number(req.body?.amountInr || 1500);
+    const safeAmountInr = Number.isFinite(amountInr) ? Math.max(0, amountInr) : 1500;
     const customerName = String(req.body?.customerName || req.user.name || "User").trim();
     const customerEmail = String(req.body?.customerEmail || req.user.email || "").trim().toLowerCase();
+    const sessionId = String(req.body?.sessionId || "").trim();
+    const modelName = String(req.body?.modelName || "Trained Model").trim();
+    const paymentMethod = String(req.body?.paymentMethod || "manual").trim().toLowerCase();
+    const gateway = String(req.body?.gateway || "ownquesta").trim().toUpperCase();
+    const paymentReference = String(req.body?.paymentReference || "").trim();
+    const providedOrderId = String(req.body?.orderId || "").trim();
 
     if (!customerEmail) {
       return res.status(400).json({ message: "customerEmail is required" });
     }
+
+    const orderId = providedOrderId || [
+      "OWNQ",
+      "PREM",
+      sanitizeOrderPart(req.user._id),
+      sanitizeOrderPart(sessionId || Date.now().toString()),
+      Date.now().toString().slice(-6),
+    ].filter(Boolean).join("-").toUpperCase();
+
+    const payment = await Payment.create({
+      orderId,
+      sessionId,
+      userId: req.user._id,
+      customerName,
+      customerEmail,
+      product: "premium-membership",
+      productType: "deploy",
+      modelName,
+      method: paymentMethod,
+      gateway,
+      gatewayPaymentId: paymentReference,
+      amountInr: safeAmountInr,
+      status: "paid",
+      paidAt: new Date(),
+    });
 
     const nextExpiresAt = new Date();
     nextExpiresAt.setMonth(nextExpiresAt.getMonth() + 1);
@@ -147,10 +188,22 @@ exports.upgradeMembership = async (req, res) => {
         membershipExpiresAt: req.user.membershipExpiresAt,
       },
       plan,
-      amountInr: Number.isFinite(amountInr) ? Math.max(0, amountInr) : 1500,
+      amountInr: safeAmountInr,
+      payment: {
+        _id: payment._id,
+        orderId: payment.orderId,
+        status: payment.status,
+        amountInr: payment.amountInr,
+        method: payment.method,
+        gateway: payment.gateway,
+        paidAt: payment.paidAt,
+      },
     });
   } catch (error) {
     console.error("Error upgrading membership:", error);
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "Duplicate payment orderId. Please retry." });
+    }
     return res.status(500).json({ message: "Unable to upgrade membership" });
   }
 };

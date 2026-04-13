@@ -128,6 +128,12 @@ export async function upgradeMembership(payload: {
   amountInr?: number;
   customerName?: string;
   customerEmail?: string;
+  sessionId?: string;
+  modelName?: string;
+  paymentMethod?: string;
+  gateway?: string;
+  paymentReference?: string;
+  orderId?: string;
 }) {
   return api('/api/user/membership/upgrade', {
     method: 'POST',

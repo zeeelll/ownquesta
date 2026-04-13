@@ -50,6 +50,10 @@ interface User {
   jobTitle: string;
   location: string;
   skills: string;
+  membershipStatus?: 'free' | 'ownque_user';
+  membershipPlan?: string;
+  membershipUpgradedAt?: string;
+  membershipExpiresAt?: string;
   createdAt: string;
 }
 
@@ -377,7 +381,9 @@ export default function AdminPage() {
         (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (user.company?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-        (user.role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        (user.role?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.membershipStatus?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (user.membershipPlan?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       );
       setFilteredUsers(filtered);
     } else {
@@ -1215,7 +1221,7 @@ export default function AdminPage() {
                       <th className="table-th">User</th>
                       <th className="table-th">Role</th>
                       <th className="table-th">Company</th>
-                      <th className="table-th">Usage Details</th>
+                      <th className="table-th">Usage & Premium</th>
                       <th className="table-th">Joined</th>
                       <th className="table-th">Actions</th>
                     </tr>
@@ -1251,10 +1257,20 @@ export default function AdminPage() {
                               <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Downloads: {stats?.downloadTotal || 0}</span>
                               <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">Paid: {stats?.downloadPaid || 0}</span>
                               <span className="px-2 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/30">Deploys: {stats?.deployPaid || 0}</span>
+                              {String(user.membershipStatus || 'free').toLowerCase() === 'ownque_user' ? (
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">Premium: Active</span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-300 border border-slate-500/30">Premium: Free</span>
+                              )}
                             </div>
                             <div className="text-[10px] text-slate-500 font-mono">
                               Spend INR {(stats?.totalSpend || 0).toFixed(2)}{stats?.lastOrderId ? ` • Last ${stats.lastOrderId}` : ''}
                             </div>
+                            {String(user.membershipStatus || 'free').toLowerCase() === 'ownque_user' && (
+                              <div className="text-[10px] text-amber-200 font-mono">
+                                Plan {(user.membershipPlan || 'premium-monthly').toUpperCase()} • Upgraded {user.membershipUpgradedAt ? new Date(user.membershipUpgradedAt).toLocaleDateString() : '—'} • Expires {user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toLocaleDateString() : '—'}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-xs text-slate-500 font-mono">

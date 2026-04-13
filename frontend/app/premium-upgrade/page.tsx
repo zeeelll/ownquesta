@@ -222,9 +222,14 @@ export default function PremiumUpgradePage() {
         amountInr: checkout.price,
         customerName: form.name,
         customerEmail: form.email,
+        sessionId: checkout.sessionId,
+        modelName: checkout.modelName,
+        paymentMethod: paymentMethod === 'upi' ? `upi-${selectedUpiApp}` : 'card',
+        gateway: 'OWNQUESTA',
+        paymentReference: paymentMethod === 'upi' ? upiId.trim() : cardNumber.replace(/\s/g, '').slice(-4),
       });
 
-      const orderId = `OWNQ-PREMIUM-${(checkout.sessionId || Date.now().toString()).slice(0, 12).toUpperCase()}`;
+      const orderId = String(result?.payment?.orderId || `OWNQ-PREMIUM-${(checkout.sessionId || Date.now().toString()).slice(0, 12).toUpperCase()}`);
       const premiumPayload = {
         paid: true,
         product: 'mlops-deploy',
