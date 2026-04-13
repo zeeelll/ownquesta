@@ -490,9 +490,9 @@ export default function PremiumUpgradePage() {
               </div>
 
               {paymentMethod === 'upi' && (
-                <div className="w-full rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
+                <div className="w-full max-w-2xl rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
-                  <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-white">{OWNQUESTA_UPI_NAME}</p>
                       <p className="text-xs text-cyan-100">{OWNQUESTA_UPI_ID}</p>
@@ -505,9 +505,9 @@ export default function PremiumUpgradePage() {
                         </button>
                       </div>
                     </div>
-                    <div className="text-left md:text-right md:justify-self-end">
+                    <div className="text-left">
                       <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
-                      <div className="mt-2 mx-auto w-fit rounded-2xl border border-white/10 bg-white p-1.5">
+                      <div className="mt-2 w-fit rounded-2xl border border-white/10 bg-white p-1.5">
                         {upiQrDataUrl ? (
                           <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[140px] w-[140px] rounded-xl object-contain" />
                         ) : (
