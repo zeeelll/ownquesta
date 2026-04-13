@@ -43,11 +43,11 @@ type FormState = {
 type PaymentMethod = 'upi' | 'card' | 'paypal';
 type UpiAppKey = 'gpay' | 'phonepe' | 'paytm' | 'bhim';
 
-const UPI_APPS: Array<{ key: UpiAppKey; label: string; short: string; tint: string }> = [
-  { key: 'gpay', label: 'Google Pay', short: 'GPay', tint: '#4285F4' },
-  { key: 'phonepe', label: 'PhonePe', short: 'PhonePe', tint: '#5F259F' },
-  { key: 'paytm', label: 'Paytm', short: 'Paytm', tint: '#00BAF2' },
-  { key: 'bhim', label: 'BHIM UPI', short: 'BHIM', tint: '#00866E' },
+const UPI_APPS: Array<{ key: UpiAppKey; label: string; short: string; tint: string; logo: string }> = [
+  { key: 'gpay', label: 'Google Pay', short: 'GPay', tint: '#4285F4', logo: '/upi/gpay.svg' },
+  { key: 'phonepe', label: 'PhonePe', short: 'PhonePe', tint: '#5F259F', logo: '/upi/phonepe.svg' },
+  { key: 'paytm', label: 'Paytm', short: 'Paytm', tint: '#00BAF2', logo: '/upi/paytm.svg' },
+  { key: 'bhim', label: 'BHIM UPI', short: 'BHIM', tint: '#00866E', logo: '/upi/bhim.svg' },
 ];
 
 const PREMIUM_PRICE = 1500;
@@ -297,7 +297,7 @@ export default function PremiumUpgradePage() {
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-14">
+      <main className="mx-auto grid w-full max-w-none gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:py-14">
         <section className="card-premium rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">
             <Sparkles size={14} />
@@ -411,9 +411,14 @@ export default function PremiumUpgradePage() {
                             className={`rounded-2xl border px-3 py-3 text-left transition ${active ? 'border-cyan-400/55 bg-white/10 shadow-[0_0_0_1px_rgba(34,211,238,0.18)]' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
                           >
                             <div className="flex items-center justify-between gap-2">
-                              <div>
+                              <div className="flex items-center gap-2">
+                                <span className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-white/90 p-1">
+                                  <img src={app.logo} alt={app.label} className="h-full w-full object-contain" />
+                                </span>
+                                <div>
                                 <div className="text-sm font-semibold leading-5 text-white">{app.short}</div>
                                 <div className="text-[11px] leading-4 text-slate-400">{app.label}</div>
+                                </div>
                               </div>
                               <span className="h-3 w-3 rounded-full" style={{ background: app.tint }} />
                             </div>
@@ -422,44 +427,7 @@ export default function PremiumUpgradePage() {
                         );
                       })}
                     </div>
-
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">Enter your UPI ID</span>
-                      <input
-                        value={upiId}
-                        onChange={(event) => setUpiId(event.target.value.trim())}
-                        placeholder="yourname@okaxis"
-                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
-                      />
-                    </label>
-
-                    <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
-                      <div className="mt-2 flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-white">{OWNQUESTA_UPI_NAME}</p>
-                          <p className="text-xs text-cyan-100">{OWNQUESTA_UPI_ID}</p>
-                        </div>
-                        <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button type="button" onClick={() => void copyUpiId()} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
-                          {copiedUpi ? 'Copied' : 'Copy UPI ID'}
-                        </button>
-                        <button type="button" onClick={() => window.open(upiPaymentLink, '_self')} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
-                          Open {selectedUpiAppLabel}
-                        </button>
-                      </div>
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-white p-2">
-                        {upiQrDataUrl ? (
-                          <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[190px] w-[190px] rounded-xl object-contain" />
-                        ) : (
-                          <div className="mx-auto flex h-[190px] w-[190px] items-center justify-center text-xs text-slate-500">Generating QR...</div>
-                        )}
-                      </div>
-                    </div>
-
-                    {errors.upi && <p className="flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.upi}</p>}
+                    <p className="text-xs text-slate-400">Selected app: {selectedUpiAppLabel}</p>
                   </div>
                 )}
 
@@ -524,6 +492,21 @@ export default function PremiumUpgradePage() {
                 <input value={form.phone} onChange={onChange('phone')} placeholder="Optional" className="input-premium w-full rounded-2xl px-4 py-3 text-sm" />
               </label>
 
+              {paymentMethod === 'upi' && (
+                <>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-200">Enter your UPI ID</span>
+                    <input
+                      value={upiId}
+                      onChange={(event) => setUpiId(event.target.value.trim())}
+                      placeholder="yourname@okaxis"
+                      className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                    />
+                  </label>
+                  {errors.upi && <p className="-mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.upi}</p>}
+                </>
+              )}
+
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
                 <div className="flex items-center gap-2 font-semibold text-white">
                   <Clock3 size={14} /> Dummy payment flow
@@ -546,6 +529,34 @@ export default function PremiumUpgradePage() {
                   <span>₹{checkout.price.toFixed(2)}</span>
                 </div>
               </div>
+
+              {paymentMethod === 'upi' && (
+                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
+                  <div className="mt-2 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">{OWNQUESTA_UPI_NAME}</p>
+                      <p className="text-xs text-cyan-100">{OWNQUESTA_UPI_ID}</p>
+                    </div>
+                    <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => void copyUpiId()} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
+                      {copiedUpi ? 'Copied' : 'Copy UPI ID'}
+                    </button>
+                    <button type="button" onClick={() => window.open(upiPaymentLink, '_self')} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
+                      Open {selectedUpiAppLabel}
+                    </button>
+                  </div>
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white p-2">
+                    {upiQrDataUrl ? (
+                      <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[190px] w-[190px] rounded-xl object-contain" />
+                    ) : (
+                      <div className="mx-auto flex h-[190px] w-[190px] items-center justify-center text-xs text-slate-500">Generating QR...</div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {message && (
                 <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4 text-sm text-cyan-50">
