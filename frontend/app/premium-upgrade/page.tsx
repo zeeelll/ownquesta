@@ -371,7 +371,7 @@ export default function PremiumUpgradePage() {
           {isDeploymentUpgrade ? (
             <div className="mt-6 space-y-4">
               <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {paymentMethodCards.map((method) => {
                     const Icon = method.icon;
                     const active = paymentMethod === method.key;
@@ -383,14 +383,14 @@ export default function PremiumUpgradePage() {
                           setPaymentMethod(method.key);
                           setMessage('');
                         }}
-                        className={`flex min-w-[120px] flex-1 items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${active ? 'border-cyan-400/50 bg-cyan-400/10' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
+                        className={`flex h-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition ${active ? 'border-cyan-400/50 bg-cyan-400/10 shadow-[0_0_0_1px_rgba(34,211,238,0.15)]' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
                       >
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${active ? 'bg-cyan-400/15' : 'bg-white/5'}`}>
+                        <span className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${active ? 'bg-cyan-400/15 text-cyan-100' : 'bg-white/5 text-slate-300'}`}>
                           <Icon size={16} />
                         </span>
-                        <span>
-                          <span className="block text-sm font-semibold text-white">{method.label}</span>
-                          <span className="block text-xs text-slate-400">{method.desc}</span>
+                        <span className="min-w-0">
+                          <span className="block text-[13px] font-semibold leading-5 text-white">{method.label}</span>
+                          <span className="mt-0.5 block text-[11px] leading-4 text-slate-400">{method.desc}</span>
                         </span>
                       </button>
                     );
@@ -399,7 +399,7 @@ export default function PremiumUpgradePage() {
 
                 {paymentMethod === 'upi' && (
                   <div className="mt-4 space-y-3">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">Select UPI app</div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">Select UPI App</div>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {UPI_APPS.map((app) => {
                         const active = selectedUpiApp === app.key;
@@ -408,12 +408,12 @@ export default function PremiumUpgradePage() {
                             key={app.key}
                             type="button"
                             onClick={() => setSelectedUpiApp(app.key)}
-                            className={`rounded-2xl border px-3 py-3 text-left transition ${active ? 'border-cyan-400/50 bg-white/10' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
+                            className={`rounded-2xl border px-3 py-3 text-left transition ${active ? 'border-cyan-400/55 bg-white/10 shadow-[0_0_0_1px_rgba(34,211,238,0.18)]' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
                           >
                             <div className="flex items-center justify-between gap-2">
                               <div>
-                                <div className="text-sm font-semibold text-white">{app.short}</div>
-                                <div className="text-[11px] text-slate-400">{app.label}</div>
+                                <div className="text-sm font-semibold leading-5 text-white">{app.short}</div>
+                                <div className="text-[11px] leading-4 text-slate-400">{app.label}</div>
                               </div>
                               <span className="h-3 w-3 rounded-full" style={{ background: app.tint }} />
                             </div>
