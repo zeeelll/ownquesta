@@ -311,11 +311,11 @@ export default function PremiumUpgradePage() {
             {containerTitle}
           </div>
 
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
+          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
             {isDeploymentUpgrade ? 'Activate premium deployment for your trained model' : 'Your exports are already unlocked'}
           </h1>
 
-          <p className="mt-4 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
+          <p className="mt-4 text-base leading-8 text-slate-300 sm:text-lg">
             {isDeploymentUpgrade
               ? 'Complete this quick upgrade to mark your account as an OwnQuesta premium user and enable direct deployment inside the platform.'
               : 'You can download the .ipynb and Python script without paying. Return to the playground to continue.'}
@@ -347,7 +347,7 @@ export default function PremiumUpgradePage() {
               </div>
               <div className="text-2xl font-semibold text-cyan-100">{planLabel}</div>
             </div>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
+            <p className="mt-3 text-sm leading-7 text-slate-300">
               MLOps deployment is a premium feature. Free users can still download the notebook and Python script, while premium users unlock direct deployment inside OwnQuesta.
             </p>
           </div>
@@ -475,7 +475,7 @@ export default function PremiumUpgradePage() {
                 </>
               )}
 
-              <div className="mr-auto w-full max-w-3xl rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
+              <div className="w-full rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
                 <div className="flex items-center justify-between gap-3 py-1">
                   <span>Premium MLOps plan</span>
                   <span className="font-semibold text-white">₹{checkout.price.toFixed(2)}</span>
@@ -492,7 +492,7 @@ export default function PremiumUpgradePage() {
               </div>
 
               {paymentMethod === 'upi' && (
-                <div className="mr-auto w-full max-w-3xl rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
+                <div className="w-full rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
                   <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="min-w-0">
@@ -530,7 +530,7 @@ export default function PremiumUpgradePage() {
               <button
                 onClick={() => void handleUpgrade()}
                 disabled={!canUpgrade}
-                className="btn-premium btn-primary mt-2 block w-full max-w-3xl rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-premium btn-primary mt-2 block w-full rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {processing ? 'Upgrading...' : upgraded ? 'Premium activated' : paymentMethod === 'paypal' ? 'PayPal coming soon' : paymentMethod === 'card' ? 'Card coming soon' : `Upgrade for ${planLabel}`}
               </button>
