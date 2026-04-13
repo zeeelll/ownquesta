@@ -288,8 +288,14 @@ export default function PremiumUpgradePage() {
       </div>
 
       <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-          <Logo href="/home" size="md" />
+        <div className="mx-auto flex w-full max-w-none items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
+          <div className="flex items-center gap-3">
+            <Logo href="/home" size="sm" showText={false} variant="light" />
+            <div>
+              <p className="text-base font-semibold leading-5 text-white">OwnQuesta</p>
+              <p className="text-xs tracking-[0.18em] text-cyan-200/70">MLOPS PAYMENT</p>
+            </div>
+          </div>
           <Link href={checkout.returnTo} className="btn-premium rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-100 transition hover:bg-white/10">
             <ArrowLeft size={14} />
             Back to AutoML Playground
@@ -297,8 +303,8 @@ export default function PremiumUpgradePage() {
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-none gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:py-14">
-        <section className="card-premium rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+      <main className="mx-auto flex w-full max-w-none flex-col gap-6 px-4 py-10 sm:px-6 lg:px-10 lg:py-12">
+        <section className="card-premium w-full rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">
             <Sparkles size={14} />
             {containerTitle}
@@ -357,7 +363,7 @@ export default function PremiumUpgradePage() {
           </div>
         </section>
 
-        <aside className="card-premium rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+        <aside className="card-premium w-full rounded-[2rem] border border-white/10 bg-slate-950/70 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           <div className="flex items-center gap-3 border-b border-white/10 pb-5">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-400/15 text-cyan-100">
               <Lock size={20} />
@@ -548,7 +554,7 @@ export default function PremiumUpgradePage() {
                       Open {selectedUpiAppLabel}
                     </button>
                   </div>
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white p-2">
+                  <div className="mt-4 mx-auto w-fit rounded-2xl border border-white/10 bg-white p-2">
                     {upiQrDataUrl ? (
                       <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[190px] w-[190px] rounded-xl object-contain" />
                     ) : (
