@@ -528,7 +528,7 @@ export default function PremiumUpgradePage() {
               <button
                 onClick={() => void handleUpgrade()}
                 disabled={!canUpgrade}
-                className="btn-premium btn-primary mt-2 block w-full rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-premium btn-primary mt-2 block w-full max-w-2xl rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {processing ? 'Upgrading...' : upgraded ? 'Premium activated' : paymentMethod === 'paypal' ? 'PayPal coming soon' : paymentMethod === 'card' ? 'Card coming soon' : `Upgrade for ${planLabel}`}
               </button>
