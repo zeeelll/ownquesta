@@ -357,6 +357,9 @@ export default function AdminPage() {
   const [paymentSearch, setPaymentSearch] = useState<string>('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all');
   const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [downloadSearch, setDownloadSearch] = useState<string>('');
+  const [downloadStatusFilter, setDownloadStatusFilter] = useState<string>('all');
+  const [downloadTypeFilter, setDownloadTypeFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'projects' | 'payments' | 'activities' | 'support' | 'settings'>('dashboard');
   const router = useRouter();
 
@@ -417,6 +420,9 @@ export default function AdminPage() {
       setPaymentSearch('');
       setPaymentStatusFilter('all');
       setPaymentTypeFilter('all');
+      setDownloadSearch('');
+      setDownloadStatusFilter('all');
+      setDownloadTypeFilter('all');
     }
   }, [activeTab]);
 
@@ -507,7 +513,7 @@ export default function AdminPage() {
 
   const filteredDownloadAccesses = downloadAccesses.filter((record) => {
     const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
-    const query = paymentSearch.trim().toLowerCase();
+    const query = downloadSearch.trim().toLowerCase();
 
     const matchesSearch = !query || [
       record.orderId,
@@ -523,11 +529,21 @@ export default function AdminPage() {
       linkedUser?.email,
     ].some((value) => (value || '').toString().toLowerCase().includes(query));
 
-    const matchesType = paymentTypeFilter === 'all' || record.productType === paymentTypeFilter;
-    const matchesStatus = paymentStatusFilter === 'all' || (paymentStatusFilter === 'paid' ? record.accessType === 'paid' : false);
+    const matchesType = downloadTypeFilter === 'all' || record.productType === downloadTypeFilter;
+    const matchesStatus = downloadStatusFilter === 'all' || record.accessType === downloadStatusFilter;
 
     return matchesSearch && matchesType && matchesStatus;
   });
+
+  const paymentInsights = useMemo(() => {
+    const successRate = paymentSummary.total > 0
+      ? Math.round((paymentSummary.paid / paymentSummary.total) * 100)
+      : 0;
+    const avgRevenue = paymentSummary.paid > 0
+      ? paymentSummary.revenueInr / paymentSummary.paid
+      : 0;
+    return { successRate, avgRevenue };
+  }, [paymentSummary]);
 
   const userUsageStats = useMemo(() => {
     const byUser = new Map<string, {
@@ -849,7 +865,7 @@ export default function AdminPage() {
     setActionLoading('load-payments');
     setPaymentError('');
     try {
-      const response = await getAdminPayments(250, paymentStatusFilter, paymentTypeFilter, paymentSearch);
+      const response = await getAdminPayments(250);
       setPayments(response.payments || []);
       setDownloadAccesses(response.downloads || []);
       setPaymentSummary({
@@ -1490,7 +1506,21 @@ export default function AdminPage() {
         ══════════════════════════════════════ */}
         {activeTab === 'payments' && (
           <div className="space-y-6 fade-in">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+            <div className="panel-card p-6">
+              <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+                <div>
+                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payments Command Center</h3>
+                  <p className="text-slate-500 text-sm font-mono">Track payment transactions, download access logs, and monetization health in one place.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="action-chip action-chip-emerald">Success Rate: {paymentInsights.successRate}%</span>
+                  <span className="action-chip action-chip-blue">Avg Paid Ticket: ₹{paymentInsights.avgRevenue.toFixed(2)}</span>
+                  <span className="action-chip action-chip-purple">Revenue: ₹{paymentSummary.revenueInr.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1527,11 +1557,11 @@ export default function AdminPage() {
               <div className="stat-card stat-card-emerald">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="stat-label flex items-center"><Download className="h-3.5 w-3.5 mr-2" />Paid Downloads</p>
+                    <p className="stat-label flex items-center"><Gift className="h-3.5 w-3.5 mr-2" />Paid Downloads</p>
                     <p className="stat-number">{paymentSummary.paidDownloads}</p>
                     <p className="stat-sub">Download access events</p>
                   </div>
-                  <div className="stat-icon-bg stat-icon-emerald"><Download className="h-6 w-6" /></div>
+                  <div className="stat-icon-bg stat-icon-emerald"><Gift className="h-6 w-6" /></div>
                 </div>
               </div>
 
@@ -1543,6 +1573,17 @@ export default function AdminPage() {
                     <p className="stat-sub">First free unlock events</p>
                   </div>
                   <div className="stat-icon-bg stat-icon-blue"><Gift className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-purple">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><BarChart3 className="h-3.5 w-3.5 mr-2" />Download Events</p>
+                    <p className="stat-number">{paymentSummary.downloadEvents}</p>
+                    <p className="stat-sub">Free + paid access events</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-purple"><BarChart3 className="h-6 w-6" /></div>
                 </div>
               </div>
             </div>
@@ -1602,6 +1643,13 @@ export default function AdminPage() {
                   </Button>
                 </div>
               </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="action-chip action-chip-blue">Payments shown: {filteredPayments.length}/{payments.length}</span>
+                <span className="action-chip action-chip-emerald">Access logs shown: {filteredDownloadAccesses.length}/{downloadAccesses.length}</span>
+                <span className="action-chip action-chip-purple">Filter: {paymentTypeFilter === 'all' ? 'All types' : paymentTypeLabel(paymentTypeFilter)}</span>
+                <span className="action-chip action-chip-slate">Status: {paymentStatusFilter === 'all' ? 'All statuses' : paymentStatusFilter.toUpperCase()}</span>
+              </div>
             </div>
 
             {paymentError && (
@@ -1611,6 +1659,10 @@ export default function AdminPage() {
             )}
 
             <div className="panel-card overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-800/60">
+                <h4 className="text-sm font-semibold text-white">Payment Transactions ({filteredPayments.length})</h4>
+                <p className="text-xs text-slate-500 font-mono mt-1">Captured checkout records with customer, product, amount, gateway, and status.</p>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="table-head">
@@ -1682,8 +1734,40 @@ export default function AdminPage() {
 
             <div className="panel-card overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-800/60">
-                <h4 className="text-sm font-semibold text-white">Download Access Log (Free + Paid)</h4>
+                <h4 className="text-sm font-semibold text-white">Download Access Log (Free + Paid) ({filteredDownloadAccesses.length})</h4>
                 <p className="text-xs text-slate-500 font-mono mt-1">Tracks each user download event including free first-download unlocks.</p>
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="relative lg:col-span-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="Search user, order, file, model..."
+                      value={downloadSearch}
+                      onChange={(e) => setDownloadSearch(e.target.value)}
+                      className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                    />
+                  </div>
+                  <select
+                    value={downloadTypeFilter}
+                    onChange={(e) => setDownloadTypeFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="model">Model</option>
+                    <option value="py">.py</option>
+                    <option value="ipynb">ipynb</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <select
+                    value={downloadStatusFilter}
+                    onChange={(e) => setDownloadStatusFilter(e.target.value)}
+                    className="search-input px-4 py-2.5 rounded-lg"
+                  >
+                    <option value="all">All Access</option>
+                    <option value="paid">Paid</option>
+                    <option value="free">Free</option>
+                  </select>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
