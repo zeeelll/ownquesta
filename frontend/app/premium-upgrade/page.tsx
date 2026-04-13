@@ -8,7 +8,6 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
-  Clock3,
   Copy,
   CreditCard,
   ExternalLink,
@@ -518,13 +517,6 @@ export default function PremiumUpgradePage() {
                 </>
               )}
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                <div className="flex items-center gap-2 font-semibold text-white">
-                  <Clock3 size={14} /> Dummy payment flow
-                </div>
-                <p className="mt-2 leading-7">This does not charge a real card. It marks the user premium in OwnQuesta and starts the deployment workflow.</p>
-              </div>
-
               <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
                 <div className="flex items-center justify-between gap-3 py-1">
                   <span>Premium MLOps plan</span>
@@ -605,12 +597,6 @@ export default function PremiumUpgradePage() {
               </Link>
             </div>
           )}
-
-          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
-            <p className="font-semibold text-white">Training session</p>
-            <p className="mt-2 break-words">{checkout.modelName}</p>
-            <p className="mt-1 text-slate-400">Session: {checkout.sessionId || 'N/A'}</p>
-          </div>
         </aside>
       </main>
     </div>
