@@ -29,7 +29,6 @@ import {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_PRICE = 4.99;
-const UPI_EXCHANGE_RATE = 83;
 const OWNQUESTA_UPI_ID = 'ownquesta@oksbi';
 const OWNQUESTA_UPI_NAME = 'Ownquesta';
 const UPI_APP_OPTIONS = [
@@ -156,26 +155,27 @@ export default function PaymentPage() {
   const [cardFocused, setCardFocused] = useState('');
   const [progressText, setProgressText] = useState('');
   const [qrLoading, setQrLoading]     = useState(false);
+  const [checkout, setCheckout] = useState({ source: 'automl', sessionId: '', modelName: 'RandomForestClassifier', product: 'trained-model', price: DEFAULT_PRICE });
 
   // ── Checkout params
-  const checkout = useMemo(() => {
-    if (typeof window === 'undefined') return { source: 'automl', sessionId: '', modelName: 'RandomForestClassifier', product: 'trained-model', price: DEFAULT_PRICE };
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const parsedPrice = parseFloat(params.get('price') ?? `${DEFAULT_PRICE}`);
-    return {
-      source:    params.get('source') ?? 'automl',
+    setCheckout({
+      source: params.get('source') ?? 'automl',
       sessionId: params.get('session') ?? '',
       modelName: params.get('model') ?? 'RandomForestClassifier',
-      product:   params.get('product') ?? 'trained-model',
-      price:     isFinite(parsedPrice) ? parsedPrice : DEFAULT_PRICE,
-    };
+      product: params.get('product') ?? 'trained-model',
+      price: isFinite(parsedPrice) ? parsedPrice : DEFAULT_PRICE,
+    });
   }, []);
 
   const { source, sessionId, modelName, product, price } = checkout;
   const returnPath = source === 'script' ? '/automl/script' : '/automl';
 
   const orderId = useMemo(() => sessionId ? `OQ-${sessionId.slice(0, 8).toUpperCase()}` : 'OQ-INSTANT-DL', [sessionId]);
-  const upiApproxAmount = useMemo(() => parseFloat((price * UPI_EXCHANGE_RATE).toFixed(2)), [price]);
+  const upiApproxAmount = useMemo(() => parseFloat(price.toFixed(2)), [price]);
 
   const isDeployProduct = product === 'mlops-deploy';
   const downloadTarget = product === 'python-script' ? 'py' : product === 'jupyter-notebook' ? 'ipynb' : 'trained-model';

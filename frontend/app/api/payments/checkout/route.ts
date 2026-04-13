@@ -30,8 +30,7 @@ export async function POST(request: NextRequest) {
     const product = String(body.product ?? 'trained-model').trim();
     const modelName = String(body.modelName ?? 'Trained Model').trim();
     const price = sanitizePrice(body.price, 0);
-    const upiRate = sanitizePrice(process.env.UPI_EXCHANGE_RATE ?? process.env.NEXT_PUBLIC_UPI_EXCHANGE_RATE, 83);
-    const amountInr = sanitizePrice(price * upiRate, price);
+    const amountInr = sanitizePrice(price, 0);
     const amountPaise = Math.max(100, Math.round(amountInr * 100));
 
     if (!['paypal', 'card', 'upi'].includes(paymentMethod)) {

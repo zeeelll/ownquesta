@@ -66,7 +66,7 @@ const LAB_THEME = {
 
 // ── Payment config ────────────────────────────────────────────────────────────
 const MODEL_DOWNLOAD_PRICE = 4.99;
-const MLOPS_DEPLOY_PRICE = 14.99;
+const MLOPS_DEPLOY_PRICE = 414.99;
 
 // ── Restrictions ──────────────────────────────────────────────────────────────
 const BLOCKED: { re: RegExp; msg: string }[] = [
