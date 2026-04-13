@@ -76,6 +76,7 @@ export default function ProfilePage() {
           skills: u.skills || '',
           membershipStatus: u.membershipStatus || 'free',
           membershipPlan: u.membershipPlan || 'premium-monthly',
+          membershipUpgradedAt: u.membershipUpgradedAt || '',
           membershipExpiresAt: u.membershipExpiresAt || '',
           darkMode: u.settings?.darkMode ?? true,
           twoFactorAuth: u.settings?.twoFactorAuth ?? false
@@ -168,6 +169,7 @@ export default function ProfilePage() {
           skills: u.skills || '',
           membershipStatus: u.membershipStatus || prev?.membershipStatus || 'free',
           membershipPlan: u.membershipPlan || prev?.membershipPlan || 'premium-monthly',
+          membershipUpgradedAt: u.membershipUpgradedAt || prev?.membershipUpgradedAt || '',
           membershipExpiresAt: u.membershipExpiresAt || prev?.membershipExpiresAt || '',
           darkMode: u.settings?.darkMode ?? prev?.darkMode ?? true,
           twoFactorAuth: u.settings?.twoFactorAuth ?? prev?.twoFactorAuth ?? false,
@@ -526,11 +528,13 @@ export default function ProfilePage() {
                       <h3 className="mt-1 text-xl font-semibold text-white">
                         {isPremiumUser ? 'Premium Active' : 'Free Plan'}
                       </h3>
-                      <p className="mt-2 text-sm text-slate-300">
-                        {isPremiumUser
-                          ? `Your account is premium${profile?.membershipExpiresAt ? ` until ${new Date(profile.membershipExpiresAt).toLocaleDateString()}` : ''}.`
-                          : 'Upgrade to premium to unlock direct deployment inside OwnQuesta.'}
-                      </p>
+                      <div className="mt-3 grid gap-1 text-sm text-slate-300">
+                        <p>Status: <span className="font-semibold text-white">{String(profile?.membershipStatus || 'free').toUpperCase()}</span></p>
+                        <p>Plan: <span className="font-semibold text-white">{String(profile?.membershipPlan || 'premium-monthly').toUpperCase()}</span></p>
+                        <p>Upgraded: <span className="font-semibold text-white">{profile?.membershipUpgradedAt ? new Date(profile.membershipUpgradedAt).toLocaleDateString() : 'N/A'}</span></p>
+                        <p>Expires: <span className="font-semibold text-white">{profile?.membershipExpiresAt ? new Date(profile.membershipExpiresAt).toLocaleDateString() : 'N/A'}</span></p>
+                      </div>
+                      <p className="mt-2 text-xs text-indigo-200/80">These details are loaded from your database profile.</p>
                     </div>
                     <button
                       type="button"
