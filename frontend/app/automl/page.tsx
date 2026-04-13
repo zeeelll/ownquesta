@@ -448,8 +448,43 @@ export default function LabPage() {
     localStorage.removeItem('mlContinueProject');
     try {
       const proj = JSON.parse(raw) as { sessionId?: string; name?: string; stage?: string; filename?: string; filePath?: string; targetColumn?: string; };
+      const stage = proj.stage ?? 'initialized';
+
+      const mapStageToUi = (projectStage: string): 'idle' | 'analyzed' | 'pipeline_built' => {
+        if (['trained', 'evaluated', 'completed'].includes(projectStage)) return 'pipeline_built';
+        if (['eda_completed', 'model_selected', 'training'].includes(projectStage)) return 'analyzed';
+        return 'idle';
+      };
+
       if (proj.sessionId) {
         sidRef.current = proj.sessionId; setSid(proj.sessionId);
+
+        // Prefer the last local working state for this exact session if available.
+        const savedStateRaw = localStorage.getItem('automl_active_state');
+        if (savedStateRaw) {
+          try {
+            const savedState = JSON.parse(savedStateRaw) as {
+              sid?: string;
+              analysisStage?: 'idle' | 'analyzed' | 'pipeline_built';
+              selectedModel?: string | null;
+              featureColumns?: string[];
+              predictInputs?: Record<string, string>;
+              modelEvaluated?: boolean;
+            };
+            if (savedState.sid === proj.sessionId) {
+              if (savedState.analysisStage) setAnalysisStage(savedState.analysisStage);
+              if (savedState.selectedModel) setSelectedModel(savedState.selectedModel);
+              if (savedState.featureColumns?.length) {
+                setFeatureColumns(savedState.featureColumns);
+                setPredictInputs(savedState.predictInputs || Object.fromEntries(savedState.featureColumns.map((c: string) => [c, ''])));
+              }
+              if (savedState.modelEvaluated) setModelEvaluated(true);
+            }
+          } catch {
+            // ignore corrupt active state
+          }
+        }
+
         const savedChat = localStorage.getItem(`automl_chat_${proj.sessionId}`);
         if (savedChat) { try { const msgs = (JSON.parse(savedChat) as ChatMsg[]).filter(m => m.id !== 'history-divider'); if (msgs.length > 0) { const divider: ChatMsg = { id: 'history-divider', type: 'info', text: '─── Previous session history ───' }; setChatMsgs([divider, ...msgs]); } } catch { /* corrupt */ } }
         const savedCells = localStorage.getItem(`automl_cells_${proj.sessionId}`);
@@ -458,18 +493,19 @@ export default function LabPage() {
       if (proj.filename)    setUploadedFilename(proj.filename);
       if (proj.filePath)    setUploadedFilePath(proj.filePath);
       if (proj.targetColumn) setTargetCol(proj.targetColumn);
-      setAnalysisStage('idle');
-      const stage = proj.stage ?? 'initialized';
+      setAnalysisStage(prev => (prev === 'idle' ? mapStageToUi(stage) : prev));
+      if (['evaluated', 'completed'].includes(stage)) setModelEvaluated(true);
+
       const hint: Record<string, string> = {
-        dataset_uploaded: 'Your dataset is ready on the server. Click **Analyse** to run the AI analysis.',
-        eda_completed:    'EDA was previously completed. Click **Analyse** to re-run, then select a model to build the pipeline.',
-        model_selected:   'A model was selected last time. Click **Analyse** to re-run, then rebuild the pipeline.',
-        training:         'The pipeline was building. Click **Analyse** to re-run from scratch.',
-        trained:          'The model was trained. Click **Analyse** → select model → build pipeline to retrain.',
-        evaluated:        'The model was evaluated. Click **Analyse** to run the full workflow again.',
-        completed:        'Project was completed. Click **Analyse** to re-run the full workflow.',
+        dataset_uploaded: 'Your dataset is ready. Continue with Analyse.',
+        eda_completed:    'EDA is complete. Continue by selecting a model and building the pipeline.',
+        model_selected:   'Model selection was done. Continue with pipeline build.',
+        training:         'Training was in progress. Continue from analysis/model selection stage.',
+        trained:          'Training already completed. You can test, download, or deploy.',
+        evaluated:        'Model evaluation is complete. You can continue with downloads or MLOps deploy.',
+        completed:        'Project is complete. You can continue with exports and deployment actions.',
       };
-      addMsg({ type: 'info', text: [`**Resuming "${proj.name || 'your project'}"**`, `Last stage: *${stage.replace(/_/g, ' ')}*`, '', '> The Python kernel is stateless; variables reset each session.', '> Chat history and notebook cells have been restored. Re-run cells to regenerate charts.', hint[stage] ?? 'Click **Analyse** to re-run the pipeline.'].join('\n') });
+      addMsg({ type: 'info', text: [`**Resuming "${proj.name || 'your project'}"**`, `Last stage: *${stage.replace(/_/g, ' ')}*`, '', '> Chat history and notebook cells were restored.', '> Resume from your last completed stage instead of re-running the whole flow.', hint[stage] ?? 'Continue from the current stage.'].join('\n') });
     } catch { /* ignore */ }
   }, []);
 
