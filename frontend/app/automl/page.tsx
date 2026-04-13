@@ -67,7 +67,6 @@ const LAB_THEME = {
 // ── Payment config ────────────────────────────────────────────────────────────
 const MODEL_DOWNLOAD_PRICE = 4.99;
 const MLOPS_DEPLOY_PRICE = 14.99;
-const FREE_DOWNLOADS_KEY = 'ownquesta_free_download_usage';
 
 // ── Restrictions ──────────────────────────────────────────────────────────────
 const BLOCKED: { re: RegExp; msg: string }[] = [
@@ -367,7 +366,6 @@ export default function LabPage() {
   const [modelEvaluated, setModelEvaluated] = useState(false);
   const [deployingMlops, setDeployingMlops] = useState(false);
   const [deployInfo,     setDeployInfo]     = useState<{ endpointUrl?: string; status?: string } | null>(null);
-  const [paidDownloadOrderId, setPaidDownloadOrderId] = useState('');
 
   // Panel resize
   const [panelW, setPanelW] = useState(430);
@@ -718,7 +716,7 @@ export default function LabPage() {
   }, [sid, router]);
 
   // ── Download Model (actual logic, called after payment) ───────────────────
-  const doDownloadModel = useCallback(async (accessType: 'free' | 'paid') => {
+  const doDownloadModel = useCallback(async () => {
     const session = sid || sidRef.current; if (!session) return;
     setDownloadingModel(true);
     addMsg({ type: 'info', text: 'Serializing model... this may take a few seconds.' });
@@ -726,13 +724,13 @@ export default function LabPage() {
       try {
         await trackDownloadAccess({
           sessionId: session,
-          orderId: accessType === 'paid' ? paidDownloadOrderId : '',
+          orderId: '',
           modelName: selectedModel || 'Trained Model',
           productType: 'model',
           fileName: filename,
           source: 'automl',
-          accessType,
-          amountInr: accessType === 'paid' ? MODEL_DOWNLOAD_PRICE : 0,
+          accessType: 'free',
+          amountInr: 0,
           metadata: { page: 'automl', flow: 'model_download' },
         });
       } catch {
@@ -747,6 +745,7 @@ export default function LabPage() {
         const filename = disposition?.match(/filename="?([^"]+)"?/)?.[1] ?? `model_${session.slice(0, 7)}.pkl`;
         triggerBlobDownload(blob, filename);
         await trackDownload(filename);
+        setModelPaid(true);
         addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
         return;
       }
@@ -777,30 +776,14 @@ export default function LabPage() {
       const filename = `trained_model_${session.slice(0, 7)}.pkl`;
       triggerBlobDownload(blob, filename);
       await trackDownload(filename);
+      setModelPaid(true);
       addMsg({ type: 'ai', text: `Model downloaded as \`${filename}\`` });
     } catch (e: any) {
       addMsg({ type: 'error', text: `Download failed: ${e.message}` });
     } finally { setDownloadingModel(false); }
-  }, [sid, addMsg, paidDownloadOrderId, selectedModel]);
+  }, [sid, addMsg, selectedModel]);
 
   // ── Checkout page / payment success ──────────────────────────────────────
-  const openPaymentPage = useCallback(() => {
-    const session = sid || sidRef.current;
-    if (!session) {
-      addMsg({ type: 'error', text: 'Build your pipeline first, then download the trained model.' });
-      return;
-    }
-
-    const params = new URLSearchParams({
-      source: 'automl',
-      product: 'trained-model',
-      session,
-      model: selectedModel ?? 'Trained Model',
-      price: String(MODEL_DOWNLOAD_PRICE),
-    });
-
-    router.push(`/payment?${params.toString()}`);
-  }, [sid, selectedModel, router, addMsg]);
 
   const openDeployPaymentPage = useCallback(() => {
     const session = sid || sidRef.current;
@@ -857,35 +840,10 @@ export default function LabPage() {
     openDeployPaymentPage();
   }, [modelEvaluated, deployPaid, router, openDeployPaymentPage, addMsg]);
 
-  // ── Download Model click — first download free, then payment ──────────────
+  // ── Download Model click — always free ───────────────────────────────────
   const downloadModel = useCallback(() => {
-    if (modelPaid) {
-      void doDownloadModel('paid');
-      return;
-    }
-
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = window.localStorage.getItem(FREE_DOWNLOADS_KEY);
-        const usage = raw ? JSON.parse(raw) as Record<string, number> : {};
-        const freeCount = usage.model ?? 0;
-
-        if (freeCount < 1) {
-          window.localStorage.setItem(
-            FREE_DOWNLOADS_KEY,
-            JSON.stringify({ ...usage, model: freeCount + 1 }),
-          );
-          addMsg({ type: 'info', text: 'Your first model download is free. Payment will be required from the second download.' });
-          void doDownloadModel('free');
-          return;
-        }
-      } catch {
-        // ignore storage issues and continue to payment
-      }
-    }
-
-    openPaymentPage();
-  }, [modelPaid, doDownloadModel, openPaymentPage, addMsg]);
+    void doDownloadModel();
+  }, [doDownloadModel]);
 
   // ── Payment success handler ───────────────────────────────────────────────
   const handlePaySuccess = useCallback(() => {
@@ -913,19 +871,11 @@ export default function LabPage() {
       sidRef.current = returnedSession;
       if (sid !== returnedSession) setSid(returnedSession);
 
-      if (payment.product === 'trained-model') {
-        setModelPaid(true);
-        setPaidDownloadOrderId(payment.orderId || '');
-      }
       if (payment.product === 'mlops-deploy') {
         setDeployPaid(true);
       }
       sessionStorage.removeItem('ownquesta_model_payment');
       window.history.replaceState({}, '', window.location.pathname);
-      if (payment.product === 'trained-model') {
-        addMsg({ type: 'info', text: 'Payment confirmed. Preparing your trained model download...' });
-        setTimeout(() => void doDownloadModel('paid'), 150);
-      }
       if (payment.product === 'mlops-deploy' && payment.orderId) {
         addMsg({ type: 'info', text: 'Payment confirmed. Provisioning MLOps infrastructure...' });
         void provisionMlopsDeployment(payment.orderId, returnedSession, payment.modelName || selectedModel || 'Trained Model');
@@ -941,7 +891,7 @@ export default function LabPage() {
     setUploadedFilename(null); setUploadedFilePath(null); setUploadErr(null); setTargetCol('');
     setChatMsgs([{ id: 'w', type: 'welcome', text: 'Upload a CSV or Excel dataset to begin. The AI agent will analyse it, suggest top models, and build a complete ML pipeline for you.' }]);
     setChatInput(''); setAnalysisStage('idle'); setSelectedModel(null); setFeatureColumns([]); setPredictInputs({});
-    setModelPaid(false); setDeployPaid(false); setModelEvaluated(false); setDeployInfo(null); setPaidDownloadOrderId('');
+    setModelPaid(false); setDeployPaid(false); setModelEvaluated(false); setDeployInfo(null);
     localStorage.removeItem('automl_active_state');
   };
 
@@ -977,20 +927,14 @@ export default function LabPage() {
               <button onClick={downloadModel} disabled={downloadingModel}
                 style={{
                   ...ghostBtn,
-                  color: downloadingModel ? '#475569' : modelPaid ? '#4ade80' : '#fbbf24',
-                  borderColor: downloadingModel ? 'rgba(255,255,255,0.1)' : modelPaid ? 'rgba(74,222,128,0.35)' : 'rgba(251,191,36,0.45)',
-                  background: modelPaid ? 'rgba(74,222,128,0.08)' : 'rgba(251,191,36,0.08)',
+                  color: downloadingModel ? '#475569' : '#4ade80',
+                  borderColor: downloadingModel ? 'rgba(255,255,255,0.1)' : 'rgba(74,222,128,0.35)',
+                  background: 'rgba(74,222,128,0.08)',
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}>
                 {downloadingModel
                   ? <><SpinIcon size={10}/><span>Downloading...</span></>
-                  : modelPaid
-                    ? <><Download size={12} /><span>Download Model</span></>
-                    : <><Lock size={12} /><span>Download Model</span>
-                        <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24', marginLeft: 2 }}>
-                          ${MODEL_DOWNLOAD_PRICE}
-                        </span>
-                      </>
+                  : <><Download size={12} /><span>Download Model</span></>
                 }
               </button>
 
@@ -1057,7 +1001,6 @@ export default function LabPage() {
               predictInputs={predictInputs}
               setPredictInputs={setPredictInputs}
               onPredict={predict}
-              modelDownloadPrice={MODEL_DOWNLOAD_PRICE}
               mlopsDeployPrice={MLOPS_DEPLOY_PRICE}
               chatMsgs={chatMsgs}
               onBuildPipeline={buildPipeline}
@@ -1536,7 +1479,7 @@ interface EasyModePanelProps {
   selectedModel: string | null; chatSending: boolean; predicting: boolean;
   downloadingModel: boolean; modelPaid: boolean; deployPaid: boolean; modelEvaluated: boolean;
   deployingMlops: boolean; deployInfo: { endpointUrl?: string; status?: string } | null;
-  modelDownloadPrice: number; mlopsDeployPrice: number;
+  mlopsDeployPrice: number;
   onDownloadModel(): void; onDeployMlops(): void; onOpenScript(): void; onSendPrompt(msg: string): void;
   featureColumns: string[]; predictInputs: Record<string, string>;
   setPredictInputs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -1548,7 +1491,7 @@ interface EasyModePanelProps {
   onUploadClick(): void; onAnalyze(): void;
 }
 
-function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, deployPaid, modelEvaluated, deployingMlops, deployInfo, modelDownloadPrice, mlopsDeployPrice, onDownloadModel, onDeployMlops, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
+function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buildingPipeline, selectedModel, chatSending, predicting, downloadingModel, modelPaid, deployPaid, modelEvaluated, deployingMlops, deployInfo, mlopsDeployPrice, onDownloadModel, onDeployMlops, onOpenScript, onSendPrompt, featureColumns, predictInputs, setPredictInputs, onPredict, chatMsgs, onBuildPipeline, uploading, uploadErr, targetCol, onTargetColChange, onUploadClick, onAnalyze }: EasyModePanelProps) {
   const [aiPrompt, setAiPrompt]         = useState('');
   const [testSize, setTestSize]         = useState(0.2);
   const [cvFolds, setCvFolds]           = useState(5);
@@ -1928,13 +1871,13 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
               <button onClick={onDownloadModel} disabled={!modelEvaluated || downloadingModel}
                 style={{
                   padding: '12px', borderRadius: 11, textAlign: 'left', cursor: (!modelEvaluated || downloadingModel) ? 'not-allowed' : 'pointer',
-                  background: modelPaid ? 'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(20,184,166,0.2))' : 'linear-gradient(135deg,rgba(16,185,129,0.14),rgba(20,184,166,0.14))',
+                  background: 'linear-gradient(135deg,rgba(16,185,129,0.2),rgba(20,184,166,0.2))',
                   border: '1px solid rgba(45,212,191,0.45)', color: '#5eead4',
                   display: 'flex', flexDirection: 'column', gap: 5,
                 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13 }}><Download size={14} /> Download Files</span>
                 <span style={{ fontSize: 11, color: '#99f6e4' }}>.py, .ipynb, Python script exports</span>
-                {!modelPaid && <span style={{ fontSize: 11, color: '#2dd4bf' }}>Payment required from second model download • ${modelDownloadPrice}</span>}
+                <span style={{ fontSize: 11, color: '#2dd4bf' }}>Free download (.ipynb, .py, and trained model)</span>
               </button>
 
               <button onClick={onDeployMlops} disabled={!modelEvaluated || deployingMlops}
@@ -2005,7 +1948,7 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
         </div>
       </div>
 
-      {/* ── Download Model + Script — payment-gated ── */}
+      {/* ── Download Model + Script — free downloads ── */}
       {analysisStage === 'pipeline_built' && (
         <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button onClick={onDownloadModel} disabled={downloadingModel}
@@ -2014,23 +1957,15 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
               cursor: downloadingModel ? 'not-allowed' : 'pointer',
               background: downloadingModel
                 ? 'rgba(74,222,128,0.04)'
-                : modelPaid
-                  ? 'linear-gradient(135deg,rgba(74,222,128,0.16),rgba(16,185,129,0.16))'
-                  : 'linear-gradient(135deg,rgba(251,191,36,0.14),rgba(245,158,11,0.14))',
-              border: modelPaid ? '1px solid rgba(74,222,128,0.4)' : '1px solid rgba(251,191,36,0.45)',
-              color: downloadingModel ? '#475569' : modelPaid ? '#4ade80' : '#fbbf24',
+                : 'linear-gradient(135deg,rgba(74,222,128,0.16),rgba(16,185,129,0.16))',
+              border: '1px solid rgba(74,222,128,0.4)',
+              color: downloadingModel ? '#475569' : '#4ade80',
               fontSize: 14, fontWeight: 700, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s',
             }}>
             {downloadingModel
               ? <><SpinIcon size={14}/><span>Downloading...</span></>
-              : modelPaid
-                ? <><Download size={18} /><span>Download Trained Model (.pkl)</span></>
-                : <><Lock size={18} /><span>Download Trained Model (.pkl)</span>
-                    <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }}>
-                      ${modelDownloadPrice}
-                    </span>
-                  </>
+              : <><Download size={18} /><span>Download Trained Model (.pkl)</span></>
             }
           </button>
           <button onClick={onOpenScript}
