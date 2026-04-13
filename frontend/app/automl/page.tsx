@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
-import { trackDownloadAccess } from '../../services/api';
+import { trackDownloadAccess, getCurrentUser } from '../../services/api';
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
 const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
@@ -366,6 +366,7 @@ export default function LabPage() {
   const [modelEvaluated, setModelEvaluated] = useState(false);
   const [deployingMlops, setDeployingMlops] = useState(false);
   const [deployInfo,     setDeployInfo]     = useState<{ endpointUrl?: string; status?: string } | null>(null);
+  const [membershipStatus, setMembershipStatus] = useState<'free' | 'ownque_user' | ''>('');
 
   // Panel resize
   const [panelW, setPanelW] = useState(430);
@@ -413,6 +414,31 @@ export default function LabPage() {
       }));
     } catch { /* storage full */ }
   }, [sid, analysisStage, selectedModel, featureColumns, uploadedFilename, uploadedFilePath, targetCol, predictInputs, modelEvaluated]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('ownquesta_user_access');
+        if (cached) {
+          const parsed = JSON.parse(cached) as { membershipStatus?: string };
+          if (String(parsed.membershipStatus || '').toLowerCase() === 'ownque_user') {
+            setMembershipStatus('ownque_user');
+          }
+        }
+      } catch {
+        // ignore cache errors
+      }
+    }
+
+    getCurrentUser()
+      .then((data: any) => {
+        const nextStatus = String(data?.user?.membershipStatus || '').toLowerCase() === 'ownque_user' ? 'ownque_user' : 'free';
+        setMembershipStatus(nextStatus);
+      })
+      .catch(() => {
+        if (!membershipStatus) setMembershipStatus('free');
+      });
+  }, []);
 
   useEffect(() => {
     if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
@@ -853,6 +879,7 @@ export default function LabPage() {
       if (!res.ok) throw new Error(data?.message || 'Unable to provision deployment.');
       const deployment = data?.deployment ?? {};
       setDeployInfo({ endpointUrl: deployment.endpointUrl, status: deployment.status });
+      setDeployPaid(true);
       addMsg({
         type: 'ai',
         text: `MLOps deployment is ready. Endpoint: ${deployment.endpointUrl || 'pending'}\n\nTemplate stack generated: FastAPI /predict, Dockerfile, Kubernetes deployment with HPA, MLflow tracking, CI/CD workflow, and Prometheus monitoring.`,
@@ -873,8 +900,17 @@ export default function LabPage() {
       router.push('/my-deployments');
       return;
     }
+    const session = sid || sidRef.current;
+    if (!session) {
+      addMsg({ type: 'error', text: 'Complete training and evaluation before deploying to MLOps.' });
+      return;
+    }
+    if (membershipStatus === 'ownque_user') {
+      void provisionMlopsDeployment('', session, selectedModel || 'Trained Model');
+      return;
+    }
     openDeployPaymentPage();
-  }, [modelEvaluated, deployPaid, router, openDeployPaymentPage, addMsg]);
+  }, [modelEvaluated, deployPaid, router, openDeployPaymentPage, addMsg, sid, membershipStatus, provisionMlopsDeployment, selectedModel]);
 
   // ── Download Model click — always free ───────────────────────────────────
   const downloadModel = useCallback(() => {

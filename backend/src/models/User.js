@@ -18,6 +18,10 @@ const userSchema = new mongoose.Schema(
     jobTitle: { type: String, default: "" },
     location: { type: String, default: "" },
     skills: { type: String, default: "" },
+    membershipStatus: { type: String, enum: ["free", "ownque_user"], default: "free", index: true },
+    membershipPlan: { type: String, default: "" },
+    membershipUpgradedAt: { type: Date, default: null },
+    membershipExpiresAt: { type: Date, default: null },
     settings: {
       emailNotif: { type: Boolean, default: true },
       darkMode: { type: Boolean, default: true },

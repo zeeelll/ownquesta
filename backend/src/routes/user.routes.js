@@ -52,6 +52,7 @@ router.post("/activity", requireAuth, async (req, res) => {
 
 router.get("/downloads", requireAuth, userAssetsController.getMyDownloads);
 router.post("/downloads/track", requireAuth, userAssetsController.trackDownloadAccess);
+router.post("/membership/upgrade", requireAuth, userAssetsController.upgradeMembership);
 router.get("/deployments", requireAuth, userAssetsController.getMyDeployments);
 router.post("/deployments/provision", requireAuth, userAssetsController.provisionDeployment);
 router.patch("/deployments/:id/scale", requireAuth, userAssetsController.scaleDeployment);

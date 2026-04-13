@@ -113,6 +113,48 @@ exports.trackDownloadAccess = async (req, res) => {
   }
 };
 
+exports.upgradeMembership = async (req, res) => {
+  try {
+    const plan = String(req.body?.plan || "premium-monthly").trim().toLowerCase();
+    const amountInr = Number(req.body?.amountInr || 1500);
+    const customerName = String(req.body?.customerName || req.user.name || "User").trim();
+    const customerEmail = String(req.body?.customerEmail || req.user.email || "").trim().toLowerCase();
+
+    if (!customerEmail) {
+      return res.status(400).json({ message: "customerEmail is required" });
+    }
+
+    const nextExpiresAt = new Date();
+    nextExpiresAt.setMonth(nextExpiresAt.getMonth() + 1);
+
+    req.user.membershipStatus = "ownque_user";
+    req.user.membershipPlan = plan;
+    req.user.membershipUpgradedAt = new Date();
+    req.user.membershipExpiresAt = nextExpiresAt;
+    if (customerName) req.user.name = customerName;
+    if (customerEmail && req.user.email !== customerEmail) req.user.email = customerEmail;
+    await req.user.save();
+
+    return res.json({
+      success: true,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        membershipStatus: req.user.membershipStatus,
+        membershipPlan: req.user.membershipPlan,
+        membershipUpgradedAt: req.user.membershipUpgradedAt,
+        membershipExpiresAt: req.user.membershipExpiresAt,
+      },
+      plan,
+      amountInr: Number.isFinite(amountInr) ? Math.max(0, amountInr) : 1500,
+    });
+  } catch (error) {
+    console.error("Error upgrading membership:", error);
+    return res.status(500).json({ message: "Unable to upgrade membership" });
+  }
+};
+
 exports.getMyDeployments = async (req, res) => {
   try {
     const deployments = await MlopsDeployment.find({ userId: req.user._id })
@@ -131,28 +173,34 @@ exports.provisionDeployment = async (req, res) => {
     const paymentOrderId = String(req.body?.paymentOrderId || "").trim();
     const sessionId = String(req.body?.sessionId || "").trim();
     const modelName = String(req.body?.modelName || "Trained Model").trim();
+    const isPremiumUser = String(req.user?.membershipStatus || "").toLowerCase() === "ownque_user";
+    const premiumOrderId = `PREMIUM-${req.user._id.toString()}-${sessionId || "deployment"}`;
+    const effectiveOrderId = paymentOrderId || (isPremiumUser ? premiumOrderId : "");
 
-    if (!paymentOrderId) {
+    if (!effectiveOrderId) {
       return res.status(400).json({ message: "paymentOrderId is required" });
     }
 
-    const payment = await Payment.findOne({
-      orderId: paymentOrderId,
-      status: "paid",
-      productType: "deploy",
-      ...buildUserScope(req),
-    }).lean();
+    let payment = null;
+    if (!isPremiumUser) {
+      payment = await Payment.findOne({
+        orderId: effectiveOrderId,
+        status: "paid",
+        productType: "deploy",
+        ...buildUserScope(req),
+      }).lean();
 
-    if (!payment) {
-      return res.status(404).json({ message: "Valid deploy payment not found" });
+      if (!payment) {
+        return res.status(404).json({ message: "Valid deploy payment not found" });
+      }
     }
 
-    const existing = await MlopsDeployment.findOne({ paymentOrderId }).lean();
+    const existing = await MlopsDeployment.findOne({ paymentOrderId: effectiveOrderId }).lean();
     if (existing) {
       return res.json({ deployment: existing, reused: true });
     }
 
-    const deploymentIdSuffix = paymentOrderId.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    const deploymentIdSuffix = effectiveOrderId.toLowerCase().replace(/[^a-z0-9-]/g, "-");
     const endpointUrl = `https://${deploymentIdSuffix}.ownquesta.ai/predict`;
     const deploymentFiles = [
       "mlops-template/api/main.py",
@@ -165,9 +213,9 @@ exports.provisionDeployment = async (req, res) => {
 
     const deployment = await MlopsDeployment.create({
       userId: req.user._id,
-      paymentOrderId,
-      sessionId: sessionId || payment.sessionId || "",
-      modelName: modelName || payment.modelName || "Trained Model",
+      paymentOrderId: effectiveOrderId,
+      sessionId: sessionId || payment?.sessionId || "",
+      modelName: modelName || payment?.modelName || "Trained Model",
       status: "running",
       endpointUrl,
       namespace: "ownquesta-prod",
@@ -184,7 +232,9 @@ exports.provisionDeployment = async (req, res) => {
     return res.status(201).json({
       deployment,
       provisioned: true,
-      message: "MLOps infrastructure provisioned with monitoring and autoscaling.",
+      message: isPremiumUser
+        ? "Premium deployment provisioned with monitoring and autoscaling."
+        : "MLOps infrastructure provisioned with monitoring and autoscaling.",
     });
   } catch (error) {
     console.error("Error provisioning deployment:", error);

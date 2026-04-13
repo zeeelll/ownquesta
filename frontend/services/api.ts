@@ -119,6 +119,22 @@ export async function getMyActivities(limit?: number) {
   return api(`/api/user/activities${query ? `?${query}` : ''}`);
 }
 
+export async function getCurrentUser() {
+  return api('/api/auth/me');
+}
+
+export async function upgradeMembership(payload: {
+  plan?: string;
+  amountInr?: number;
+  customerName?: string;
+  customerEmail?: string;
+}) {
+  return api('/api/user/membership/upgrade', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function trackUserActivity(action: string, description: string, metadata: Record<string, any> = {}) {
   return api('/api/user/activity', {
     method: 'POST',
