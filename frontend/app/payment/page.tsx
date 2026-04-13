@@ -182,28 +182,28 @@ export default function PaymentPage() {
   const exportTypes    = product === 'python-script' ? ['py'] : product === 'jupyter-notebook' ? ['ipynb'] : ['py', 'ipynb'];
   const paymentTypeLabel =
     isDeployProduct
-      ? 'Deploy Payment'
+      ? 'MLOps Deployment Payment'
       : downloadTarget === 'trained-model'
       ? 'Model Payment'
       : downloadTarget === 'py'
         ? '.py Payment'
         : 'ipynb Payment';
   const checkoutTitle  = isDeployProduct
-    ? 'Unlock MLOps deployment'
+    ? 'Activate MLOps deployment'
     : downloadTarget === 'trained-model'
       ? 'Unlock trained model download'
       : downloadTarget === 'py'
         ? 'Unlock Python script download'
         : 'Unlock Jupyter notebook download';
   const productSummary = isDeployProduct
-    ? `${modelName} production deployment (FastAPI + Kubernetes)`
+    ? `${modelName} MLOps deployment package`
     : downloadTarget === 'trained-model'
       ? `${modelName} trained model (.pkl)`
       : downloadTarget === 'py'
         ? 'Python pipeline export (.py)'
         : 'Jupyter notebook export (.ipynb)';
   const productDetails = isDeployProduct
-    ? 'Managed MLOps deployment with monitoring and autoscaling'
+    ? 'Managed deployment with API endpoint, monitoring, and autoscaling'
     : downloadTarget === 'trained-model'
       ? 'Trained .pkl model only'
       : downloadTarget === 'py'
@@ -402,10 +402,14 @@ export default function PaymentPage() {
               <h1 className="pw-title">
                 Secure your{' '}
                 <span className="pw-gradient-text">Ownquesta</span>{' '}
-                export checkout
+                {isDeployProduct ? 'deployment checkout' : 'export checkout'}
               </h1>
               <p className="pw-subtitle" style={{ marginBottom: 8 }}>{paymentTypeLabel}</p>
-              <p className="pw-subtitle">Your export is ready. Complete secure payment to instantly unlock and download your selected file.</p>
+              <p className="pw-subtitle">
+                {isDeployProduct
+                  ? 'Your model is ready for production. Complete secure payment to provision your MLOps deployment.'
+                  : 'Your export is ready. Complete secure payment to instantly unlock and download your selected file.'}
+              </p>
 
               <StepIndicator current={step} />
 
@@ -418,7 +422,7 @@ export default function PaymentPage() {
                   <p className="pw-product-name">{productSummary}</p>
                   <p className="pw-product-detail">{productDetails}</p>
                   <div className="pw-tags">
-                    <span className="pw-tag pw-tag-violet"><Zap size={10} strokeWidth={2.5} /> Instant delivery</span>
+                    <span className="pw-tag pw-tag-violet"><Zap size={10} strokeWidth={2.5} /> {isDeployProduct ? 'Fast provisioning' : 'Instant delivery'}</span>
                     <span className="pw-tag pw-tag-slate"><Clock size={10} strokeWidth={2.5} /> Session-linked</span>
                   </div>
                 </div>
@@ -427,11 +431,19 @@ export default function PaymentPage() {
 
               {/* Feature list */}
               <div className="pw-features">
-                {[
-                  { icon: <Zap size={14} strokeWidth={2.4} />, title: 'Instant access', text: 'Your selected file becomes available immediately after payment confirmation.' },
-                  { icon: <Shield size={14} strokeWidth={2.2} />, title: 'Session-protected', text: 'Access is linked to your current AutoML Playground session for safer delivery.' },
-                  { icon: <Package size={14} strokeWidth={2.2} />, title: 'Per-export billing', text: 'Each export type (model, .py, .ipynb) is billed separately.' },
-                ].map(f => (
+                {(
+                  isDeployProduct
+                    ? [
+                        { icon: <Zap size={14} strokeWidth={2.4} />, title: 'Provisioning starts instantly', text: 'Deployment provisioning begins immediately after payment confirmation.' },
+                        { icon: <Shield size={14} strokeWidth={2.2} />, title: 'Session-protected', text: 'Deployment access is tied to your current AutoML Playground session.' },
+                        { icon: <Package size={14} strokeWidth={2.2} />, title: 'Deploy-only billing', text: 'This payment unlocks only MLOps deployment, not additional paid products.' },
+                      ]
+                    : [
+                        { icon: <Zap size={14} strokeWidth={2.4} />, title: 'Instant access', text: 'Your selected file becomes available immediately after payment confirmation.' },
+                        { icon: <Shield size={14} strokeWidth={2.2} />, title: 'Session-protected', text: 'Access is linked to your current AutoML Playground session for safer delivery.' },
+                        { icon: <Package size={14} strokeWidth={2.2} />, title: 'Per-export billing', text: 'Each export type (model, .py, .ipynb) is billed separately.' },
+                      ]
+                ).map(f => (
                   <div key={f.title} className="pw-feature-item">
                     <span className="pw-feature-icon">{f.icon}</span>
                     <div>
@@ -615,8 +627,8 @@ export default function PaymentPage() {
                       <span>₹{upiApproxAmount.toFixed(2)}</span>
                     </div>
                     <div className="pw-summary-row pw-summary-muted">
-                      <span>Other export types</span>
-                      <span className="pw-text-amber">Separate charge</span>
+                      <span>{isDeployProduct ? 'Model/.py/.ipynb downloads' : 'Other export types'}</span>
+                      <span className="pw-text-amber">{isDeployProduct ? 'Not included' : 'Separate charge'}</span>
                     </div>
                     <div className="pw-summary-row pw-summary-muted">
                       <span>Platform & processing fee</span>
@@ -657,7 +669,9 @@ export default function PaymentPage() {
                   )}
 
                   <p className="pw-disclaimer">
-                    By continuing, you agree to Ownquesta's terms. Each export type is billed separately. Paying for a model export does <strong>not</strong> automatically unlock .py or .ipynb exports.
+                    {isDeployProduct
+                      ? "By continuing, you agree to Ownquesta's terms. This payment unlocks MLOps deployment for this session only."
+                      : "By continuing, you agree to Ownquesta's terms. Each export type is billed separately. Paying for a model export does not automatically unlock .py or .ipynb exports."}
                   </p>
                 </div>
               )}
@@ -672,7 +686,7 @@ export default function PaymentPage() {
                   <h3 className="pw-proc-title">
                     {paymentMethod === 'upi' ? `Confirming ${selectedUpiAppLabel} payment` : 'Processing card payment'}
                   </h3>
-                  <p className="pw-proc-text">{progressText || 'Securing your order and preparing your download...'}</p>
+                  <p className="pw-proc-text">{progressText || (isDeployProduct ? 'Securing your order and preparing deployment provisioning...' : 'Securing your order and preparing your download...')}</p>
 
                   <div className="pw-progress-wrap">
                     <div className="pw-progress-track">
@@ -682,7 +696,9 @@ export default function PaymentPage() {
                   </div>
 
                   <div className="pw-proc-steps">
-                    {['Payment initiated', 'Signature verified', 'Order confirmed', 'Download unlocked'].map((s, i) => {
+                    {(isDeployProduct
+                      ? ['Payment initiated', 'Signature verified', 'Order confirmed', 'Deployment unlocked']
+                      : ['Payment initiated', 'Signature verified', 'Order confirmed', 'Download unlocked']).map((s, i) => {
                       const done = progress > (i + 1) * 22;
                       return (
                         <div key={s} className={`pw-proc-step ${done ? 'pw-step-done' : ''}`}>
@@ -700,12 +716,12 @@ export default function PaymentPage() {
                 <div className="pw-fade-in pw-success">
                   <AnimatedCheck />
                   <h3 className="pw-success-title">Payment successful!</h3>
-                  <p className="pw-success-text">Your payment has been verified and access is now unlocked. Redirecting you to the AutoML Playground to download your file...</p>
+                  <p className="pw-success-text">{isDeployProduct ? 'Your payment has been verified and deployment access is now unlocked. Redirecting you to AutoML Playground to provision MLOps...' : 'Your payment has been verified and access is now unlocked. Redirecting you to the AutoML Playground to download your file...'}</p>
                   {paidOrderId && <p className="pw-success-order">Order #{paidOrderId}</p>}
                   <div className="pw-success-chips">
                     <span className="pw-success-chip"><Check size={11} strokeWidth={3} /> Payment confirmed</span>
-                    <span className="pw-success-chip"><Package size={11} strokeWidth={2.5} /> Access unlocked</span>
-                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> Redirecting to AutoML Playground</span>
+                    <span className="pw-success-chip"><Package size={11} strokeWidth={2.5} /> {isDeployProduct ? 'Deploy access unlocked' : 'Access unlocked'}</span>
+                    <span className="pw-success-chip"><Zap size={11} strokeWidth={2.5} /> {isDeployProduct ? 'Provisioning starts in AutoML Playground' : 'Redirecting to AutoML Playground'}</span>
                   </div>
                 </div>
               )}
