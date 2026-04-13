@@ -382,15 +382,18 @@ export default function PremiumUpgradePage() {
                   {paymentMethodCards.map((method) => {
                     const Icon = method.icon;
                     const active = paymentMethod === method.key;
+                    const selectable = method.key === 'upi';
                     return (
                       <button
                         key={method.key}
                         type="button"
+                        disabled={!selectable}
                         onClick={() => {
+                          if (!selectable) return;
                           setPaymentMethod(method.key);
                           setMessage('');
                         }}
-                        className={`flex h-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition ${active ? 'border-cyan-400/50 bg-cyan-400/10 shadow-[0_0_0_1px_rgba(34,211,238,0.15)]' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'}`}
+                        className={`flex h-full items-start gap-3 rounded-2xl border px-4 py-3 text-left transition ${active ? 'border-cyan-400/50 bg-cyan-400/10 shadow-[0_0_0_1px_rgba(34,211,238,0.15)]' : 'border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5'} ${!selectable ? 'cursor-not-allowed opacity-60 hover:border-white/10 hover:bg-black/20' : ''}`}
                       >
                         <span className={`mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl ${active ? 'bg-cyan-400/15 text-cyan-100' : 'bg-white/5 text-slate-300'}`}>
                           <Icon size={16} />
@@ -438,11 +441,6 @@ export default function PremiumUpgradePage() {
                   </div>
                 )}
 
-                {(paymentMethod === 'card' || paymentMethod === 'paypal') && (
-                  <div className="mt-4 flex min-h-[120px] items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-50">
-                    Coming soon
-                  </div>
-                )}
               </div>
 
               <label className="block">
