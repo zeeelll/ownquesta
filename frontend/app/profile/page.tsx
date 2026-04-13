@@ -19,6 +19,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>('personal');
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const isPremiumUser = String(profile?.membershipStatus || '').toLowerCase() === 'ownque_user';
 
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -73,6 +74,9 @@ export default function ProfilePage() {
           jobTitle: u.jobTitle || '',
           location: u.location || '',
           skills: u.skills || '',
+          membershipStatus: u.membershipStatus || 'free',
+          membershipPlan: u.membershipPlan || 'premium-monthly',
+          membershipExpiresAt: u.membershipExpiresAt || '',
           darkMode: u.settings?.darkMode ?? true,
           twoFactorAuth: u.settings?.twoFactorAuth ?? false
         });
@@ -162,6 +166,9 @@ export default function ProfilePage() {
           jobTitle: u.jobTitle || '',
           location: u.location || '',
           skills: u.skills || '',
+          membershipStatus: u.membershipStatus || prev?.membershipStatus || 'free',
+          membershipPlan: u.membershipPlan || prev?.membershipPlan || 'premium-monthly',
+          membershipExpiresAt: u.membershipExpiresAt || prev?.membershipExpiresAt || '',
           darkMode: u.settings?.darkMode ?? prev?.darkMode ?? true,
           twoFactorAuth: u.settings?.twoFactorAuth ?? prev?.twoFactorAuth ?? false,
         }));
@@ -508,6 +515,30 @@ export default function ProfilePage() {
                         Remove
                       </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Subscription Section */}
+                <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-5 sm:p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] text-indigo-300">Subscription</p>
+                      <h3 className="mt-1 text-xl font-semibold text-white">
+                        {isPremiumUser ? 'Premium Active' : 'Free Plan'}
+                      </h3>
+                      <p className="mt-2 text-sm text-slate-300">
+                        {isPremiumUser
+                          ? `Your account is premium${profile?.membershipExpiresAt ? ` until ${new Date(profile.membershipExpiresAt).toLocaleDateString()}` : ''}.`
+                          : 'Upgrade to premium to unlock direct deployment inside OwnQuesta.'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push('/payment?source=profile&product=mlops-deploy&model=Trained%20Model&returnTo=/profile')}
+                      className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold transition-all duration-300"
+                    >
+                      {isPremiumUser ? 'Open Payment Page' : 'Get Subscription'}
+                    </button>
                   </div>
                 </div>
 
