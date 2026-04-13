@@ -1315,11 +1315,11 @@ export default function DashboardPage() {
             Home
           </button>
 
-          <button onClick={() => router.push('/my-downloads')} className="nav-pill">
+          <button onClick={() => router.push('/my-downloads')} className="nav-pill nav-pill-accent">
             My Downloads
           </button>
 
-          <button onClick={() => router.push('/my-deployments')} className="nav-pill">
+          <button onClick={() => router.push('/my-deployments')} className="nav-pill nav-pill-accent">
             My Deployments
           </button>
 

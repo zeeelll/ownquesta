@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats, getAdminPayments } from "@/services/api";
 import Button from '../components/Button';
@@ -528,6 +528,57 @@ export default function AdminPage() {
 
     return matchesSearch && matchesType && matchesStatus;
   });
+
+  const userUsageStats = useMemo(() => {
+    const byUser = new Map<string, {
+      downloadTotal: number;
+      downloadPaid: number;
+      deployPaid: number;
+      totalSpend: number;
+      lastOrderId: string;
+    }>();
+
+    const ensure = (key: string) => {
+      if (!byUser.has(key)) {
+        byUser.set(key, {
+          downloadTotal: 0,
+          downloadPaid: 0,
+          deployPaid: 0,
+          totalSpend: 0,
+          lastOrderId: '',
+        });
+      }
+      return byUser.get(key)!;
+    };
+
+    const addStat = (keys: string[], updater: (bucket: { downloadTotal: number; downloadPaid: number; deployPaid: number; totalSpend: number; lastOrderId: string }) => void) => {
+      const unique = Array.from(new Set(keys.filter(Boolean).map((k) => k.toLowerCase())));
+      unique.forEach((k) => updater(ensure(k)));
+    };
+
+    downloadAccesses.forEach((record) => {
+      const uid = record.userId && typeof record.userId === 'object' ? record.userId._id || '' : typeof record.userId === 'string' ? record.userId : '';
+      const email = record.customerEmail || (record.userId && typeof record.userId === 'object' ? record.userId.email || '' : '');
+      addStat([uid, email], (bucket) => {
+        bucket.downloadTotal += 1;
+        if (record.accessType === 'paid') bucket.downloadPaid += 1;
+        bucket.totalSpend += Number(record.amountInr || 0);
+        if (record.orderId) bucket.lastOrderId = record.orderId;
+      });
+    });
+
+    payments.forEach((payment) => {
+      const uid = payment.userId && typeof payment.userId === 'object' ? payment.userId._id || '' : typeof payment.userId === 'string' ? payment.userId : '';
+      const email = payment.customerEmail || (payment.userId && typeof payment.userId === 'object' ? payment.userId.email || '' : '');
+      addStat([uid, email], (bucket) => {
+        if (payment.productType === 'deploy' && payment.status === 'paid') bucket.deployPaid += 1;
+        if (payment.status === 'paid') bucket.totalSpend += Number(payment.amountInr || 0);
+        if (payment.orderId) bucket.lastOrderId = payment.orderId;
+      });
+    });
+
+    return byUser;
+  }, [downloadAccesses, payments]);
 
   const refreshUsers = useCallback(async (showLoader = false) => {
     if (showLoader) setActionLoading('reload-users');
@@ -1148,12 +1199,15 @@ export default function AdminPage() {
                       <th className="table-th">User</th>
                       <th className="table-th">Role</th>
                       <th className="table-th">Company</th>
+                      <th className="table-th">Usage Details</th>
                       <th className="table-th">Joined</th>
                       <th className="table-th">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {filteredUsers.map((user) => (
+                    {filteredUsers.map((user) => {
+                      const stats = userUsageStats.get(user._id.toLowerCase()) || userUsageStats.get((user.email || '').toLowerCase());
+                      return (
                       <tr key={user._id} className="table-row-hover transition-colors">
                         <td className="px-6 py-4">
                           <div className="flex items-center space-x-3">
@@ -1174,6 +1228,18 @@ export default function AdminPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-400">
                           {user.company || <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-1.5">
+                            <div className="flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Downloads: {stats?.downloadTotal || 0}</span>
+                              <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">Paid: {stats?.downloadPaid || 0}</span>
+                              <span className="px-2 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/30">Deploys: {stats?.deployPaid || 0}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-mono">
+                              Spend INR {(stats?.totalSpend || 0).toFixed(2)}{stats?.lastOrderId ? ` • Last ${stats.lastOrderId}` : ''}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-xs text-slate-500 font-mono">
                           {new Date(user.createdAt).toLocaleDateString()}
@@ -1231,7 +1297,7 @@ export default function AdminPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>
