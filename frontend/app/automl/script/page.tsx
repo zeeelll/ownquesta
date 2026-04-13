@@ -752,18 +752,14 @@ export default function ScriptPage() {
     router.push(`/payment?${params.toString()}`);
   }, [router, sessionId]);
 
-  // ── Download click handlers — first download free, then payment ───────────
+  // ── Download click handlers — downloads are free ──────────────────────────
   const handleDownloadPy = () => {
-    if (paidTypes.has('py')) { void doDownloadPy('paid'); return; }
-    if (claimFreeDownload('py')) { void doDownloadPy('free'); return; }
-    openExportPaymentPage('py');
+    void doDownloadPy('free');
   };
 
   const handleDownloadNotebook = () => {
     if (dlNotebook) return;
-    if (paidTypes.has('ipynb')) { void doDownloadNotebook('paid'); return; }
-    if (claimFreeDownload('ipynb')) { void doDownloadNotebook('free'); return; }
-    openExportPaymentPage('ipynb');
+    void doDownloadNotebook('free');
   };
 
   // ── Payment success ───────────────────────────────────────────────────────
@@ -870,30 +866,27 @@ export default function ScriptPage() {
 
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
 
-          {/* Download .py — shows lock if not paid */}
+          {/* Download .py — always free */}
           <button onClick={handleDownloadPy}
             style={S.btn(
-              paidTypes.has('py') ? '#60a5fa' : '#94a3b8',
-              paidTypes.has('py') ? 'rgba(96,165,250,0.1)' : 'rgba(255,255,255,0.04)',
-              paidTypes.has('py') ? 'rgba(96,165,250,0.3)' : 'rgba(255,255,255,0.12)',
+              '#60a5fa',
+              'rgba(96,165,250,0.1)',
+              'rgba(96,165,250,0.3)',
             )}>
-            {paidTypes.has('py') ? <DownloadIcon /> : <LockIcon />}
+            <DownloadIcon />
             Download .py
-            {!paidTypes.has('py') && <PriceTag price={DOWNLOAD_PRICE} />}
           </button>
 
-          {/* Download .ipynb — shows lock if not paid */}
+          {/* Download .ipynb — always free */}
           <button onClick={handleDownloadNotebook} disabled={dlNotebook}
             style={S.btn(
-              paidTypes.has('ipynb') ? '#fbbf24' : '#94a3b8',
-              paidTypes.has('ipynb') ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
-              paidTypes.has('ipynb') ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.12)',
+              '#fbbf24',
+              'rgba(251,191,36,0.1)',
+              'rgba(251,191,36,0.3)',
             )}>
             {dlNotebook
               ? <><SpinIcon />…</>
-              : paidTypes.has('ipynb')
-                ? <><DownloadIcon />Download .ipynb</>
-                : <><LockIcon />Download .ipynb<PriceTag price={DOWNLOAD_PRICE} /></>
+              : <><DownloadIcon />Download .ipynb</>
             }
           </button>
         </div>

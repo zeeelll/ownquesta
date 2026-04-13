@@ -715,7 +715,7 @@ export default function LabPage() {
     router.push('/automl/script');
   }, [sid, router]);
 
-  // ── Download Model (actual logic, called after payment) ───────────────────
+  // ── Download Model (actual logic, always free) ────────────────────────────
   const doDownloadModel = useCallback(async () => {
     const session = sid || sidRef.current; if (!session) return;
     setDownloadingModel(true);
@@ -923,7 +923,7 @@ export default function LabPage() {
           </span>
           {analysisStage === 'pipeline_built' && (
             <>
-              {/* Download Model — shows lock + price if unpaid */}
+              {/* Download Model — free download */}
               <button onClick={downloadModel} disabled={downloadingModel}
                 style={{
                   ...ghostBtn,
