@@ -285,11 +285,7 @@ export default function PremiumUpgradePage() {
   ];
 
   return (
-    <div className="min-h-screen text-white" style={{ background: 'radial-gradient(circle at top, rgba(14,116,144,0.22), transparent 28%), linear-gradient(180deg, #050816 0%, #090d1d 55%, #070a14 100%)' }}>
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute left-[-6rem] top-24 h-72 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="absolute right-[-4rem] top-40 h-80 w-80 rounded-full bg-violet-500/15 blur-3xl" />
-      </div>
+    <div className="min-h-screen text-white" style={{ background: 'linear-gradient(180deg, #050816 0%, #090d1d 55%, #070a14 100%)' }}>
 
       <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-none items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
@@ -517,7 +513,7 @@ export default function PremiumUpgradePage() {
                 </>
               )}
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-slate-300">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
                 <div className="flex items-center justify-between gap-3 py-1">
                   <span>Premium MLOps plan</span>
                   <span className="font-semibold text-white">₹{checkout.price.toFixed(2)}</span>
@@ -534,29 +530,31 @@ export default function PremiumUpgradePage() {
               </div>
 
               {paymentMethod === 'upi' && (
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
-                  <div className="mt-2 flex items-start justify-between gap-3">
-                    <div>
+                  <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+                    <div className="min-w-0">
                       <p className="text-sm font-semibold text-white">{OWNQUESTA_UPI_NAME}</p>
                       <p className="text-xs text-cyan-100">{OWNQUESTA_UPI_ID}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button type="button" onClick={() => void copyUpiId()} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-1.5 text-xs font-semibold text-cyan-100">
+                          {copiedUpi ? 'Copied' : 'Copy UPI ID'}
+                        </button>
+                        <button type="button" onClick={() => window.open(upiPaymentLink, '_self')} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-1.5 text-xs font-semibold text-cyan-100">
+                          Open {selectedUpiAppLabel}
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={() => void copyUpiId()} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
-                      {copiedUpi ? 'Copied' : 'Copy UPI ID'}
-                    </button>
-                    <button type="button" onClick={() => window.open(upiPaymentLink, '_self')} className="rounded-xl border border-cyan-300/35 bg-cyan-300/15 px-3 py-2 text-xs font-semibold text-cyan-100">
-                      Open {selectedUpiAppLabel}
-                    </button>
-                  </div>
-                  <div className="mt-4 mx-auto w-fit rounded-2xl border border-white/10 bg-white p-2">
-                    {upiQrDataUrl ? (
-                      <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[190px] w-[190px] rounded-xl object-contain" />
-                    ) : (
-                      <div className="mx-auto flex h-[190px] w-[190px] items-center justify-center text-xs text-slate-500">Generating QR...</div>
-                    )}
+                    <div className="text-left md:text-right">
+                      <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
+                      <div className="mt-2 mx-auto w-fit rounded-2xl border border-white/10 bg-white p-1.5">
+                        {upiQrDataUrl ? (
+                          <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[140px] w-[140px] rounded-xl object-contain" />
+                        ) : (
+                          <div className="mx-auto flex h-[140px] w-[140px] items-center justify-center text-xs text-slate-500">Generating QR...</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -570,7 +568,7 @@ export default function PremiumUpgradePage() {
               <button
                 onClick={() => void handleUpgrade()}
                 disabled={!canUpgrade}
-                className="btn-premium btn-primary mt-2 w-full rounded-2xl px-5 py-4 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-premium btn-primary mt-2 w-full rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {processing ? 'Upgrading...' : upgraded ? 'Premium activated' : paymentMethod === 'paypal' ? 'PayPal coming soon' : `Upgrade for ${planLabel}`}
               </button>
