@@ -143,10 +143,11 @@ export default function PremiumUpgradePage() {
     form.email.trim() &&
     !processing &&
     !upgraded &&
-    paymentMethod !== 'paypal' &&
-    ((paymentMethod === 'upi' && isUpiValid) || (paymentMethod === 'card' && isCardValid));
+    paymentMethod === 'upi' &&
+    isUpiValid;
   const planLabel = useMemo(() => `₹${checkout.price.toLocaleString('en-IN')}/month`, [checkout.price]);
   const selectedUpiAppLabel = useMemo(() => UPI_APPS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI', [selectedUpiApp]);
+  const isComingSoonMethod = paymentMethod === 'card' || paymentMethod === 'paypal';
   const upiPaymentLink = useMemo(() => {
     const params = new URLSearchParams({
       pa: OWNQUESTA_UPI_ID,
@@ -280,7 +281,7 @@ export default function PremiumUpgradePage() {
 
   const paymentMethodCards = [
     { key: 'upi' as const, label: 'UPI', desc: 'Google Pay, PhonePe, Paytm, or BHIM UPI', icon: Smartphone },
-    { key: 'card' as const, label: 'Card', desc: 'Secure card details form', icon: CreditCard },
+    { key: 'card' as const, label: 'Card', desc: 'Coming soon', icon: CreditCard },
     { key: 'paypal' as const, label: 'PayPal', desc: 'Coming soon', icon: Wallet },
   ];
 
@@ -437,65 +438,26 @@ export default function PremiumUpgradePage() {
                   </div>
                 )}
 
-                {paymentMethod === 'card' && (
-                  <div className="mt-4 space-y-3">
-                    <label className="block">
-                      <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">Card number</span>
-                      <input
-                        value={cardNumber}
-                        onChange={(event) => setCardNumber(formatCardNumber(event.target.value))}
-                        placeholder="0000 0000 0000 0000"
-                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
-                      />
-                      {errors.cardNumber && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.cardNumber}</p>}
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="block">
-                        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">Expiry</span>
-                        <input
-                          value={expiry}
-                          onChange={(event) => setExpiry(formatExpiry(event.target.value))}
-                          placeholder="MM/YY"
-                          className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
-                        />
-                        {errors.expiry && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.expiry}</p>}
-                      </label>
-                      <label className="block">
-                        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200/70">CVV</span>
-                        <input
-                          value={cvv}
-                          onChange={(event) => setCvv(event.target.value.replace(/\D/g, '').slice(0, 4))}
-                          placeholder="***"
-                          type="password"
-                          className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
-                        />
-                        {errors.cvv && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.cvv}</p>}
-                      </label>
-                    </div>
-                    <p className="text-xs text-slate-400">Your card details are only used for this dummy payment simulation.</p>
-                  </div>
-                )}
-
-                {paymentMethod === 'paypal' && (
-                  <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-50">
-                    PayPal is coming soon. Please use UPI or Card to activate premium access now.
+                {(paymentMethod === 'card' || paymentMethod === 'paypal') && (
+                  <div className="mt-4 flex min-h-[120px] items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-center text-sm font-semibold text-amber-50">
+                    Coming soon
                   </div>
                 )}
               </div>
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-200">Full name</span>
-                <input value={form.name} onChange={onChange('name')} placeholder="Your name" className="input-premium w-full rounded-2xl px-4 py-3 text-sm" />
+                <input disabled={isComingSoonMethod} value={form.name} onChange={onChange('name')} placeholder="Your name" className="input-premium w-full rounded-2xl px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60" />
                 {errors.name && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.name}</p>}
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-200">Email address</span>
-                <input value={form.email} onChange={onChange('email')} placeholder="name@company.com" className="input-premium w-full rounded-2xl px-4 py-3 text-sm" />
+                <input disabled={isComingSoonMethod} value={form.email} onChange={onChange('email')} placeholder="name@company.com" className="input-premium w-full rounded-2xl px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60" />
                 {errors.email && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.email}</p>}
               </label>
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-200">Phone</span>
-                <input value={form.phone} onChange={onChange('phone')} placeholder="Optional" className="input-premium w-full rounded-2xl px-4 py-3 text-sm" />
+                <input disabled={isComingSoonMethod} value={form.phone} onChange={onChange('phone')} placeholder="Optional" className="input-premium w-full rounded-2xl px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60" />
               </label>
 
               {paymentMethod === 'upi' && (
@@ -513,7 +475,7 @@ export default function PremiumUpgradePage() {
                 </>
               )}
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
+              <div className="mr-auto w-full max-w-3xl rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-slate-300">
                 <div className="flex items-center justify-between gap-3 py-1">
                   <span>Premium MLOps plan</span>
                   <span className="font-semibold text-white">₹{checkout.price.toFixed(2)}</span>
@@ -530,7 +492,7 @@ export default function PremiumUpgradePage() {
               </div>
 
               {paymentMethod === 'upi' && (
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
+                <div className="mr-auto w-full max-w-3xl rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
                   <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="min-w-0">
@@ -545,7 +507,7 @@ export default function PremiumUpgradePage() {
                         </button>
                       </div>
                     </div>
-                    <div className="text-left md:text-right">
+                    <div className="text-left md:text-right md:justify-self-end">
                       <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
                       <div className="mt-2 mx-auto w-fit rounded-2xl border border-white/10 bg-white p-1.5">
                         {upiQrDataUrl ? (
@@ -568,9 +530,9 @@ export default function PremiumUpgradePage() {
               <button
                 onClick={() => void handleUpgrade()}
                 disabled={!canUpgrade}
-                className="btn-premium btn-primary mt-2 w-full rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-premium btn-primary mt-2 block w-full max-w-3xl rounded-2xl px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {processing ? 'Upgrading...' : upgraded ? 'Premium activated' : paymentMethod === 'paypal' ? 'PayPal coming soon' : `Upgrade for ${planLabel}`}
+                {processing ? 'Upgrading...' : upgraded ? 'Premium activated' : paymentMethod === 'paypal' ? 'PayPal coming soon' : paymentMethod === 'card' ? 'Card coming soon' : `Upgrade for ${planLabel}`}
               </button>
 
               {isPremiumUser && (
