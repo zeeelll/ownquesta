@@ -11,7 +11,7 @@ async function updateAdminEmails() {
     // Update Sumit Sarodiya's email
     const sumitUser = await User.findOneAndUpdate(
       { email: "sumit.sarodiya@example.com" },
-      { email: "sumitsarodiya@gmail.com" },
+      { email: "admin1@ownquesta.com" },
       { new: true }
     );
 
@@ -24,7 +24,7 @@ async function updateAdminEmails() {
     // Update Zeel Mistry's email
     const zeelUser = await User.findOneAndUpdate(
       { email: "zeel.mistry@example.com" },
-      { email: "zeelmistry@gmail.com" },
+      { email: "admin2@ownquesta.com" },
       { new: true }
     );
 

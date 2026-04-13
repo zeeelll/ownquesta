@@ -14,7 +14,7 @@ async function updateAdminPasswords() {
 
     // Update Sumit Sarodiya's password
     const sumitUser = await User.findOneAndUpdate(
-      { email: "sumitsarodiya@gmail.com" },
+      { email: "admin1@ownquesta.com" },
       { password: hashedPassword },
       { new: true }
     );
@@ -27,7 +27,7 @@ async function updateAdminPasswords() {
 
     // Update Zeel Mistry's password
     const zeelUser = await User.findOneAndUpdate(
-      { email: "zeelmistry@gmail.com" },
+      { email: "admin2@ownquesta.com" },
       { password: hashedPassword },
       { new: true }
     );
