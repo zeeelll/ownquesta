@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   Circle,
+  Download,
   Folder,
   Hash,
   Hexagon,
@@ -25,6 +26,7 @@ import {
   Search,
   Shapes,
   Sparkles,
+  Rocket,
   Trash2,
   User,
   Wrench,
@@ -1174,7 +1176,6 @@ export default function DashboardPage() {
   const [loading,      setLoading]      = useState(true);
   const [backendOk,    setBackendOk]    = useState(true);
   const [notice,       setNotice]       = useState<{msg:string;ok:boolean}|null>(null);
-  const [dropOpen,     setDropOpen]     = useState(false);
   const [deleting,     setDeleting]     = useState<string|null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project|null>(null);
   const [showNewProj,  setShowNewProj]  = useState(false);
@@ -1230,14 +1231,6 @@ export default function DashboardPage() {
   }
 
   useEffect(()=>{ loadData(); },[loadData]);
-
-  useEffect(()=>{
-    const h = (e:MouseEvent) => {
-      if(!(e.target as HTMLElement).closest("#user-menu")) setDropOpen(false);
-    };
-    document.addEventListener("click", h);
-    return () => document.removeEventListener("click", h);
-  },[]);
 
   // Guard against bfcache restore after logout.
   // When the user swipes back, the browser may resurrect this page from its
@@ -1466,6 +1459,8 @@ export default function DashboardPage() {
         <nav style={{ padding:"0 8px", flex:1, display:"flex", flexDirection:"column", gap:2 }}>
           {([
             { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
+            { label:"My Downloads", icon:<Download size={15} strokeWidth={2}/>, path:"/my-downloads", active:false },
+            { label:"My Deployments", icon:<Rocket size={15} strokeWidth={2}/>, path:"/my-deployments", active:false },
             { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
             { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
             ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),
@@ -1517,64 +1512,6 @@ export default function DashboardPage() {
             <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:600, color:"var(--txt1)", letterSpacing:"0.04em" }}>Workspace</span>
           </div>
 
-          <button onClick={() => router.push('/my-downloads')} className="nav-pill nav-pill-accent">
-            My Downloads
-          </button>
-
-          <button onClick={() => router.push('/my-deployments')} className="nav-pill nav-pill-accent">
-            My Deployments
-          </button>
-
-          {/* User dropdown */}
-          <div id="user-menu" style={{ position:"relative" }}>
-            <button
-              onClick={()=>setDropOpen(o=>!o)}
-              style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 9px 4px 5px", borderRadius:100, cursor:"pointer", transition:"all 0.18s", background:dropOpen?"rgba(255,255,255,0.05)":"transparent", border:`1px solid ${dropOpen?"var(--rim1)":"transparent"}` }}
-              onMouseEnter={e=>{ (e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.borderColor="var(--rim1)"; }}
-              onMouseLeave={e=>{ if(!dropOpen){ (e.currentTarget as HTMLButtonElement).style.background="transparent"; (e.currentTarget as HTMLButtonElement).style.borderColor="transparent"; } }}
-            >
-              <div style={{ position:"relative" }}>
-                <img src={user.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name||"U")}&background=312e81&color=c7d2fe&bold=true`} alt="avatar" style={{ width:28, height:28, borderRadius:"50%", border:"1.5px solid rgba(99,102,241,0.45)", display:"block" }}/>
-                <span style={{ position:"absolute", bottom:0, right:0, width:7, height:7, borderRadius:"50%", background:"#34d399", border:"1.5px solid var(--bg0)" }}/>
-              </div>
-              <span style={{ fontSize:12, color:"var(--txt0)", fontWeight:600, letterSpacing:"-0.01em" }}>{user.name}</span>
-              <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="var(--txt2)" style={{ transform:dropOpen?"rotate(180deg)":"none", transition:"transform 0.22s" }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
-
-            {dropOpen && (
-              <div className="surface rise" style={{ position:"absolute", right:0, top:"calc(100% + 10px)", width:210, overflow:"hidden", zIndex:100, animationDuration:"0.18s", boxShadow:"0 20px 56px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.08)" }}>
-                <div style={{ padding:"13px 15px", borderBottom:"1px solid var(--rim0)" }}>
-                  <p style={{ fontSize:13, fontWeight:700, color:"var(--txt0)", fontFamily:"var(--font-display)", letterSpacing:"-0.02em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.name}</p>
-                  <p style={{ fontSize:10, color:"var(--txt2)", marginTop:2, fontFamily:"var(--font-mono)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.email}</p>
-                </div>
-                {([
-                  { label:"Profile", path:"/profile", show:true,          d:"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
-                  { label:"Admin",   path:"/admin",   show:user.role==="admin", d:"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
-                ] as {label:string;path:string;show:boolean;d:string}[]).filter(i=>i.show).map(item=>(
-                  <button key={item.path} onClick={()=>router.push(item.path)}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 15px", background:"transparent", border:"none", color:"var(--txt1)", fontSize:12, cursor:"pointer", fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s", letterSpacing:"-0.01em" }}
-                    onMouseEnter={e=>{ (e.currentTarget as HTMLButtonElement).style.background="rgba(99,102,241,0.06)"; (e.currentTarget as HTMLButtonElement).style.color="var(--txt0)"; }}
-                    onMouseLeave={e=>{ (e.currentTarget as HTMLButtonElement).style.background="transparent"; (e.currentTarget as HTMLButtonElement).style.color="var(--txt1)"; }}
-                  >
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d={item.d}/></svg>
-                    {item.label}
-                  </button>
-                ))}
-                <div style={{ borderTop:"1px solid var(--rim0)", paddingTop:3 }}>
-                  <button onClick={handleLogout}
-                    style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 15px", background:"transparent", border:"none", color:"#f87171", fontSize:12, cursor:"pointer", fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s", letterSpacing:"-0.01em" }}
-                    onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(248,113,113,0.06)";}}
-                    onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}
-                  >
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* ── Main content ── */}
