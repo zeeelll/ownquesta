@@ -1,26 +1,32 @@
 "use client";
 
-import { useEffect, useState, useCallback, type ReactNode } from "react";
+import React, { useEffect, useState, useCallback, type ReactNode } from "react";
 import { api } from "@/services/api";
 import { useRouter } from "next/navigation";
 import Logo from "../components/Logo";
 import {
   AlertTriangle,
   ArrowRight,
+  BookOpen,
   Bot,
   Brain,
   Check,
   CheckCircle2,
+  ChevronLeft,
   Circle,
   Folder,
   Hash,
   Hexagon,
+  LayoutDashboard,
+  LayoutGrid,
+  List,
   Network,
   Plus,
   Search,
   Shapes,
   Sparkles,
   Trash2,
+  User,
   Wrench,
   X,
   Zap,
@@ -124,7 +130,7 @@ function stageIcon(stage: Stage, size = 13) {
 
 // ── Stylesheet ────────────────────────────────────────────────────────────────
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -138,10 +144,10 @@ const STYLES = `
     --rim1:   rgba(255,255,255,0.08);
     --rim2:   rgba(255,255,255,0.12);
     --rim3:   rgba(255,255,255,0.18);
-    --txt0:   #f1f5f9;
-    --txt1:   #94a3b8;
-    --txt2:   #4b6082;
-    --txt3:   #253147;
+    --txt0:   #e6eef8;
+    --txt1:   #b0c4de;
+    --txt2:   #8499b8;
+    --txt3:   #4a6080;
     --ind:    #6366f1;
     --ind-l:  #818cf8;
     --ind-xl: #a5b4fc;
@@ -153,8 +159,8 @@ const STYLES = `
     --r-lg:   16px;
     --r-xl:   22px;
     --r-2xl:  28px;
-    --font-display: 'Bricolage Grotesque', sans-serif;
-    --font-body:    'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Chillax', ui-sans-serif, system-ui, sans-serif;
+    --font-body:    'Chillax', ui-sans-serif, system-ui, sans-serif;
     --font-mono:    'JetBrains Mono', monospace;
   }
 
@@ -462,11 +468,86 @@ const STYLES = `
   /* ── Selection ── */
   ::selection { background:rgba(99,102,241,0.25); }
 
+  /* ── Sidebar ── */
+  .sidebar {
+    height:100vh; position:sticky; top:0;
+    display:flex; flex-direction:column;
+    background:rgba(7,7,7,0.97);
+    border-right:1px solid var(--rim0);
+    backdrop-filter:blur(24px);
+    transition:width 0.26s cubic-bezier(0.4,0,0.2,1);
+    z-index:20; overflow:hidden; flex-shrink:0;
+  }
+  .sidebar-item {
+    display:flex; align-items:center; gap:11px;
+    padding:9px 12px; border-radius:var(--r-md);
+    cursor:pointer; font-size:12px; font-weight:500;
+    font-family:var(--font-body); color:var(--txt2);
+    border:1px solid transparent; background:transparent;
+    width:100%; text-align:left; transition:all 0.18s;
+    white-space:nowrap; overflow:hidden; letter-spacing:-0.01em;
+  }
+  .sidebar-item:hover { background:rgba(255,255,255,0.04); color:var(--txt0); border-color:var(--rim0); }
+  .sidebar-item.active { background:rgba(99,102,241,0.1); color:#a5b4fc; border-color:rgba(99,102,241,0.2); box-shadow:0 0 14px rgba(99,102,241,0.06); }
+  .sidebar-item.danger:hover { background:rgba(248,113,113,0.06); color:#f87171; border-color:rgba(248,113,113,0.14); }
+
+  /* ── Search wrap ── */
+  .search-wrap {
+    display:flex; align-items:center; gap:8px;
+    padding:7px 11px; background:rgba(255,255,255,0.03);
+    border:1px solid var(--rim1); border-radius:var(--r-md);
+    transition:all 0.18s; flex:1; min-width:160px; max-width:300px;
+  }
+  .search-wrap:focus-within {
+    border-color:rgba(99,102,241,0.4); background:rgba(99,102,241,0.03);
+    box-shadow:0 0 0 3px rgba(99,102,241,0.07);
+  }
+  .search-wrap input { background:none; border:none; outline:none; color:var(--txt0); font-family:var(--font-body); font-size:11px; width:100%; }
+  .search-wrap input::placeholder { color:var(--txt3); }
+
+  /* ── Filter select ── */
+  .filter-select {
+    appearance:none; -webkit-appearance:none;
+    background:rgba(255,255,255,0.03); border:1px solid var(--rim1);
+    border-radius:var(--r-md); color:var(--txt1);
+    font-family:var(--font-body); font-size:11px; font-weight:500;
+    padding:7px 26px 7px 10px; cursor:pointer; outline:none; transition:all 0.18s;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 24 24' stroke='%234b6082' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 8px center;
+  }
+  .filter-select:hover, .filter-select:focus { border-color:rgba(99,102,241,0.35); color:var(--txt0); background-color:rgba(99,102,241,0.04); }
+  .filter-select option { background:#1a1a1a; color:var(--txt0); }
+
+  /* ── View toggle button ── */
+  .view-btn {
+    display:flex; align-items:center; justify-content:center;
+    width:34px; height:34px; border-radius:var(--r-sm);
+    border:1px solid var(--rim1); background:rgba(255,255,255,0.02);
+    color:var(--txt2); cursor:pointer; transition:all 0.18s;
+  }
+  .view-btn:hover { background:rgba(255,255,255,0.05); color:var(--txt0); border-color:var(--rim2); }
+  .view-btn.active { background:rgba(99,102,241,0.1); border-color:rgba(99,102,241,0.25); color:#a5b4fc; }
+
+  /* ── Project table ── */
+  .proj-table { width:100%; border-collapse:collapse; }
+  .proj-table th {
+    font-family:var(--font-body); font-size:11px; font-weight:600;
+    letter-spacing:0.06em; text-transform:uppercase; color:var(--txt1);
+    padding:12px 14px; text-align:left; border-bottom:1px solid var(--rim0); white-space:nowrap;
+  }
+  .proj-table td { padding:13px 14px; border-bottom:1px solid rgba(255,255,255,0.026); font-size:12px; font-family:var(--font-body); }
+  .proj-table tbody tr { cursor:pointer; transition:background 0.13s; }
+  .proj-table tbody tr:hover td { background:rgba(99,102,241,0.03); }
+  .proj-table tbody tr:last-child td { border-bottom:none; }
+
+  @media(max-width:900px) { .sidebar { width:64px !important; } .sidebar-label { display:none !important; } }
   @media(max-width:820px) {
     .proj-grid   { grid-template-columns:1fr !important; }
     .stats-grid  { grid-template-columns:1fr !important; }
     .leg-grid    { grid-template-columns:1fr 1fr !important; }
     .page-head   { flex-direction:column !important; align-items:flex-start !important; gap:16px !important; }
+    .proj-table th:nth-child(3), .proj-table td:nth-child(3),
+    .proj-table th:nth-child(4), .proj-table td:nth-child(4) { display:none; }
   }
   @media(max-width:520px) {
     .leg-grid { grid-template-columns:1fr !important; }
@@ -547,8 +628,8 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
       <div style={{ padding:"22px 24px", position:"relative", zIndex:1 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
           <p style={{
-            fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-            letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
+            fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
+            letterSpacing:"0.08em", textTransform:"uppercase", color:"var(--txt1)",
           }}>{label}</p>
           <div style={{
             width:34, height:34, borderRadius:10, flexShrink:0,
@@ -566,8 +647,8 @@ function StatCard({ label, value, sub, accent, icon, delay=0 }: {
         }}>{value}</p>
         {sub && (
           <p style={{
-            fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)",
-            marginTop:8, letterSpacing:"0.05em",
+            fontFamily:"var(--font-body)", fontSize:11, color:"var(--txt2)",
+            marginTop:8, letterSpacing:"0.02em",
           }}>{sub}</p>
         )}
         <div style={{
@@ -684,11 +765,11 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
           <div style={{ marginBottom:2 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:7 }}>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)",
-                letterSpacing:"0.1em", textTransform:"uppercase",
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:600, color:"var(--txt1)",
+                letterSpacing:"0.05em", textTransform:"uppercase",
               }}>Pipeline</span>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, fontWeight:500,
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
                 color: finished ? "#34d399" : "#a5b4fc",
               }}>{pct}%</span>
             </div>
@@ -750,6 +831,74 @@ function ProjectCard({ project, deleting, onContinue, onDelete, animDelay=0 }: {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── ProjectRow (table view) ───────────────────────────────────────────────────
+function ProjectRow({ project, deleting, onContinue, onDelete }: {
+  project: Project; deleting: boolean;
+  onContinue: () => void; onDelete: () => void;
+}) {
+  const t = stageTheme(project.stage);
+  const finished = ["trained","evaluated","completed"].includes(project.stage);
+  const pct = Math.round((stageIdx(project.stage) / (STAGE_ORDER.length - 1)) * 100);
+  return (
+    <tr onClick={onContinue}>
+      <td>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{
+            width:32, height:32, borderRadius:9, flexShrink:0,
+            background:t.bg, border:`1px solid ${t.border}`,
+            display:"flex", alignItems:"center", justifyContent:"center", color:t.col,
+          }}>
+            {finished ? <Check size={12} strokeWidth={2.8}/> : <Sparkles size={12} strokeWidth={2.2}/>}
+          </div>
+          <div style={{ minWidth:0 }}>
+            <p style={{ fontFamily:"var(--font-body)", fontSize:13, fontWeight:600, color:"var(--txt0)", letterSpacing:"-0.015em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{project.name}</p>
+            {project.dataset?.filename && (
+              <p style={{ fontFamily:"var(--font-mono)", fontSize:9, color:"var(--txt2)", marginTop:1 }}>{project.dataset.filename}</p>
+            )}
+          </div>
+        </div>
+      </td>
+      <td>
+        <span className="badge" style={{ background:t.bg, color:t.col, borderColor:t.border }}>{stageLabel(project.stage)}</span>
+      </td>
+      <td>
+        {project.selectedModel
+          ? <span style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"#a5b4fc" }}>{project.selectedModel}</span>
+          : <span style={{ color:"var(--txt3)", fontSize:10 }}>—</span>
+        }
+      </td>
+      <td>
+        <div style={{ width:72 }}>
+          <div className="p-rail">
+            <div className="p-fill" style={{ width:`${pct}%`, background:finished ? "linear-gradient(90deg,#34d399,#22d3ee)" : "linear-gradient(90deg,#6366f1,#c084fc)" }}/>
+          </div>
+          <p style={{ fontFamily:"var(--font-mono)", fontSize:8, color:"var(--txt2)", marginTop:4 }}>{pct}%</p>
+        </div>
+      </td>
+      <td>
+        <p style={{ fontFamily:"var(--font-mono)", fontSize:10, color:"var(--txt2)" }}>
+          {new Date(project.updatedAt).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+        </p>
+      </td>
+      <td onClick={e => e.stopPropagation()} style={{ paddingRight:16 }}>
+        <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+          <button className="btn-primary" onClick={onContinue} style={{ padding:"6px 12px", fontSize:11, borderRadius:8, whiteSpace:"nowrap" }}>
+            {finished ? "View" : "Continue"}
+          </button>
+          <button className="btn-delete" onClick={onDelete} disabled={deleting} style={{ width:30, height:30 }}>
+            {deleting
+              ? <div style={{ width:10, height:10, border:"2px solid rgba(248,113,113,0.25)", borderTopColor:"#f87171", borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>
+              : <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            }
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -1029,6 +1178,11 @@ export default function DashboardPage() {
   const [deleting,     setDeleting]     = useState<string|null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project|null>(null);
   const [showNewProj,  setShowNewProj]  = useState(false);
+  const [sidebarOpen,  setSidebarOpen]  = useState(true);
+  const [searchQuery,  setSearchQuery]  = useState("");
+  const [stageFilter,  setStageFilter]  = useState<"all"|Stage>("all");
+  const [sortBy,       setSortBy]       = useState<"recent"|"name">("recent");
+  const [viewMode,     setViewMode]     = useState<"grid"|"list">("grid");
 
   const toast = useCallback((msg:string, ok=true) => {
     setNotice({msg,ok});
@@ -1085,6 +1239,26 @@ export default function DashboardPage() {
     return () => document.removeEventListener("click", h);
   },[]);
 
+  // Guard against bfcache restore after logout.
+  // When the user swipes back, the browser may resurrect this page from its
+  // Back-Forward Cache without remounting React (so normal useEffects don't
+  // re-run). The `pageshow` event fires in that case with event.persisted=true.
+  // We re-verify the session and redirect to login if it's gone.
+  useEffect(()=>{
+    const handlePageShow = async (e: PageTransitionEvent) => {
+      if (!e.persisted) return; // normal load — already handled by loadData
+      try {
+        await api("/api/auth/me");
+        // session still valid — nothing to do
+      } catch {
+        // session gone (logged out in another tab, or we just logged out)
+        window.location.replace("/login");
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
   const handleLogout = async () => {
     const BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
     try {
@@ -1099,7 +1273,9 @@ export default function DashboardPage() {
       });
     } catch {}
     localStorage.removeItem("userAvatar");
-    window.location.href = "/";
+    // replace() removes /dashboard from back-history so the browser
+    // back-gesture cannot return to this page after logout
+    window.location.replace("/");
   };
 
   const handleDelete = (p:Project) => setDeleteTarget(p);
@@ -1171,33 +1347,36 @@ export default function DashboardPage() {
   // ── Loading Skeleton ───────────────────────────────────────────────────────
   if(!user || loading) {
     return (
-      <div style={{ minHeight:"100vh", background:"var(--bg0)" }}>
+      <div style={{ display:"flex", minHeight:"100vh", background:"var(--bg0)" }}>
         <style>{STYLES}</style>
-        <div style={{
-          height:56, borderBottom:"1px solid var(--rim0)",
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding:"0 28px", background:"rgba(10,10,10,0.8)",
-        }}>
-          <div className="skel" style={{ width:120, height:26 }}/>
-          <div style={{ display:"flex", gap:10 }}>
-            <div className="skel" style={{ width:78, height:28, borderRadius:100 }}/>
-            <div className="skel" style={{ width:32, height:32, borderRadius:"50%" }}/>
-          </div>
+        {/* Sidebar skeleton */}
+        <div style={{ width:220, flexShrink:0, borderRight:"1px solid var(--rim0)", padding:"16px 10px", display:"flex", flexDirection:"column", gap:8 }}>
+          <div className="skel" style={{ width:100, height:24, marginBottom:8 }}/>
+          {[0,1,2].map(i=><div key={i} className="skel" style={{ height:36, borderRadius:10 }}/>)}
         </div>
-        <div style={{ maxWidth:1100, margin:"0 auto", padding:"48px 24px", display:"flex", flexDirection:"column", gap:32 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <div>
-              <div className="skel" style={{ width:280, height:34, marginBottom:10 }}/>
-              <div className="skel" style={{ width:350, height:14 }}/>
+        {/* Main skeleton */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
+          <div style={{ height:56, borderBottom:"1px solid var(--rim0)", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 28px", background:"rgba(10,10,10,0.8)" }}>
+            <div className="skel" style={{ width:160, height:14, borderRadius:6 }}/>
+            <div style={{ display:"flex", gap:10 }}>
+              <div className="skel" style={{ width:32, height:32, borderRadius:"50%" }}/>
             </div>
-            <div className="skel" style={{ width:140, height:44, borderRadius:14 }}/>
           </div>
-          <div className="stats-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
-            {[0,1,2].map(i=><div key={i} className="skel" style={{ height:136, borderRadius:22 }}/>)}
-          </div>
-          <div className="skel" style={{ height:120, borderRadius:18 }}/>
-          <div className="proj-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-            {[0,1,2,3].map(i=><div key={i} className="skel" style={{ height:248, borderRadius:24 }}/>)}
+          <div style={{ padding:"40px 32px", display:"flex", flexDirection:"column", gap:28 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div className="skel" style={{ width:260, height:32, marginBottom:10 }}/>
+                <div className="skel" style={{ width:340, height:14 }}/>
+              </div>
+              <div className="skel" style={{ width:130, height:42, borderRadius:14 }}/>
+            </div>
+            <div className="stats-grid" style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14 }}>
+              {[0,1,2].map(i=><div key={i} className="skel" style={{ height:136, borderRadius:22 }}/>)}
+            </div>
+            <div className="skel" style={{ height:120, borderRadius:18 }}/>
+            <div className="proj-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+              {[0,1,2,3].map(i=><div key={i} className="skel" style={{ height:248, borderRadius:24 }}/>)}
+            </div>
           </div>
         </div>
       </div>
@@ -1208,9 +1387,21 @@ export default function DashboardPage() {
     (a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
+  const displayProjects = [...projects]
+    .filter(p => {
+      const q = searchQuery.toLowerCase();
+      if (q && !p.name.toLowerCase().includes(q) && !p.dataset?.filename?.toLowerCase().includes(q)) return false;
+      if (stageFilter !== "all" && p.stage !== stageFilter) return false;
+      return true;
+    })
+    .sort((a,b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+
   return (
     <div style={{
-      minHeight:"100vh",
+      display:"flex", minHeight:"100vh",
       background:"var(--bg0)",
       color:"var(--txt0)",
       fontFamily:"var(--font-body)",
@@ -1219,31 +1410,11 @@ export default function DashboardPage() {
 
       {/* ── Background atmosphere ── */}
       <div style={{ position:"fixed", inset:0, zIndex:0, pointerEvents:"none" }}>
-        {/* Base gradient */}
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(170deg,#0a0a0a 0%,#080808 50%,#060606 100%)" }}/>
-        {/* Fine dot grid */}
-        <div style={{
-          position:"absolute", inset:0, opacity:0.03,
-          backgroundImage:"radial-gradient(circle, rgba(200,200,200,0.9) 1px, transparent 1px)",
-          backgroundSize:"32px 32px",
-        }}/>
-        {/* Ambient glows */}
-        <div style={{
-          position:"absolute", top:"8%", left:"30%", width:700, height:700,
-          background:"radial-gradient(circle,rgba(139,92,246,0.06) 0%,transparent 65%)",
-          borderRadius:"50%", animation:"bg-drift 24s ease infinite",
-        }}/>
-        <div style={{
-          position:"absolute", bottom:"12%", right:"8%", width:460, height:460,
-          background:"radial-gradient(circle,rgba(167,139,250,0.045) 0%,transparent 65%)",
-          borderRadius:"50%", animation:"bg-drift 32s ease infinite reverse",
-        }}/>
-        <div style={{
-          position:"absolute", top:"50%", left:"2%", width:260, height:260,
-          background:"radial-gradient(circle,rgba(52,211,153,0.03) 0%,transparent 65%)",
-          borderRadius:"50%",
-        }}/>
-        {/* SVG grain texture */}
+        <div style={{ position:"absolute", inset:0, opacity:0.03, backgroundImage:"radial-gradient(circle, rgba(200,200,200,0.9) 1px, transparent 1px)", backgroundSize:"32px 32px" }}/>
+        <div style={{ position:"absolute", top:"8%", left:"30%", width:700, height:700, background:"radial-gradient(circle,rgba(139,92,246,0.06) 0%,transparent 65%)", borderRadius:"50%", animation:"bg-drift 24s ease infinite" }}/>
+        <div style={{ position:"absolute", bottom:"12%", right:"8%", width:460, height:460, background:"radial-gradient(circle,rgba(167,139,250,0.045) 0%,transparent 65%)", borderRadius:"50%", animation:"bg-drift 32s ease infinite reverse" }}/>
+        <div style={{ position:"absolute", top:"50%", left:"2%", width:260, height:260, background:"radial-gradient(circle,rgba(52,211,153,0.03) 0%,transparent 65%)", borderRadius:"50%" }}/>
         <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:0.015 }}>
           <filter id="grain">
             <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/>
@@ -1253,7 +1424,7 @@ export default function DashboardPage() {
         </svg>
       </div>
 
-      {/* ── Toast notification ── */}
+      {/* ── Toast ── */}
       {notice && (
         <div style={{
           position:"fixed", top:18, right:18, zIndex:9999,
@@ -1264,56 +1435,87 @@ export default function DashboardPage() {
           color:notice.ok?"#34d399":"#f87171",
           fontSize:12, fontWeight:600, fontFamily:"var(--font-body)",
           boxShadow:`0 14px 48px rgba(0,0,0,0.6),0 0 20px ${notice.ok?"rgba(52,211,153,0.05)":"rgba(248,113,113,0.05)"}`,
-          backdropFilter:"blur(20px)",
-          animation:"toast-in 0.26s cubic-bezier(0.34,1.56,0.64,1)",
-          letterSpacing:"-0.01em",
+          backdropFilter:"blur(20px)", animation:"toast-in 0.26s cubic-bezier(0.34,1.56,0.64,1)", letterSpacing:"-0.01em",
         }}>
-          <div style={{
-            width:20, height:20, borderRadius:"50%", flexShrink:0,
-            background:notice.ok?"rgba(52,211,153,0.1)":"rgba(248,113,113,0.1)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:9, fontWeight:900,
-          }}>
-            {notice.ok ? <Check size={11} strokeWidth={3} /> : <X size={11} strokeWidth={3} />}
+          <div style={{ width:20, height:20, borderRadius:"50%", flexShrink:0, background:notice.ok?"rgba(52,211,153,0.1)":"rgba(248,113,113,0.1)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            {notice.ok ? <Check size={11} strokeWidth={3}/> : <X size={11} strokeWidth={3}/>}
           </div>
           {notice.msg}
         </div>
       )}
 
-      {/* ── Navigation ── */}
-      <nav style={{
-        position:"relative", zIndex:10, height:56,
-        display:"flex", alignItems:"center", justifyContent:"space-between",
-        padding:"0 26px",
-        borderBottom:"1px solid var(--rim0)",
-        background:"rgba(8,8,8,0.88)",
-        backdropFilter:"blur(28px)",
-      }}>
-        {/* Bottom accent line */}
+      {/* ── Sidebar ── */}
+      <aside className="sidebar" style={{ width: sidebarOpen ? 220 : 64 }}>
+        {/* Logo + collapse toggle */}
         <div style={{
-          position:"absolute", bottom:0, left:0, right:0, height:1,
-          background:"linear-gradient(90deg,transparent,rgba(99,102,241,0.14),rgba(192,132,252,0.1),transparent)",
-        }}/>
-
-        <Logo href="/home" size="md"/>
-
-        <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-      {/* ML Tutorial button - NEW */}
-      <button 
-        onClick={() => router.push("/ml-tutorial")}
-        className="nav-pill nav-pill-accent"
-        aria-label="Open ML Tutorial"
-      >
-        <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.4} aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-        </svg>
-        ML Tutorial
-      </button>
-
-          {/* Back to home */}
-          <button onClick={() => router.push("/home")} className="nav-pill nav-pill-home">
-            Home
+          padding: sidebarOpen ? "13px 14px 10px" : "13px 0 10px",
+          display:"flex", alignItems:"center",
+          justifyContent: sidebarOpen ? "space-between" : "center",
+          borderBottom:"1px solid var(--rim0)", marginBottom:6, flexShrink:0,
+        }}>
+          {sidebarOpen && <Logo href="/home" size="sm"/>}
+          <button
+            onClick={() => setSidebarOpen(o=>!o)}
+            style={{ width:26, height:26, borderRadius:7, background:"rgba(255,255,255,0.03)", border:"1px solid var(--rim1)", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", color:"var(--txt2)", flexShrink:0, transition:"all 0.18s" }}
+          >
+            <ChevronLeft size={12} style={{ transform: sidebarOpen ? "none" : "rotate(180deg)", transition:"transform 0.26s" }}/>
           </button>
+        </div>
+
+        {/* Nav items */}
+        <nav style={{ padding:"0 8px", flex:1, display:"flex", flexDirection:"column", gap:2 }}>
+          {([
+            { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
+            { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
+            { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
+            ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),
+          ] as { label:string; icon:React.ReactNode; path:string; active:boolean }[]).map(item=>(
+            <button
+              key={item.path}
+              onClick={()=>router.push(item.path)}
+              className={`sidebar-item${item.active?" active":""}`}
+              title={!sidebarOpen ? item.label : undefined}
+              style={{ justifyContent: sidebarOpen ? "flex-start" : "center", padding: sidebarOpen ? "9px 12px" : "9px 0" }}
+            >
+              <span style={{ flexShrink:0 }}>{item.icon}</span>
+              {sidebarOpen && <span className="sidebar-label">{item.label}</span>}
+            </button>
+          ))}
+        </nav>
+
+        {/* Sign out */}
+        <div style={{ padding:"8px", borderTop:"1px solid var(--rim0)", flexShrink:0 }}>
+          <button
+            onClick={handleLogout}
+            className="sidebar-item danger"
+            title={!sidebarOpen ? "Sign out" : undefined}
+            style={{ justifyContent: sidebarOpen ? "flex-start" : "center", padding: sidebarOpen ? "9px 12px" : "9px 0" }}
+          >
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ flexShrink:0 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            {sidebarOpen && <span className="sidebar-label">Sign out</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* ── Right side (topbar + content) ── */}
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0, position:"relative", zIndex:1 }}>
+
+        {/* ── Top bar ── */}
+        <nav style={{
+          position:"sticky", top:0, zIndex:10, height:56,
+          display:"flex", alignItems:"center", justifyContent:"space-between",
+          padding:"0 28px",
+          borderBottom:"1px solid var(--rim0)",
+          background:"rgba(8,8,8,0.9)",
+          backdropFilter:"blur(28px)",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:500, color:"var(--txt2)", letterSpacing:"0.04em" }}>Dashboard</span>
+            <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="var(--txt3)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:600, color:"var(--txt1)", letterSpacing:"0.04em" }}>Workspace</span>
+          </div>
 
           <button onClick={() => router.push('/my-downloads')} className="nav-pill nav-pill-accent">
             My Downloads
@@ -1326,132 +1528,62 @@ export default function DashboardPage() {
           {/* User dropdown */}
           <div id="user-menu" style={{ position:"relative" }}>
             <button
-              onClick={() => setDropOpen(o=>!o)}
-              style={{
-                display:"flex", alignItems:"center", gap:8, padding:"4px 9px 4px 5px",
-                borderRadius:100, cursor:"pointer", transition:"all 0.18s",
-                background:dropOpen?"rgba(255,255,255,0.05)":"transparent",
-                border:`1px solid ${dropOpen?"var(--rim1)":"transparent"}`,
-              }}
-              onMouseEnter={e=>{
-                (e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.04)";
-                (e.currentTarget as HTMLButtonElement).style.borderColor="var(--rim1)";
-              }}
-              onMouseLeave={e=>{
-                if(!dropOpen){
-                  (e.currentTarget as HTMLButtonElement).style.background="transparent";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor="transparent";
-                }
-              }}
+              onClick={()=>setDropOpen(o=>!o)}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 9px 4px 5px", borderRadius:100, cursor:"pointer", transition:"all 0.18s", background:dropOpen?"rgba(255,255,255,0.05)":"transparent", border:`1px solid ${dropOpen?"var(--rim1)":"transparent"}` }}
+              onMouseEnter={e=>{ (e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.borderColor="var(--rim1)"; }}
+              onMouseLeave={e=>{ if(!dropOpen){ (e.currentTarget as HTMLButtonElement).style.background="transparent"; (e.currentTarget as HTMLButtonElement).style.borderColor="transparent"; } }}
             >
               <div style={{ position:"relative" }}>
-                <img
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name||"U")}&background=312e81&color=c7d2fe&bold=true`}
-                  alt="avatar"
-                  style={{ width:28, height:28, borderRadius:"50%", border:"1.5px solid rgba(99,102,241,0.45)", display:"block" }}
-                />
-                <span style={{
-                  position:"absolute", bottom:0, right:0,
-                  width:7, height:7, borderRadius:"50%",
-                  background:"#34d399", border:"1.5px solid var(--bg0)",
-                }}/>
+                <img src={user.avatar||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name||"U")}&background=312e81&color=c7d2fe&bold=true`} alt="avatar" style={{ width:28, height:28, borderRadius:"50%", border:"1.5px solid rgba(99,102,241,0.45)", display:"block" }}/>
+                <span style={{ position:"absolute", bottom:0, right:0, width:7, height:7, borderRadius:"50%", background:"#34d399", border:"1.5px solid var(--bg0)" }}/>
               </div>
-              <span style={{ fontSize:12, color:"var(--txt0)", fontWeight:600, letterSpacing:"-0.01em" }}>
-                {user.name}
-              </span>
-              <svg
-                width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="var(--txt2)"
-                style={{ transform:dropOpen?"rotate(180deg)":"none", transition:"transform 0.22s" }}
-              >
+              <span style={{ fontSize:12, color:"var(--txt0)", fontWeight:600, letterSpacing:"-0.01em" }}>{user.name}</span>
+              <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="var(--txt2)" style={{ transform:dropOpen?"rotate(180deg)":"none", transition:"transform 0.22s" }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
               </svg>
             </button>
 
             {dropOpen && (
-              <div className="surface rise" style={{
-                position:"absolute", right:0, top:"calc(100% + 10px)", width:210,
-                overflow:"hidden", zIndex:100, animationDuration:"0.18s",
-                boxShadow:"0 20px 56px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.08)",
-              }}>
+              <div className="surface rise" style={{ position:"absolute", right:0, top:"calc(100% + 10px)", width:210, overflow:"hidden", zIndex:100, animationDuration:"0.18s", boxShadow:"0 20px 56px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.08)" }}>
                 <div style={{ padding:"13px 15px", borderBottom:"1px solid var(--rim0)" }}>
-                  <p style={{
-                    fontSize:13, fontWeight:700, color:"var(--txt0)",
-                    fontFamily:"var(--font-display)", letterSpacing:"-0.02em",
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{user.name}</p>
-                  <p style={{
-                    fontSize:10, color:"var(--txt2)", marginTop:2,
-                    fontFamily:"var(--font-mono)",
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{user.email}</p>
+                  <p style={{ fontSize:13, fontWeight:700, color:"var(--txt0)", fontFamily:"var(--font-display)", letterSpacing:"-0.02em", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.name}</p>
+                  <p style={{ fontSize:10, color:"var(--txt2)", marginTop:2, fontFamily:"var(--font-mono)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.email}</p>
                 </div>
-                {[
-                  {
-                    label:"Profile", path:"/profile", show:true,
-                    d:"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
-                  },
-                  {
-                    label:"Admin", path:"/admin", show:user.role==="admin",
-                    d:"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
-                  },
-                ].filter(i=>i.show).map(item=>(
-                  <button
-                    key={item.path}
-                    onClick={()=>router.push(item.path)}
-                    style={{
-                      width:"100%", display:"flex", alignItems:"center", gap:9,
-                      padding:"9px 15px", background:"transparent", border:"none",
-                      color:"var(--txt1)", fontSize:12, cursor:"pointer",
-                      fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s",
-                      letterSpacing:"-0.01em",
-                    }}
-                    onMouseEnter={e=>{
-                      (e.currentTarget as HTMLButtonElement).style.background="rgba(99,102,241,0.06)";
-                      (e.currentTarget as HTMLButtonElement).style.color="var(--txt0)";
-                    }}
-                    onMouseLeave={e=>{
-                      (e.currentTarget as HTMLButtonElement).style.background="transparent";
-                      (e.currentTarget as HTMLButtonElement).style.color="var(--txt1)";
-                    }}
+                {([
+                  { label:"Profile", path:"/profile", show:true,          d:"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" },
+                  { label:"Admin",   path:"/admin",   show:user.role==="admin", d:"M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
+                ] as {label:string;path:string;show:boolean;d:string}[]).filter(i=>i.show).map(item=>(
+                  <button key={item.path} onClick={()=>router.push(item.path)}
+                    style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 15px", background:"transparent", border:"none", color:"var(--txt1)", fontSize:12, cursor:"pointer", fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s", letterSpacing:"-0.01em" }}
+                    onMouseEnter={e=>{ (e.currentTarget as HTMLButtonElement).style.background="rgba(99,102,241,0.06)"; (e.currentTarget as HTMLButtonElement).style.color="var(--txt0)"; }}
+                    onMouseLeave={e=>{ (e.currentTarget as HTMLButtonElement).style.background="transparent"; (e.currentTarget as HTMLButtonElement).style.color="var(--txt1)"; }}
                   >
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d={item.d}/>
-                    </svg>
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d={item.d}/></svg>
                     {item.label}
                   </button>
                 ))}
                 <div style={{ borderTop:"1px solid var(--rim0)", paddingTop:3 }}>
-                  <button
-                    onClick={handleLogout}
-                    style={{
-                      width:"100%", display:"flex", alignItems:"center", gap:9,
-                      padding:"9px 15px", background:"transparent", border:"none",
-                      color:"#f87171", fontSize:12, cursor:"pointer",
-                      fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s",
-                      letterSpacing:"-0.01em",
-                    }}
+                  <button onClick={handleLogout}
+                    style={{ width:"100%", display:"flex", alignItems:"center", gap:9, padding:"9px 15px", background:"transparent", border:"none", color:"#f87171", fontSize:12, cursor:"pointer", fontFamily:"var(--font-body)", fontWeight:500, transition:"all 0.15s", letterSpacing:"-0.01em" }}
                     onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(248,113,113,0.06)";}}
                     onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}
                   >
-                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     Sign out
                   </button>
                 </div>
               </div>
             )}
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* ── Main content ── */}
-      <main style={{
-        position:"relative", zIndex:1,
-        maxWidth:1100, margin:"0 auto",
-        padding:"48px 24px 96px",
-        display:"flex", flexDirection:"column", gap:40,
-      }}>
+        {/* ── Main content ── */}
+        <main style={{
+          position:"relative", zIndex:1,
+          padding:"40px 32px 80px",
+          display:"flex", flexDirection:"column", gap:36,
+          overflowX:"hidden",
+        }}>
 
         {/* ── Page header ── */}
         <div className="page-head rise d0" style={{
@@ -1468,8 +1600,8 @@ export default function DashboardPage() {
                 animation:"pulse-dot 2.4s ease infinite",
               }}/>
               <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-                letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
+                fontFamily:"var(--font-body)", fontSize:11, fontWeight:500,
+                letterSpacing:"0.06em", textTransform:"uppercase", color:"var(--txt1)",
               }}>AI-Powered ML Pipeline · Live</span>
             </div>
 
@@ -1485,23 +1617,13 @@ export default function DashboardPage() {
               }}>ML Workspace</span>
             </h1>
             <p style={{
-              fontFamily:"var(--font-body)", fontSize:13, color:"var(--txt2)",
+              fontFamily:"var(--font-body)", fontSize:14, color:"var(--txt1)",
               marginTop:10, fontWeight:400, lineHeight:1.7, maxWidth:420,
             }}>
               Upload a dataset, let the AI profile it, select the best model, train and evaluate — all in one streamlined pipeline.
             </p>
           </div>
 
-          <button
-            className="btn-primary"
-            onClick={() => setShowNewProj(true)}
-            style={{ padding:"12px 24px", fontSize:13, flexShrink:0, borderRadius:14 }}
-          >
-            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
-            New Project
-          </button>
         </div>
 
         {/* ── Stats ── */}
@@ -1523,9 +1645,9 @@ export default function DashboardPage() {
               background:"linear-gradient(180deg,var(--ind),var(--vio))", flexShrink:0,
             }}/>
             <p style={{
-              fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400,
-              letterSpacing:"0.14em", textTransform:"uppercase", color:"var(--txt2)",
-            }}>Ml Pipeline</p>
+              fontFamily:"var(--font-body)", fontSize:11, fontWeight:600,
+              letterSpacing:"0.08em", textTransform:"uppercase", color:"var(--txt1)",
+            }}>ML Pipeline</p>
           </div>
 
           <div className="leg-grid" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
@@ -1575,7 +1697,7 @@ export default function DashboardPage() {
                     color:"var(--txt0)", marginBottom:2, letterSpacing:"-0.01em",
                   }}>{s.label}</p>
                   <p style={{
-                    fontFamily:"var(--font-body)", fontSize:10, color:"var(--txt2)", lineHeight:1.4,
+                    fontFamily:"var(--font-body)", fontSize:11, color:"var(--txt1)", lineHeight:1.5,
                   }}>{s.desc}</p>
                 </div>
                 <span style={{
@@ -1590,34 +1712,66 @@ export default function DashboardPage() {
 
         {/* ── Projects ── */}
         <section>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+          {/* Section header */}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <h2 style={{
-                fontFamily:"var(--font-display)", fontSize:21, fontWeight:800,
-                letterSpacing:"-0.03em", color:"var(--txt0)",
-              }}>Projects</h2>
+              <h2 style={{ fontFamily:"var(--font-display)", fontSize:21, fontWeight:800, letterSpacing:"-0.03em", color:"var(--txt0)" }}>Projects</h2>
               {recentProjects.length > 0 && (
-                <span style={{
-                  fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400, padding:"2px 10px",
-                  borderRadius:100, background:"rgba(99,102,241,0.09)",
-                  border:"1px solid rgba(99,102,241,0.2)", color:"#a5b4fc",
-                  letterSpacing:"0.04em",
-                }}>{recentProjects.length}</span>
+                <span style={{ fontFamily:"var(--font-mono)", fontSize:9, fontWeight:400, padding:"2px 10px", borderRadius:100, background:"rgba(99,102,241,0.09)", border:"1px solid rgba(99,102,241,0.2)", color:"#a5b4fc", letterSpacing:"0.04em" }}>
+                  {displayProjects.length !== recentProjects.length ? `${displayProjects.length}/${recentProjects.length}` : recentProjects.length}
+                </span>
               )}
             </div>
-            {!backendOk && (
-              <span style={{
-                fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.07em",
-                padding:"4px 11px", borderRadius:100,
-                background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.16)",
-                color:"#fbbf24",
-                display:"inline-flex", alignItems:"center", gap:5,
-              }}>
-                <AlertTriangle size={11} strokeWidth={2.4} />
-                LOCAL ONLY
-              </span>
-            )}
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              {!backendOk && (
+                <span style={{ fontFamily:"var(--font-mono)", fontSize:9, letterSpacing:"0.07em", padding:"4px 11px", borderRadius:100, background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.16)", color:"#fbbf24", display:"inline-flex", alignItems:"center", gap:5 }}>
+                  <AlertTriangle size={11} strokeWidth={2.4}/> LOCAL ONLY
+                </span>
+              )}
+              <button className="btn-primary" onClick={()=>setShowNewProj(true)} style={{ padding:"8px 16px", fontSize:12, borderRadius:10 }}>
+                <Plus size={13} strokeWidth={2.5}/> New Project
+              </button>
+            </div>
           </div>
+
+          {/* Filter bar */}
+          {recentProjects.length > 0 && (
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+              <div className="search-wrap">
+                <Search size={12} strokeWidth={2} style={{ color:"var(--txt2)", flexShrink:0 }}/>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e=>setSearchQuery(e.target.value)}
+                  placeholder="Search projects…"
+                />
+                {searchQuery && (
+                  <button onClick={()=>setSearchQuery("")} style={{ background:"none", border:"none", cursor:"pointer", color:"var(--txt2)", display:"flex", padding:0, flexShrink:0 }}>
+                    <X size={11}/>
+                  </button>
+                )}
+              </div>
+              <select value={stageFilter} onChange={e=>setStageFilter(e.target.value as "all"|Stage)} className="filter-select">
+                <option value="all">All stages</option>
+                <option value="initialized">Initialized</option>
+                <option value="dataset_uploaded">Uploaded</option>
+                <option value="eda_completed">EDA Done</option>
+                <option value="model_selected">Model Set</option>
+                <option value="training">Training</option>
+                <option value="trained">Trained</option>
+                <option value="evaluated">Evaluated</option>
+                <option value="completed">Complete</option>
+              </select>
+              <select value={sortBy} onChange={e=>setSortBy(e.target.value as "recent"|"name")} className="filter-select">
+                <option value="recent">Recent first</option>
+                <option value="name">Name A–Z</option>
+              </select>
+              <div style={{ display:"flex", gap:4, marginLeft:"auto" }}>
+                <button className={`view-btn${viewMode==="grid"?" active":""}`} onClick={()=>setViewMode("grid")} title="Grid view"><LayoutGrid size={13}/></button>
+                <button className={`view-btn${viewMode==="list"?" active":""}`} onClick={()=>setViewMode("list")} title="List view"><List size={13}/></button>
+              </div>
+            </div>
+          )}
 
           {recentProjects.length === 0 ? (
             /* ── Empty state ── */
@@ -1664,15 +1818,46 @@ export default function DashboardPage() {
                 New Project
               </button>
             </div>
+          ) : displayProjects.length === 0 ? (
+            <div style={{ padding:"48px 24px", textAlign:"center", border:"1px dashed rgba(99,102,241,0.1)", borderRadius:18, background:"rgba(99,102,241,0.015)" }}>
+              <p style={{ fontFamily:"var(--font-body)", fontSize:14, fontWeight:600, color:"var(--txt1)", marginBottom:6 }}>No projects match your filters</p>
+              <p style={{ fontFamily:"var(--font-body)", fontSize:12, color:"var(--txt2)" }}>Try adjusting the search or stage filter.</p>
+            </div>
+          ) : viewMode === "list" ? (
+            <div className="surface" style={{ overflow:"hidden" }}>
+              <table className="proj-table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Stage</th>
+                    <th>Model</th>
+                    <th>Progress</th>
+                    <th>Updated</th>
+                    <th style={{ textAlign:"right", paddingRight:16 }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayProjects.map(project=>(
+                    <ProjectRow
+                      key={project._id}
+                      project={project}
+                      deleting={deleting===project._id}
+                      onContinue={()=>handleContinue(project)}
+                      onDelete={()=>handleDelete(project)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <div className="proj-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-              {recentProjects.map((project, i) => (
+              {displayProjects.map((project, i) => (
                 <ProjectCard
                   key={project._id}
                   project={project}
                   deleting={deleting===project._id}
-                  onContinue={() => handleContinue(project)}
-                  onDelete={() => handleDelete(project)}
+                  onContinue={()=>handleContinue(project)}
+                  onDelete={()=>handleDelete(project)}
                   animDelay={i*55}
                 />
               ))}
@@ -1762,7 +1947,8 @@ export default function DashboardPage() {
             </div>
           </section>
         )}
-      </main>
+        </main>
+      </div>{/* end right-side */}
 
       {deleteTarget && (
         <DeleteConfirmModal
