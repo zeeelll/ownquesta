@@ -34,12 +34,38 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const { name, email, role, phone, bio, company, jobTitle, location, skills } = req.body;
+    const { name, email, role, phone, bio, company, jobTitle, location, skills, membershipStatus, membershipPlan } = req.body;
     const oldUser = await User.findById(req.params.id);
+    if (!oldUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updatePayload = { name, email, role, phone, bio, company, jobTitle, location, skills };
+
+    if (typeof membershipStatus === "string") {
+      const normalizedStatus = membershipStatus.trim().toLowerCase();
+      if (normalizedStatus === "ownque_user") {
+        const now = new Date();
+        const expiresAt = new Date(now);
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+        updatePayload.membershipStatus = "ownque_user";
+        updatePayload.membershipPlan = String(membershipPlan || oldUser.membershipPlan || "premium-monthly").trim();
+        updatePayload.membershipUpgradedAt = now;
+        updatePayload.membershipExpiresAt = expiresAt;
+      } else if (normalizedStatus === "free") {
+        updatePayload.membershipStatus = "free";
+        updatePayload.membershipPlan = "";
+        updatePayload.membershipUpgradedAt = null;
+        updatePayload.membershipExpiresAt = null;
+      }
+    } else if (typeof membershipPlan === "string" && String(oldUser.membershipStatus || "").toLowerCase() === "ownque_user") {
+      updatePayload.membershipPlan = membershipPlan.trim() || oldUser.membershipPlan || "premium-monthly";
+    }
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, role, phone, bio, company, jobTitle, location, skills },
+      updatePayload,
       { new: true }
     ).select('-password -twoFactorSecret -resetOtp -resetOtpExpiry');
 
@@ -61,14 +87,20 @@ exports.updateUser = async (req, res) => {
           email: oldUser.email,
           role: oldUser.role,
           phone: oldUser.phone,
-          company: oldUser.company
+          company: oldUser.company,
+          membershipStatus: oldUser.membershipStatus,
+          membershipPlan: oldUser.membershipPlan,
+          membershipExpiresAt: oldUser.membershipExpiresAt,
         },
         newData: {
           name: user.name,
           email: user.email,
           role: user.role,
           phone: user.phone,
-          company: user.company
+          company: user.company,
+          membershipStatus: user.membershipStatus,
+          membershipPlan: user.membershipPlan,
+          membershipExpiresAt: user.membershipExpiresAt,
         }
       }
     );

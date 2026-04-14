@@ -289,7 +289,22 @@ exports.provisionDeployment = async (req, res) => {
     const paymentOrderId = String(req.body?.paymentOrderId || "").trim();
     const sessionId = String(req.body?.sessionId || "").trim();
     const modelName = String(req.body?.modelName || "Trained Model").trim();
-    const isPremiumUser = String(req.user?.membershipStatus || "").toLowerCase() === "ownque_user";
+    const membershipStatus = String(req.user?.membershipStatus || "").toLowerCase();
+    const membershipExpiryDate = req.user?.membershipExpiresAt ? new Date(req.user.membershipExpiresAt) : null;
+    const membershipActive =
+      membershipStatus === "ownque_user" &&
+      membershipExpiryDate instanceof Date &&
+      !Number.isNaN(membershipExpiryDate.getTime()) &&
+      membershipExpiryDate.getTime() > Date.now();
+
+    if (membershipStatus === "ownque_user" && !membershipActive) {
+      req.user.membershipStatus = "free";
+      req.user.membershipPlan = "";
+      req.user.membershipExpiresAt = null;
+      await req.user.save();
+    }
+
+    const isPremiumUser = membershipActive;
     const premiumOrderId = `PREMIUM-${req.user._id.toString()}-${sessionId || "deployment"}`;
     const effectiveOrderId = paymentOrderId || (isPremiumUser ? premiumOrderId : "");
 

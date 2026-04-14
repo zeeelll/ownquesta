@@ -761,7 +761,9 @@ export default function AdminPage() {
         company: updatedUser.company,
         jobTitle: updatedUser.jobTitle,
         location: updatedUser.location,
-        skills: updatedUser.skills
+        skills: updatedUser.skills,
+        membershipStatus: updatedUser.membershipStatus,
+        membershipPlan: updatedUser.membershipPlan,
       });
       setUsers(users.map(user =>
         user._id === updatedUser._id ? response.user : user
@@ -2406,6 +2408,34 @@ export default function AdminPage() {
                       className="form-input w-full px-4 py-3 rounded-lg"
                       placeholder="e.g., JavaScript, React, Node.js"
                     />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Subscription Status</label>
+                    <select
+                      value={editingUser.membershipStatus || 'free'}
+                      onChange={(e) => setEditingUser({ ...editingUser, membershipStatus: e.target.value as User['membershipStatus'] })}
+                      className="form-input w-full px-4 py-3 rounded-lg"
+                    >
+                      <option value="free">Free</option>
+                      <option value="ownque_user">Premium (1 month deployment)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Subscription Plan</label>
+                    <input
+                      type="text"
+                      value={editingUser.membershipPlan || 'premium-monthly'}
+                      onChange={(e) => setEditingUser({ ...editingUser, membershipPlan: e.target.value })}
+                      className="form-input w-full px-4 py-3 rounded-lg"
+                      disabled={(editingUser.membershipStatus || 'free') !== 'ownque_user'}
+                      placeholder="premium-monthly"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-xs text-cyan-100">
+                    Premium status set from admin gives this user deployment access for 1 month from save time.
                   </div>
                 </div>
 
