@@ -173,10 +173,10 @@ export default function PremiumUpgradePage() {
   useEffect(() => {
     let mounted = true;
     QRCode.toDataURL(upiPaymentLink, {
-      width: 220,
-      margin: 2,
+      width: 1024,
+      margin: 3,
       errorCorrectionLevel: 'H',
-      color: { dark: '#0b1224', light: '#ffffff' },
+      color: { dark: '#000000', light: '#ffffff' },
     })
       .then((url) => {
         if (mounted) setUpiQrDataUrl(url);
@@ -553,7 +553,7 @@ export default function PremiumUpgradePage() {
               {paymentMethod === 'upi' && (
                 <div className="w-full max-w-2xl rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">Pay to OwnQuesta</p>
-                  <div className="mt-2 grid items-start gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
+                  <div className="mt-2 grid items-start gap-4 md:grid-cols-[minmax(0,1fr)_230px]">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-white">{OWNQUESTA_UPI_NAME}</p>
                       <p className="text-xs text-cyan-100">{OWNQUESTA_UPI_ID}</p>
@@ -568,13 +568,19 @@ export default function PremiumUpgradePage() {
                     </div>
                     <div className="text-left">
                       <div className="text-lg font-semibold text-cyan-100">₹{checkout.price.toFixed(2)}</div>
-                      <div className="mt-2 w-fit rounded-2xl border border-white/10 bg-white p-1.5">
+                      <div className="mt-2 w-fit rounded-xl border border-white/20 bg-white p-2 shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                         {upiQrDataUrl ? (
-                          <img src={upiQrDataUrl} alt="UPI QR" className="mx-auto h-[140px] w-[140px] rounded-xl object-contain" />
+                          <img
+                            src={upiQrDataUrl}
+                            alt="UPI scanner"
+                            className="mx-auto h-[210px] w-[210px] object-contain"
+                            style={{ imageRendering: 'pixelated' }}
+                          />
                         ) : (
-                          <div className="mx-auto flex h-[140px] w-[140px] items-center justify-center text-xs text-slate-500">Generating QR...</div>
+                          <div className="mx-auto flex h-[210px] w-[210px] items-center justify-center text-xs text-slate-500">Generating scanner...</div>
                         )}
                       </div>
+                      <p className="mt-2 text-[11px] text-cyan-100/80">Scanner optimized for clear mobile UPI scans.</p>
                     </div>
                   </div>
                 </div>
