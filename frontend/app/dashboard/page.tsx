@@ -36,6 +36,15 @@ import {
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || "http://localhost:8010";
 
+
+          <button
+            onClick={() => router.back()}
+            className="nav-pill nav-pill-accent"
+            aria-label="Go back"
+          >
+            <ChevronLeft size={14} strokeWidth={2.2} />
+            Back
+          </button>
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Dataset {
@@ -1511,6 +1520,11 @@ export default function DashboardPage() {
             <svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="var(--txt3)" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
             <span style={{ fontFamily:"var(--font-body)", fontSize:12, fontWeight:600, color:"var(--txt1)", letterSpacing:"0.04em" }}>Workspace</span>
           </div>
+
+          <button onClick={() => router.back()} className="nav-pill nav-pill-home" aria-label="Go back">
+            <ChevronLeft size={14} strokeWidth={2.2} />
+            Back
+          </button>
 
         </nav>
 
