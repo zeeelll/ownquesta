@@ -156,9 +156,9 @@ const STYLES = `
     --rim2:   rgba(255,255,255,0.12);
     --rim3:   rgba(255,255,255,0.18);
     --txt0:   #e6eef8;
-    --txt1:   #b0c4de;
-    --txt2:   #8499b8;
-    --txt3:   #4a6080;
+    --txt1:   #c7d3e3;
+    --txt2:   #9caec2;
+    --txt3:   #6b7f97;
     --ind:    #6366f1;
     --ind-l:  #818cf8;
     --ind-xl: #a5b4fc;
@@ -177,25 +177,25 @@ const STYLES = `
 
   html { scroll-behavior: smooth; }
 
-  @keyframes rise      { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes rise      { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   @keyframes pop       { from{opacity:0;transform:scale(0.93) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
   @keyframes shimmer   { 0%{background-position:-900px 0} 100%{background-position:900px 0} }
   @keyframes spin      { to{transform:rotate(360deg)} }
   @keyframes bar-grow  { from{width:0} }
   @keyframes toast-in  { from{opacity:0;transform:translateX(16px) scale(0.97)} to{opacity:1;transform:translateX(0) scale(1)} }
   @keyframes num-up    { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(0.9)} }
-  @keyframes ping-out  { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(2.4);opacity:0} }
-  @keyframes bg-drift  { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-14px) scale(1.04)} 66%{transform:translate(-12px,10px) scale(0.97)} }
+  @keyframes pulse-dot { 0%,100%{opacity:0.95;transform:scale(1)} 50%{opacity:0.85;transform:scale(0.96)} }
+  @keyframes ping-out  { 0%{transform:scale(1);opacity:0.45} 100%{transform:scale(1.8);opacity:0} }
+  @keyframes bg-drift  { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(10px,-8px) scale(1.02)} 66%{transform:translate(-8px,6px) scale(0.99)} }
   @keyframes scan-line { from{top:-60px} to{top:100%} }
   @keyframes border-spin { to{--border-angle:360deg} }
   @keyframes fadeIn    { from{opacity:0} to{opacity:1} }
   @keyframes float-up  { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
 
   .skel {
-    background: linear-gradient(90deg, rgba(255,255,255,0.015) 25%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.015) 75%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.012) 25%, rgba(255,255,255,0.028) 50%, rgba(255,255,255,0.012) 75%);
     background-size: 900px 100%;
-    animation: shimmer 2.2s ease infinite;
+    animation: shimmer 3.6s ease infinite;
     border-radius: var(--r-md);
   }
 
@@ -204,7 +204,7 @@ const STYLES = `
   .d3{animation-delay:180ms}.d4{animation-delay:240ms} .d5{animation-delay:300ms}
   .d6{animation-delay:360ms}.d7{animation-delay:420ms}
 
-  .rise { animation: rise 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+  .rise { animation: rise 0.34s cubic-bezier(0.22,1,0.36,1) both; }
 
   /* ── Surface ── */
   .surface {
@@ -226,11 +226,11 @@ const STYLES = `
     border-radius:var(--r-xl);
     padding:1px;
     background:linear-gradient(145deg,rgba(99,102,241,0.25),rgba(192,132,252,0.12),rgba(52,211,153,0.1),rgba(99,102,241,0.2));
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+    transition: transform 0.24s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.24s;
   }
   .gc-wrap:hover {
-    transform:translateY(-5px) scale(1.004);
-    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 30px rgba(99,102,241,0.08);
+    transform:translateY(-3px) scale(1.002);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.38), 0 0 18px rgba(99,102,241,0.06);
   }
   .gc-inner {
     border-radius: calc(var(--r-xl) - 1px);
@@ -244,13 +244,13 @@ const STYLES = `
     position:relative;
     border-radius:var(--r-xl);
     overflow:hidden;
-    transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+    transition:transform 0.24s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.24s;
     background:linear-gradient(155deg,#1c1c1c 0%,#141414 100%);
     border:1px solid var(--rim1);
   }
   .stat-card:hover {
-    transform:translateY(-4px) scale(1.01);
-    box-shadow:0 20px 50px rgba(0,0,0,0.4);
+    transform:translateY(-2px) scale(1.005);
+    box-shadow:0 14px 34px rgba(0,0,0,0.28);
   }
 
   /* ── Primary button ── */
@@ -262,13 +262,13 @@ const STYLES = `
     border-radius:var(--r-md);
     position:relative; overflow:hidden;
     box-shadow:0 4px 16px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.14);
-    transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s;
+    transition:transform 0.18s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.18s;
     letter-spacing:-0.01em;
   }
   .btn-primary::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0); transition:background 0.15s; }
   .btn-primary:hover {
-    transform:translateY(-2px) scale(1.015);
-    box-shadow:0 10px 28px rgba(99,102,241,0.42), inset 0 1px 0 rgba(255,255,255,0.18);
+    transform:translateY(-1px) scale(1.01);
+    box-shadow:0 8px 20px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.16);
   }
   .btn-primary:hover::after { background:rgba(255,255,255,0.04); }
   .btn-primary:active { transform:scale(0.97) !important; }
@@ -288,7 +288,7 @@ const STYLES = `
   .btn-ghost:hover {
     background:rgba(255,255,255,0.06);
     color:var(--txt0); border-color:var(--rim2);
-    transform:translateY(-1px);
+    transform:translateY(-0.5px);
   }
   .btn-ghost:active { transform:scale(0.97); }
 
@@ -372,7 +372,7 @@ const STYLES = `
     cursor:pointer; font-family:var(--font-body); transition:all 0.18s;
     letter-spacing:-0.01em;
   }
-  .nav-pill:hover { background:rgba(255,255,255,0.07); color:var(--txt0); border-color:var(--rim2); transform:translateY(-1px); }
+  .nav-pill:hover { background:rgba(255,255,255,0.07); color:var(--txt0); border-color:var(--rim2); transform:translateY(-0.5px); }
   .nav-pill:focus-visible {
     outline:none;
     box-shadow:0 0 0 3px rgba(99,102,241,0.16);
@@ -393,12 +393,12 @@ const STYLES = `
     inset:0;
     background:linear-gradient(120deg, transparent 18%, rgba(255,255,255,0.12) 50%, transparent 82%);
     transform:translateX(-120%);
-    transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    transition:transform 0.8s cubic-bezier(0.4,0,0.2,1);
   }
   .nav-pill-accent:hover {
     background:linear-gradient(135deg, rgba(99,102,241,0.28) 0%, rgba(139,92,246,0.22) 55%, rgba(192,132,252,0.24) 100%);
     border-color:rgba(192,132,252,0.34);
-    box-shadow:0 12px 30px rgba(99,102,241,0.26), 0 0 0 1px rgba(192,132,252,0.12), inset 0 1px 0 rgba(255,255,255,0.12);
+    box-shadow:0 10px 24px rgba(99,102,241,0.18), 0 0 0 1px rgba(192,132,252,0.10), inset 0 1px 0 rgba(255,255,255,0.10);
   }
   .nav-pill-accent:hover::before { transform:translateX(120%); }
   .nav-pill-accent:focus-visible {
@@ -455,8 +455,8 @@ const STYLES = `
     transition:transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s, border-color 0.22s;
   }
   .legend-step:hover {
-    transform:translateY(-3px);
-    box-shadow:0 12px 36px rgba(0,0,0,0.32);
+    transform:translateY(-2px);
+    box-shadow:0 10px 28px rgba(0,0,0,0.24);
   }
 
   /* ── Hover scan effect ── */
@@ -464,8 +464,8 @@ const STYLES = `
   .scan-el {
     pointer-events:none; position:absolute; left:0; right:0; height:70px;
     background:linear-gradient(180deg, transparent, rgba(99,102,241,0.04), transparent);
-    top:-70px; opacity:0; transition:opacity 0.22s;
-    animation:scan-line 3.8s linear infinite;
+    top:-70px; opacity:0; transition:opacity 0.18s;
+    animation:scan-line 5.8s linear infinite;
     animation-play-state:paused; z-index:3;
   }
   .scan-host:hover .scan-el { opacity:1; animation-play-state:running; }
@@ -1468,9 +1468,9 @@ export default function DashboardPage() {
         <nav style={{ padding:"0 8px", flex:1, display:"flex", flexDirection:"column", gap:2 }}>
           {([
             { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
+            { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
             { label:"My Downloads", icon:<Download size={15} strokeWidth={2}/>, path:"/my-downloads", active:false },
             { label:"My Deployments", icon:<Rocket size={15} strokeWidth={2}/>, path:"/my-deployments", active:false },
-            { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
             { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
             ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),
           ] as { label:string; icon:React.ReactNode; path:string; active:boolean }[]).map(item=>(
