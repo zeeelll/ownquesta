@@ -625,6 +625,14 @@ export default function PremiumUpgradePage() {
                   Your account is already premium. You can return to AutoML Playground and deploy immediately.
                 </div>
               )}
+
+              <div className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-100">
+                After payment, please wait 3 to 4 hours for verification. If you have any issue, go to the{' '}
+                <Link href="/help" className="font-semibold text-amber-50 underline underline-offset-2 hover:text-white">
+                  Help page
+                </Link>
+                .
+              </div>
             </div>
           ) : (
             <div className="mt-6 space-y-4">
