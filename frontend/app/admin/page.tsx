@@ -562,6 +562,61 @@ export default function AdminPage() {
     return { successRate, avgRevenue };
   }, [paymentSummary]);
 
+  const planByEmail = useMemo(() => {
+    const byEmail = new Map<string, 'premium' | 'free'>();
+    users.forEach((user) => {
+      const email = (user.email || '').toLowerCase().trim();
+      if (!email) return;
+      const plan = (user.membershipPlan || '').toLowerCase().trim();
+      const status = (user.membershipStatus || '').toLowerCase().trim();
+      const isPremium = plan === 'premium' || status === 'ownque_user';
+      byEmail.set(email, isPremium ? 'premium' : 'free');
+    });
+    return byEmail;
+  }, [users]);
+
+  const premiumUsersCount = useMemo(
+    () => users.filter((user) => (user.membershipPlan || '').toLowerCase().trim() === 'premium' || (user.membershipStatus || '').toLowerCase().trim() === 'ownque_user').length,
+    [users]
+  );
+
+  const freeUsersCount = useMemo(
+    () => Math.max(users.length - premiumUsersCount, 0),
+    [users.length, premiumUsersCount]
+  );
+
+  const premiumPlanPayments = useMemo(() => {
+    return filteredPayments.filter((payment) => {
+      const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
+      const linkedEmail = (linkedUser?.email || payment.customerEmail || '').toLowerCase().trim();
+      const userPlan = linkedEmail ? planByEmail.get(linkedEmail) : undefined;
+      if (userPlan) return userPlan === 'premium';
+
+      const productText = `${payment.product || ''} ${payment.modelName || ''}`.toLowerCase();
+      return productText.includes('premium') || productText.includes('subscription') || payment.productType === 'deploy';
+    });
+  }, [filteredPayments, planByEmail]);
+
+  const freePlanDownloadAccesses = useMemo(() => {
+    return filteredDownloadAccesses.filter((record) => {
+      const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
+      const linkedEmail = (linkedUser?.email || record.customerEmail || '').toLowerCase().trim();
+      const userPlan = linkedEmail ? planByEmail.get(linkedEmail) : undefined;
+      if (userPlan) return userPlan === 'free';
+      return record.accessType === 'free';
+    });
+  }, [filteredDownloadAccesses, planByEmail]);
+
+  const premiumPlanDownloadAccesses = useMemo(() => {
+    return filteredDownloadAccesses.filter((record) => {
+      const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
+      const linkedEmail = (linkedUser?.email || record.customerEmail || '').toLowerCase().trim();
+      const userPlan = linkedEmail ? planByEmail.get(linkedEmail) : undefined;
+      if (userPlan) return userPlan === 'premium';
+      return record.accessType === 'paid';
+    });
+  }, [filteredDownloadAccesses, planByEmail]);
+
   const userUsageStats = useMemo(() => {
     const byUser = new Map<string, {
       downloadTotal: number;
@@ -1549,7 +1604,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-6">
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1615,6 +1670,28 @@ export default function AdminPage() {
                   <div className="stat-icon-bg stat-icon-purple"><BarChart3 className="h-6 w-6" /></div>
                 </div>
               </div>
+
+              <div className="stat-card stat-card-amber">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><Crown className="h-3.5 w-3.5 mr-2" />Premium Users</p>
+                    <p className="stat-number">{premiumUsersCount}</p>
+                    <p className="stat-sub">Membership = premium</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-amber"><Crown className="h-6 w-6" /></div>
+                </div>
+              </div>
+
+              <div className="stat-card stat-card-blue">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="stat-label flex items-center"><User className="h-3.5 w-3.5 mr-2" />Free Users</p>
+                    <p className="stat-number">{freeUsersCount}</p>
+                    <p className="stat-sub">Default/fallback plan</p>
+                  </div>
+                  <div className="stat-icon-bg stat-icon-blue"><User className="h-6 w-6" /></div>
+                </div>
+              </div>
             </div>
 
             <div className="panel-card p-6">
@@ -1674,8 +1751,9 @@ export default function AdminPage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="action-chip action-chip-blue">Payments shown: {filteredPayments.length}/{payments.length}</span>
-                <span className="action-chip action-chip-emerald">Access logs shown: {filteredDownloadAccesses.length}/{downloadAccesses.length}</span>
+                <span className="action-chip action-chip-purple">Premium payments: {premiumPlanPayments.length}/{filteredPayments.length}</span>
+                <span className="action-chip action-chip-blue">Free plan access: {freePlanDownloadAccesses.length}/{filteredDownloadAccesses.length}</span>
+                <span className="action-chip action-chip-emerald">Premium plan access: {premiumPlanDownloadAccesses.length}/{filteredDownloadAccesses.length}</span>
                 <span className="action-chip action-chip-purple">Filter: {paymentTypeFilter === 'all' ? 'All types' : paymentTypeLabel(paymentTypeFilter)}</span>
                 <span className="action-chip action-chip-slate">Status: {paymentStatusFilter === 'all' ? 'All statuses' : paymentStatusFilter.toUpperCase()}</span>
               </div>
@@ -1689,8 +1767,8 @@ export default function AdminPage() {
 
             <div className="panel-card overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-800/60">
-                <h4 className="text-sm font-semibold text-white">Payment Transactions ({filteredPayments.length})</h4>
-                <p className="text-xs text-slate-500 font-mono mt-1">Captured checkout records with customer, product, amount, gateway, and status.</p>
+                <h4 className="text-sm font-semibold text-white">Premium Plan Payment Transactions ({premiumPlanPayments.length})</h4>
+                <p className="text-xs text-slate-500 font-mono mt-1">Paid checkout records mapped to premium users or premium subscription products.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -1708,7 +1786,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {filteredPayments.map((payment) => {
+                    {premiumPlanPayments.map((payment) => {
                       const linkedUser = payment.userId && typeof payment.userId === 'object' ? payment.userId : null;
 
                       return (
@@ -1786,50 +1864,55 @@ export default function AdminPage() {
                 </table>
               </div>
 
-              {filteredPayments.length === 0 && (
+              {premiumPlanPayments.length === 0 && (
                 <div className="text-center py-16">
                   <div className="text-5xl mb-4 opacity-30">💳</div>
-                  <p className="text-slate-400 text-sm font-mono">No payment records match the current filters.</p>
+                  <p className="text-slate-400 text-sm font-mono">No premium-plan payment records match the current filters.</p>
                 </div>
               )}
             </div>
 
+            <div className="panel-card p-6">
+              <h4 className="text-sm font-semibold text-white">Download Access Filters</h4>
+              <p className="text-xs text-slate-500 font-mono mt-1">Use one search/filter set, then review records grouped by user plan below.</p>
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="relative lg:col-span-2">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search user, order, file, model..."
+                    value={downloadSearch}
+                    onChange={(e) => setDownloadSearch(e.target.value)}
+                    className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
+                  />
+                </div>
+                <select
+                  value={downloadTypeFilter}
+                  onChange={(e) => setDownloadTypeFilter(e.target.value)}
+                  className="search-input px-4 py-2.5 rounded-lg"
+                >
+                  <option value="all">All Types</option>
+                  <option value="model">Model</option>
+                  <option value="py">.py</option>
+                  <option value="ipynb">ipynb</option>
+                  <option value="other">Other</option>
+                </select>
+                <select
+                  value={downloadStatusFilter}
+                  onChange={(e) => setDownloadStatusFilter(e.target.value)}
+                  className="search-input px-4 py-2.5 rounded-lg"
+                >
+                  <option value="all">All Access</option>
+                  <option value="paid">Paid</option>
+                  <option value="free">Free</option>
+                </select>
+              </div>
+            </div>
+
             <div className="panel-card overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-800/60">
-                <h4 className="text-sm font-semibold text-white">Download Access Log (Free + Paid) ({filteredDownloadAccesses.length})</h4>
-                <p className="text-xs text-slate-500 font-mono mt-1">Tracks each user download event including free first-download unlocks.</p>
-                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="relative lg:col-span-2">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
-                    <input
-                      type="text"
-                      placeholder="Search user, order, file, model..."
-                      value={downloadSearch}
-                      onChange={(e) => setDownloadSearch(e.target.value)}
-                      className="search-input w-full pl-10 pr-4 py-2.5 rounded-lg"
-                    />
-                  </div>
-                  <select
-                    value={downloadTypeFilter}
-                    onChange={(e) => setDownloadTypeFilter(e.target.value)}
-                    className="search-input px-4 py-2.5 rounded-lg"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="model">Model</option>
-                    <option value="py">.py</option>
-                    <option value="ipynb">ipynb</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <select
-                    value={downloadStatusFilter}
-                    onChange={(e) => setDownloadStatusFilter(e.target.value)}
-                    className="search-input px-4 py-2.5 rounded-lg"
-                  >
-                    <option value="all">All Access</option>
-                    <option value="paid">Paid</option>
-                    <option value="free">Free</option>
-                  </select>
-                </div>
+                <h4 className="text-sm font-semibold text-white">Free Plan Download Access ({freePlanDownloadAccesses.length})</h4>
+                <p className="text-xs text-slate-500 font-mono mt-1">Download activity from users currently on free plan.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -1845,7 +1928,7 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {filteredDownloadAccesses.map((record) => {
+                    {freePlanDownloadAccesses.map((record) => {
                       const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
                       const isFree = record.accessType === 'free';
                       return (
@@ -1878,10 +1961,70 @@ export default function AdminPage() {
                 </table>
               </div>
 
-              {filteredDownloadAccesses.length === 0 && (
+              {freePlanDownloadAccesses.length === 0 && (
                 <div className="text-center py-14">
                   <div className="text-4xl mb-3 opacity-30">📥</div>
-                  <p className="text-slate-400 text-sm font-mono">No download access records match the current filters.</p>
+                  <p className="text-slate-400 text-sm font-mono">No free-plan download records match the current filters.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="panel-card overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-800/60">
+                <h4 className="text-sm font-semibold text-white">Premium Plan Download Access ({premiumPlanDownloadAccesses.length})</h4>
+                <p className="text-xs text-slate-500 font-mono mt-1">Download activity from users currently on premium plan.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="table-head">
+                    <tr>
+                      <th className="table-th">User</th>
+                      <th className="table-th">Access</th>
+                      <th className="table-th">Type</th>
+                      <th className="table-th">File</th>
+                      <th className="table-th">Amount</th>
+                      <th className="table-th">Source</th>
+                      <th className="table-th">Downloaded At</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {premiumPlanDownloadAccesses.map((record) => {
+                      const linkedUser = record.userId && typeof record.userId === 'object' ? record.userId : null;
+                      const isFree = record.accessType === 'free';
+                      return (
+                        <tr key={record._id} className="table-row-hover transition-colors">
+                          <td className="px-6 py-4">
+                            <div>
+                              <div className="font-semibold text-white text-sm">{linkedUser?.name || record.customerName || 'User'}</div>
+                              <div className="text-xs text-slate-500 font-mono">{linkedUser?.email || record.customerEmail || '—'}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${isFree ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}`}>
+                              {isFree ? 'FREE' : 'PAID'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <span className="action-chip action-chip-blue">{paymentTypeLabel(record.productType)}</span>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div>{record.fileName || record.modelName || '—'}</div>
+                            <div className="text-xs text-slate-500 font-mono mt-1">Order: {record.orderId || 'FREE'}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300 font-mono">₹{Number(record.amountInr || 0).toFixed(2)}</td>
+                          <td className="px-6 py-4 text-sm text-slate-300">{record.source || 'automl'}</td>
+                          <td className="px-6 py-4 text-xs text-slate-500 font-mono">{new Date(record.downloadedAt || record.createdAt).toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {premiumPlanDownloadAccesses.length === 0 && (
+                <div className="text-center py-14">
+                  <div className="text-4xl mb-3 opacity-30">📥</div>
+                  <p className="text-slate-400 text-sm font-mono">No premium-plan download records match the current filters.</p>
                 </div>
               )}
             </div>
