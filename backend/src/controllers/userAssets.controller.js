@@ -125,8 +125,8 @@ exports.trackDownloadAccess = async (req, res) => {
 exports.upgradeMembership = async (req, res) => {
   try {
     const plan = String(req.body?.plan || "premium-monthly").trim().toLowerCase();
-    const amountInr = Number(req.body?.amountInr || 1500);
-    const safeAmountInr = Number.isFinite(amountInr) ? Math.max(0, amountInr) : 1500;
+    const amountInr = Number(req.body?.amountInr || 1499);
+    const safeAmountInr = Number.isFinite(amountInr) ? Math.max(0, amountInr) : 1499;
     const customerName = String(req.body?.customerName || req.user.name || "User").trim();
     const customerEmail = String(req.body?.customerEmail || req.user.email || "").trim().toLowerCase();
     const sessionId = String(req.body?.sessionId || "").trim();

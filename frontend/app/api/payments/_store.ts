@@ -101,7 +101,7 @@ export function getPaymentRecord(orderId: string) {
 }
 
 export function buildUpiIntent(orderId: string, amount: number) {
-  const payeeId = process.env.NEXT_PUBLIC_UPI_ID || 'ownquesta@oksbi';
+  const payeeId = process.env.NEXT_PUBLIC_UPI_ID || '8460110210@ptyes';
   const payeeName = process.env.NEXT_PUBLIC_UPI_NAME || 'Ownquesta';
   const upiRate = Number(process.env.NEXT_PUBLIC_UPI_EXCHANGE_RATE || 83);
   const inrAmount = sanitizePrice(amount * upiRate, amount);

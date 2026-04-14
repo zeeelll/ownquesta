@@ -49,8 +49,8 @@ const UPI_APPS: Array<{ key: UpiAppKey; label: string; short: string; tint: stri
   { key: 'bhim', label: 'BHIM UPI', short: 'BHIM', tint: '#00866E', logo: '/upi/bhim.svg' },
 ];
 
-const PREMIUM_PRICE = 1500;
-const OWNQUESTA_UPI_ID = 'ownquesta@oksbi';
+const PREMIUM_PRICE = 1499;
+const OWNQUESTA_UPI_ID = '8460110210@ptyes';
 const OWNQUESTA_UPI_NAME = 'Ownquesta';
 
 const defaultCheckout: CheckoutState = {
@@ -69,6 +69,9 @@ export default function PremiumUpgradePage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('upi');
   const [selectedUpiApp, setSelectedUpiApp] = useState<UpiAppKey>('gpay');
   const [upiId, setUpiId] = useState('');
+  const [upiTransactionId, setUpiTransactionId] = useState('');
+  const [paymentDateTime, setPaymentDateTime] = useState('');
+  const [paymentScreenshot, setPaymentScreenshot] = useState<File | null>(null);
   const [upiQrDataUrl, setUpiQrDataUrl] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
@@ -144,7 +147,10 @@ export default function PremiumUpgradePage() {
     !processing &&
     !upgraded &&
     paymentMethod === 'upi' &&
-    isUpiValid;
+    isUpiValid &&
+    upiTransactionId.trim().length >= 6 &&
+    Boolean(paymentDateTime) &&
+    Boolean(paymentScreenshot);
   const planLabel = useMemo(() => `₹${checkout.price.toLocaleString('en-IN')}/month`, [checkout.price]);
   const selectedUpiAppLabel = useMemo(() => UPI_APPS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI', [selectedUpiApp]);
   const isComingSoonMethod = paymentMethod === 'card' || paymentMethod === 'paypal';
@@ -197,11 +203,26 @@ export default function PremiumUpgradePage() {
     return digits;
   };
 
+  const handleScreenshotUpload = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setPaymentScreenshot(file);
+    if (errors.paymentScreenshot) {
+      setErrors((current) => {
+        const next = { ...current };
+        delete next.paymentScreenshot;
+        return next;
+      });
+    }
+  };
+
   const validateCheckout = () => {
     const nextErrors: Record<string, string> = {};
     if (!form.name.trim()) nextErrors.name = 'Full name is required.';
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) nextErrors.email = 'Enter a valid email address.';
     if (paymentMethod === 'upi' && !isUpiValid) nextErrors.upi = 'Enter a valid UPI ID (example: yourname@okaxis).';
+    if (paymentMethod === 'upi' && upiTransactionId.trim().length < 6) nextErrors.transactionId = 'Enter a valid UPI transaction ID.';
+    if (paymentMethod === 'upi' && !paymentDateTime) nextErrors.paymentDateTime = 'Select payment date and time.';
+    if (paymentMethod === 'upi' && !paymentScreenshot) nextErrors.paymentScreenshot = 'Upload your payment screenshot.';
     if (paymentMethod === 'card') {
       if (cardNumber.replace(/\s/g, '').length !== 16) nextErrors.cardNumber = 'Enter a valid 16-digit card number.';
       if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) nextErrors.expiry = 'Use MM/YY format.';
@@ -226,7 +247,7 @@ export default function PremiumUpgradePage() {
         modelName: checkout.modelName,
         paymentMethod: paymentMethod === 'upi' ? `upi-${selectedUpiApp}` : 'card',
         gateway: 'OWNQUESTA',
-        paymentReference: paymentMethod === 'upi' ? upiId.trim() : cardNumber.replace(/\s/g, '').slice(-4),
+        paymentReference: paymentMethod === 'upi' ? upiTransactionId.trim() : cardNumber.replace(/\s/g, '').slice(-4),
       });
 
       const orderId = String(result?.payment?.orderId || `OWNQ-PREMIUM-${(checkout.sessionId || Date.now().toString()).slice(0, 12).toUpperCase()}`);
@@ -239,6 +260,9 @@ export default function PremiumUpgradePage() {
         paidAt: Date.now(),
         method: paymentMethod === 'upi' ? `upi-${selectedUpiApp}` : 'card',
         orderId,
+        transactionId: upiTransactionId.trim(),
+        paymentTime: paymentDateTime,
+        screenshotName: paymentScreenshot?.name || '',
         downloadTarget: 'deploy',
         unlocks: ['deploy'],
         gateway: 'ownquesta',
@@ -470,6 +494,43 @@ export default function PremiumUpgradePage() {
                     />
                   </label>
                   {errors.upi && <p className="-mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.upi}</p>}
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-semibold text-slate-200">UPI transaction ID</span>
+                      <input
+                        value={upiTransactionId}
+                        onChange={(event) => setUpiTransactionId(event.target.value.trim())}
+                        placeholder="Example: 413245678901"
+                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                      />
+                      {errors.transactionId && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.transactionId}</p>}
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-semibold text-slate-200">Payment date & time</span>
+                      <input
+                        type="datetime-local"
+                        value={paymentDateTime}
+                        onChange={(event) => setPaymentDateTime(event.target.value)}
+                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                      />
+                      {errors.paymentDateTime && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentDateTime}</p>}
+                    </label>
+                  </div>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-200">Upload payment screenshot</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={handleScreenshotUpload}
+                      className="input-premium w-full rounded-2xl px-4 py-3 text-sm file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-100"
+                    />
+                    <p className="mt-2 text-xs text-slate-400">Accepted formats: PNG, JPG, JPEG, WEBP</p>
+                    {paymentScreenshot && <p className="mt-1 text-xs text-emerald-200">Selected: {paymentScreenshot.name}</p>}
+                    {errors.paymentScreenshot && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentScreenshot}</p>}
+                  </label>
                 </>
               )}
 

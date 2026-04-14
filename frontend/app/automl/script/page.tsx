@@ -188,7 +188,7 @@ function PaymentModal({
   };
 
   const fileLabel = downloadType === 'py' ? 'Python Script (.py)' : 'Jupyter Notebook (.ipynb)';
-  const ownquestaUpiId = 'ownquesta@oksbi';
+  const ownquestaUpiId = '8460110210@ptyes';
   const upiApproxAmount = Number((DOWNLOAD_PRICE * 83).toFixed(2));
   const selectedUpiAppLabel = UPI_APP_OPTIONS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI';
   const accent = paymentMethod === 'paypal' ? '#38bdf8' : paymentMethod === 'upi' ? '#34d399' : '#a87edf';
