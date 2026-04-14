@@ -153,6 +153,11 @@ export default function PremiumUpgradePage() {
     Boolean(paymentScreenshot);
   const planLabel = useMemo(() => `₹${checkout.price.toLocaleString('en-IN')}/month`, [checkout.price]);
   const selectedUpiAppLabel = useMemo(() => UPI_APPS.find((app) => app.key === selectedUpiApp)?.short ?? 'UPI', [selectedUpiApp]);
+  const maxPaymentDateTime = useMemo(() => {
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }, []);
   const isComingSoonMethod = paymentMethod === 'card' || paymentMethod === 'paypal';
   const upiPaymentLink = useMemo(() => {
     const params = new URLSearchParams({
@@ -515,42 +520,52 @@ export default function PremiumUpgradePage() {
                   </label>
                   {errors.upi && <p className="-mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.upi}</p>}
 
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-semibold text-slate-200">UPI transaction ID</span>
-                      <input
-                        value={upiTransactionId}
-                        onChange={(event) => setUpiTransactionId(event.target.value.trim())}
-                        placeholder="Example: 413245678901"
-                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
-                      />
-                      {errors.transactionId && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.transactionId}</p>}
-                    </label>
+                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 sm:p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <p className="text-sm font-semibold text-cyan-100">Payment proof details</p>
+                      <span className="rounded-full border border-cyan-300/30 bg-cyan-300/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-100">Required</span>
+                    </div>
 
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-semibold text-slate-200">Payment date & time</span>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-semibold text-slate-200">UPI transaction ID</span>
+                        <input
+                          value={upiTransactionId}
+                          onChange={(event) => setUpiTransactionId(event.target.value.trim())}
+                          placeholder="Example: 413245678901"
+                          className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                        />
+                        <p className="mt-2 text-xs text-slate-400">Enter the exact transaction reference from your UPI app.</p>
+                        {errors.transactionId && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.transactionId}</p>}
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-semibold text-slate-200">Payment date & time</span>
+                        <input
+                          type="datetime-local"
+                          value={paymentDateTime}
+                          max={maxPaymentDateTime}
+                          onChange={(event) => setPaymentDateTime(event.target.value)}
+                          className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                        />
+                        <p className="mt-2 text-xs text-slate-400">Select the same date and time shown in your payment confirmation.</p>
+                        {errors.paymentDateTime && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentDateTime}</p>}
+                      </label>
+                    </div>
+
+                    <label className="mt-4 block">
+                      <span className="mb-2 block text-sm font-semibold text-slate-200">Upload payment screenshot</span>
                       <input
-                        type="datetime-local"
-                        value={paymentDateTime}
-                        onChange={(event) => setPaymentDateTime(event.target.value)}
-                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                        onChange={handleScreenshotUpload}
+                        className="input-premium w-full rounded-2xl px-4 py-3 text-sm file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-100"
                       />
-                      {errors.paymentDateTime && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentDateTime}</p>}
+                      <p className="mt-2 text-xs text-slate-400">Accepted formats: PNG, JPG, JPEG, WEBP</p>
+                      {paymentScreenshot && <p className="mt-1 text-xs text-emerald-200">Selected: {paymentScreenshot.name}</p>}
+                      {errors.paymentScreenshot && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentScreenshot}</p>}
                     </label>
                   </div>
-
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-semibold text-slate-200">Upload payment screenshot</span>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/jpg,image/webp"
-                      onChange={handleScreenshotUpload}
-                      className="input-premium w-full rounded-2xl px-4 py-3 text-sm file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300/20 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-cyan-100"
-                    />
-                    <p className="mt-2 text-xs text-slate-400">Accepted formats: PNG, JPG, JPEG, WEBP</p>
-                    {paymentScreenshot && <p className="mt-1 text-xs text-emerald-200">Selected: {paymentScreenshot.name}</p>}
-                    {errors.paymentScreenshot && <p className="mt-2 flex items-start gap-2 text-xs text-rose-300"><AlertTriangle size={13} /> {errors.paymentScreenshot}</p>}
-                  </label>
                 </>
               )}
 
