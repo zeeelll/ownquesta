@@ -129,6 +129,14 @@ interface AdminPayment {
   method: string;
   gateway: string;
   gatewayPaymentId?: string;
+  transactionId?: string;
+  payerUpiId?: string;
+  paymentTime?: string;
+  paymentScreenshot?: {
+    fileName?: string;
+    mimeType?: string;
+    dataUrl?: string;
+  };
   amountInr: number;
   status: 'created' | 'paid' | 'failed';
   paidAt?: string;
@@ -506,6 +514,9 @@ export default function AdminPage() {
       payment.method,
       payment.gateway,
       payment.gatewayPaymentId,
+      payment.transactionId,
+      payment.payerUpiId,
+      payment.paymentScreenshot?.fileName,
       payment.sessionId,
       linkedUser?.name,
       linkedUser?.email,
@@ -1688,6 +1699,8 @@ export default function AdminPage() {
                       <th className="table-th">Product</th>
                       <th className="table-th">Amount</th>
                       <th className="table-th">Method</th>
+                      <th className="table-th">Proof</th>
+                      <th className="table-th">Screenshot</th>
                       <th className="table-th">Paid At</th>
                       <th className="table-th">Status</th>
                     </tr>
@@ -1724,6 +1737,37 @@ export default function AdminPage() {
                           <td className="px-6 py-4 text-sm text-slate-300">
                             <div>{(payment.method || 'N/A').toUpperCase()}</div>
                             <div className="text-xs text-slate-500 font-mono mt-1">{(payment.gateway || 'N/A').toUpperCase()}</div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            <div className="font-mono text-xs text-slate-400">Txn: {payment.transactionId || '—'}</div>
+                            <div className="font-mono text-xs text-slate-500 mt-1">UPI: {payment.payerUpiId || '—'}</div>
+                            <div className="font-mono text-xs text-slate-500 mt-1">
+                              Time: {payment.paymentTime ? new Date(payment.paymentTime).toLocaleString() : '—'}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-300">
+                            {payment.paymentScreenshot?.dataUrl ? (
+                              <div>
+                                <a
+                                  href={payment.paymentScreenshot.dataUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20"
+                                >
+                                  View screenshot
+                                </a>
+                                <img
+                                  src={payment.paymentScreenshot.dataUrl}
+                                  alt="Payment proof"
+                                  className="mt-2 h-16 w-16 rounded-lg border border-slate-700 object-cover"
+                                />
+                                <div className="mt-1 text-[11px] text-slate-500 font-mono truncate max-w-[140px]">
+                                  {payment.paymentScreenshot.fileName || 'proof-image'}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-500">No screenshot</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-xs text-slate-500 font-mono">
                             {new Date(payment.paidAt || payment.createdAt).toLocaleString()}

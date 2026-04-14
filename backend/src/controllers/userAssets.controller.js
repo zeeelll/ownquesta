@@ -17,6 +17,29 @@ function buildUserScope(req) {
   };
 }
 
+function normalizePaymentScreenshot(raw) {
+  if (!raw || typeof raw !== "object") return null;
+
+  const fileName = String(raw.fileName || "payment-proof").trim().slice(0, 180);
+  const mimeType = String(raw.mimeType || "").trim().toLowerCase();
+  const dataUrl = String(raw.dataUrl || "").trim();
+
+  if (!dataUrl) return null;
+  if (!/^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(dataUrl)) {
+    return { error: "Invalid screenshot format. Use an image file." };
+  }
+
+  if (dataUrl.length > 7 * 1024 * 1024) {
+    return { error: "Payment screenshot is too large. Please upload a smaller image." };
+  }
+
+  return {
+    fileName,
+    mimeType: mimeType || dataUrl.slice(5, dataUrl.indexOf(";") > 5 ? dataUrl.indexOf(";") : undefined),
+    dataUrl,
+  };
+}
+
 exports.getMyDownloads = async (req, res) => {
   try {
     const paidRows = await Payment.find({
@@ -134,10 +157,37 @@ exports.upgradeMembership = async (req, res) => {
     const paymentMethod = String(req.body?.paymentMethod || "manual").trim().toLowerCase();
     const gateway = String(req.body?.gateway || "ownquesta").trim().toUpperCase();
     const paymentReference = String(req.body?.paymentReference || "").trim();
+    const transactionId = String(req.body?.transactionId || paymentReference || "").trim();
+    const payerUpiId = String(req.body?.payerUpiId || "").trim().toLowerCase();
+    const paymentTimeRaw = String(req.body?.paymentTime || "").trim();
     const providedOrderId = String(req.body?.orderId || "").trim();
+    const screenshotPayload = normalizePaymentScreenshot(req.body?.paymentScreenshot);
 
     if (!customerEmail) {
       return res.status(400).json({ message: "customerEmail is required" });
+    }
+
+    if (screenshotPayload?.error) {
+      return res.status(400).json({ message: screenshotPayload.error });
+    }
+
+    const isUpiFlow = paymentMethod.startsWith("upi");
+    let paymentTime = null;
+    if (paymentTimeRaw) {
+      const parsedTime = new Date(paymentTimeRaw);
+      if (!Number.isNaN(parsedTime.getTime())) paymentTime = parsedTime;
+    }
+
+    if (isUpiFlow) {
+      if (!transactionId) {
+        return res.status(400).json({ message: "transactionId is required for UPI payments" });
+      }
+      if (!paymentTime) {
+        return res.status(400).json({ message: "paymentTime is required for UPI payments" });
+      }
+      if (!screenshotPayload) {
+        return res.status(400).json({ message: "paymentScreenshot is required for UPI payments" });
+      }
     }
 
     const orderId = providedOrderId || [
@@ -160,6 +210,10 @@ exports.upgradeMembership = async (req, res) => {
       method: paymentMethod,
       gateway,
       gatewayPaymentId: paymentReference,
+      transactionId,
+      payerUpiId,
+      paymentTime,
+      paymentScreenshot: screenshotPayload || undefined,
       amountInr: safeAmountInr,
       status: "paid",
       paidAt: new Date(),
@@ -196,6 +250,15 @@ exports.upgradeMembership = async (req, res) => {
         amountInr: payment.amountInr,
         method: payment.method,
         gateway: payment.gateway,
+        transactionId: payment.transactionId || "",
+        payerUpiId: payment.payerUpiId || "",
+        paymentTime: payment.paymentTime,
+        paymentScreenshot: payment.paymentScreenshot?.dataUrl
+          ? {
+              fileName: payment.paymentScreenshot.fileName,
+              mimeType: payment.paymentScreenshot.mimeType,
+            }
+          : null,
         paidAt: payment.paidAt,
       },
     });

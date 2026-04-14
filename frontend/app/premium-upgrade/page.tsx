@@ -215,6 +215,14 @@ export default function PremiumUpgradePage() {
     }
   };
 
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+      reader.onerror = () => reject(new Error('Unable to read payment screenshot file.'));
+      reader.readAsDataURL(file);
+    });
+
   const validateCheckout = () => {
     const nextErrors: Record<string, string> = {};
     if (!form.name.trim()) nextErrors.name = 'Full name is required.';
@@ -238,6 +246,8 @@ export default function PremiumUpgradePage() {
     setProcessing(true);
     setMessage('');
     try {
+      const screenshotDataUrl = paymentScreenshot ? await fileToDataUrl(paymentScreenshot) : '';
+
       const result = await upgradeMembership({
         plan: 'premium-monthly',
         amountInr: checkout.price,
@@ -248,6 +258,16 @@ export default function PremiumUpgradePage() {
         paymentMethod: paymentMethod === 'upi' ? `upi-${selectedUpiApp}` : 'card',
         gateway: 'OWNQUESTA',
         paymentReference: paymentMethod === 'upi' ? upiTransactionId.trim() : cardNumber.replace(/\s/g, '').slice(-4),
+        transactionId: upiTransactionId.trim(),
+        payerUpiId: upiId.trim(),
+        paymentTime: paymentDateTime,
+        paymentScreenshot: paymentScreenshot
+          ? {
+              fileName: paymentScreenshot.name,
+              mimeType: paymentScreenshot.type || 'image/png',
+              dataUrl: screenshotDataUrl,
+            }
+          : undefined,
       });
 
       const orderId = String(result?.payment?.orderId || `OWNQ-PREMIUM-${(checkout.sessionId || Date.now().toString()).slice(0, 12).toUpperCase()}`);

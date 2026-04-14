@@ -20,6 +20,14 @@ const paymentSchema = new mongoose.Schema(
     gatewayOrderId: { type: String, default: "" },
     gatewayPaymentId: { type: String, default: "" },
     gatewaySignature: { type: String, default: "" },
+    transactionId: { type: String, default: "", index: true },
+    payerUpiId: { type: String, default: "" },
+    paymentTime: { type: Date, default: null },
+    paymentScreenshot: {
+      fileName: { type: String, default: "" },
+      mimeType: { type: String, default: "" },
+      dataUrl: { type: String, default: "" },
+    },
     amountInr: { type: Number, required: true, min: 0 },
     status: {
       type: String,

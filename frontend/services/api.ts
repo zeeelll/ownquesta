@@ -133,6 +133,14 @@ export async function upgradeMembership(payload: {
   paymentMethod?: string;
   gateway?: string;
   paymentReference?: string;
+  transactionId?: string;
+  payerUpiId?: string;
+  paymentTime?: string;
+  paymentScreenshot?: {
+    fileName?: string;
+    mimeType?: string;
+    dataUrl?: string;
+  };
   orderId?: string;
 }) {
   return api('/api/user/membership/upgrade', {
