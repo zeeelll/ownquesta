@@ -1489,8 +1489,8 @@ export default function TutorialPage() {
 
   const stepGuides: Record<number, { summary: string; actions: string[]; buttons: { name: string; behavior: string; outcome: string }[]; note: string }> = {
     1: {
-      summary: 'The public home page is the front door. It shows the product story first, then routes people toward About, Help, Sign In, or Get Started Free.',
-      actions: ['Read the hero to understand the no-code promise and the three-step workflow.', 'Use About or Help if you want product details or support before signing in.', 'Click Sign In or Get Started Free to move into the auth flow.'],
+      summary: 'The public home page (/) is your entry point. It showcases Ownquesta\'s no-code AutoML value proposition and provides navigation to information pages or authentication.',
+      actions: ['Read the hero headline "From Raw Data to Intelligent Models" — Ownquesta handles data analysis, model selection, training, and deployment end-to-end.', 'Review the 3 workflow cards: Upload Dataset → Understand Data → Build Model.', 'Click About to learn platform features, team, and vision.', 'Click Help for support, FAQ, or troubleshooting.', 'Click Sign In or Get Started Free to enter the authentication flow.'],
       buttons: [
         { name: 'About', behavior: 'Opens the feature overview page.', outcome: 'You can review what Ownquesta does before creating an account.' },
         { name: 'Help', behavior: 'Opens support and FAQ guidance.', outcome: 'You can clear up questions before continuing.' },
@@ -1499,8 +1499,8 @@ export default function TutorialPage() {
       note: 'Transition: Home -> Login / Register.',
     },
     2: {
-      summary: 'The auth page handles both returning users and new users. It supports sign in, registration, Google auth, and password reset from one place.',
-      actions: ['Use Sign In when you already have an account, or switch to Register to create one.', 'Fill the form and complete any verification that is required for your account.', 'After success, the app redirects to the authenticated home page.'],
+      summary: 'The auth page (/login) is a two-panel unified authentication interface supporting sign in, registration, Google OAuth, email verification, and password reset.',
+      actions: ['Choose Sign In if you already have an account; choose Register to create a new one.', 'For new users: enter email and set password. OTP verification is sent to confirm your email.', 'For returning users: enter email and password. Forgot Password link allows recovery.', 'After successful authentication, you\'re redirected to the authenticated home page (/home).'],
       buttons: [
         { name: 'Login', behavior: 'Authenticates an existing user.', outcome: 'You move into the private workspace after the backend session is created.' },
         { name: 'Register', behavior: 'Creates a new user account.', outcome: 'A fresh account is ready to use the platform.' },
@@ -1509,8 +1509,8 @@ export default function TutorialPage() {
       note: 'Transition: Login / Register -> Authenticated Home.',
     },
     3: {
-      summary: 'The authenticated home page at /home replaces the public hero with your name and a direct path to the dashboard. It is a quick confirmation that sign in worked.',
-      actions: ['Check that your name is shown correctly in the welcome heading.', 'Open the profile menu if you need to update account details.', 'Click Go to Dashboard when you are ready to start a project.'],
+      summary: 'The authenticated home page (/home) greets you by name and serves as a quick handshake between login and the main workspace. It is a single-action gateway to your projects.',
+      actions: ['Verify your name appears correctly in the welcome greeting ("Welcome back, [Your Name]!").', 'Open the profile dropdown (top-right) to access account settings, profile edits, or sign out.', 'Click the prominent Go to Dashboard button to enter your project workspace and start building models.'],
       buttons: [
         { name: 'Profile dropdown', behavior: 'Opens your account menu.', outcome: 'You can reach Profile or sign out from here.' },
         { name: 'Go to Dashboard', behavior: 'Moves to the main workspace.', outcome: 'You enter the project management area.' },
@@ -1518,8 +1518,8 @@ export default function TutorialPage() {
       note: 'Transition: Authenticated Home (/home) -> Dashboard.',
     },
     4: {
-      summary: 'Step 4 combines two navigation hubs: Dashboard (/dashboard) for project operations and ML Tutorial (/ml-tutorial) for guided learning. Dashboard manages project creation and progress, while ML Tutorial explains each workflow stage in detail.',
-      actions: ['On /dashboard, scan counters and pipeline stages to understand current project status.', 'Use New Project to start fresh, or open an existing project to continue from saved state.', 'Open /ml-tutorial when you want step-by-step guidance on flow, buttons, and expected outcomes before running models.', 'From either hub, continue into AutoML Playground once your project context is ready.'],
+      summary: 'Step 4 is a dual-hub gateway: /dashboard for project operations and /ml-tutorial for guided learning. Dashboard is command-center for building; ML Tutorial is your study companion.',
+      actions: ['Open /dashboard: scan Projects counter (total projects), Active (running), and Completed (finished).', 'Click New Project to create a fresh workspace (name + description). Click Open Project to resume existing work.', 'Use Browse ML Tutorial section to jump to any of the 10 steps with detailed step-by-step explanations.', 'From /dashboard, select your project and click AutoML Playground to enter training.', 'From /ml-tutorial, click any step or scroll down to learn before you act in /dashboard or /automl.'],
       buttons: [
         { name: 'New Project', behavior: 'Opens the project creation modal from Dashboard.', outcome: 'You can name the project and set the prediction goal.' },
         { name: 'Open Project', behavior: 'Loads an existing project from Dashboard.', outcome: 'You continue the model workflow from the saved state.' },
@@ -1528,8 +1528,8 @@ export default function TutorialPage() {
       note: 'Transition: /dashboard or /ml-tutorial -> /automl.',
     },
     5: {
-      summary: 'The AutoML Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
-      actions: ['Open the AutoML Playground from your chosen project on the dashboard.', 'Choose the mode that matches how you want to work.', 'Move to dataset upload and analysis after the mode is active.'],
+      summary: 'The AutoML Playground (/automl) is your model workspace. Easy Mode is guided point-and-click; Code Mode is a Jupyter-style notebook for Python users.',
+      actions: ['From /dashboard, click on a project → AutoML Playground opens.', 'Choose Easy Mode (recommended for non-coders): AI guides every step from upload to export.', 'Choose Code Mode (for Python experts): Jupyter cells + agent suggestions + custom code editing.', 'Both modes work on the same dataset and share model recommendations.', 'After selecting, proceed to Step 6 (dataset upload) with your chosen mode active.'],
       buttons: [
         { name: 'Easy Mode', behavior: 'Starts the guided visual workflow.', outcome: 'The AI handles the model pipeline step by step.' },
         { name: 'Code Mode', behavior: 'Starts the notebook workflow.', outcome: 'You can inspect and edit the generated Python cells.' },
@@ -1537,8 +1537,8 @@ export default function TutorialPage() {
       note: 'Transition: Mode selection -> Upload dataset step.',
     },
     6: {
-      summary: 'This is the data setup stage. You upload the dataset, pick the target column, and let the AutoML Playground know what the model should learn.',
-      actions: ['Upload a CSV or Excel file and confirm that the file appears in the right panel.', 'Set the target column when you already know the label you want to predict.', 'Click Analyse so Ownquesta can start the automated data check and model prep.'],
+      summary: 'Step 6 is data setup. Upload your dataset (CSV/Excel), optionally specify the target column, then trigger automated analysis.',
+      actions: ['Click Upload CSV or Upload Excel in the right ML Agent panel.', 'Choose your file (supports CSV, XLSX, XLS). File appears immediately in the right panel.', 'Optional: Set Target Column. If known, select the column name the model should learn (e.g., "salary", "is_fraudulent").', 'If you skip the target, Ownquesta will auto-detect classification vs regression based on data types.', 'Click Analyse button to start the pipeline: missing-value check → feature engineering → model ranking.'],
       buttons: [
         { name: 'Upload CSV / Excel', behavior: 'Ingests the dataset file.', outcome: 'Your data is ready for analysis.' },
         { name: 'Target column field', behavior: 'Sets the prediction target.', outcome: 'The system knows which value to learn.' },
@@ -1547,8 +1547,8 @@ export default function TutorialPage() {
       note: 'Transition: Upload + target -> Auto analysis.',
     },
     7: {
-      summary: 'Analysis is where Ownquesta does the heavy lifting. It checks the data, applies preprocessing, and recommends models that fit the problem type.',
-      actions: ['Watch the missing-value and feature-engineering checks run automatically.', 'Review the generated insights and the three recommended models.', 'Pick one model to launch training with the pipeline builder.'],
+      summary: 'Step 7 is analysis & recommendations. Ownquesta auto-profiles your dataset, applies preprocessing, and suggests top 3 model candidates ranked by expected performance.',
+      actions: ['Wait for the analysis pipeline: data quality checks → missing value imputation → feature engineering.', 'Review the EDA (Exploratory Data Analysis) summary: data shape, missing %, feature types, distributions.', 'Read the Top 3 Model Recommendations. Each includes expected accuracy range and a brief reason (e.g., "Gradient Boosting for tabular data with mixed types").', 'Select one model (or skip and return to choose another) and click Build Pipeline to launch training.', 'Use Ask the AI Agent to query why a model was recommended or what preprocessing was applied.'],
       buttons: [
         { name: 'Build Pipeline', behavior: 'Launches training for the selected model.', outcome: 'The pipeline moves from analysis into training.' },
         { name: 'Ask the AI Agent', behavior: 'Opens the chat-style helper.', outcome: 'You can ask why a model was recommended or what preprocessing happened.' },
@@ -1556,8 +1556,8 @@ export default function TutorialPage() {
       note: 'Transition: Analysis -> Training and evaluation.',
     },
     8: {
-      summary: 'After training finishes, this page is about validation. You check the metrics, then test the trained model with real values to see what it predicts.',
-      actions: ['Read the accuracy score and the classification report or success banner.', 'Enter realistic values into the Test Your Model form.', 'Run prediction and compare the output with the expected class or value.'],
+      summary: 'Step 8 is model validation & testing. Training completes, metrics display, and you test live predictions with real feature values.',
+      actions: ['Read the Training Complete banner and accuracy score (e.g., F1-Score: 0.87).', 'Review the classification report: Precision, Recall, F1-Score per class.', 'Examine the Confusion Matrix heatmap: diagonal = correct predictions; off-diagonal = errors.', 'Fill the Test Your Model form with realistic feature values (e.g., age=35, income=65000).', 'Click Run Prediction → model returns predicted class/value + confidence %.', 'If accuracy is low, click Adjust Settings to change test split or CV folds, then retrain.', 'If results are satisfactory, proceed to Step 9 (Payment check) and then Step 10 (Export/Deploy).'],
       buttons: [
         { name: 'Run Prediction', behavior: 'Performs inference on the entered values.', outcome: 'The model returns a live prediction.' },
         { name: 'Adjust Settings', behavior: 'Lets you change the test split or cross-validation setup.', outcome: 'You can retrain with different settings if accuracy is weak.' },
@@ -1565,22 +1565,46 @@ export default function TutorialPage() {
       note: 'Transition: Prediction verified -> Payment or export, depending on access.',
     },
     9: {
-      summary: 'Payment only appears when an export is protected. It is the checkout layer for downloads/deployment access, not part of the core training flow.',
-      actions: ['Open the payment page from a locked download action (commonly routed to /premium-upgrade).', 'Choose the payment method and fill the required details.', 'Confirm payment so the download/deployment action can continue.'],
-      buttons: [
-        { name: 'Choose Plan', behavior: 'Selects the checkout option.', outcome: 'The right download entitlement is prepared.' },
-        { name: 'Pay Now', behavior: 'Completes the checkout flow.', outcome: 'The export becomes available after confirmation.' },
+      summary: 'Step 9: Payment & Checkout (Conditional for Premium Features). Free users skip this step — they download directly. Premium users complete checkout here at ₹1,499/month to unlock MLOps deployment.',
+      actions: [
+        'FREE PATH: After training completes, you can immediately download Python script and model files from Step 10 (no payment required).',
+        'PREMIUM PATH: Click Deploy to MLOps -> redirect to /premium-upgrade -> complete payment at ₹1,499/month -> gains access to managed deployment endpoints and API inference.',
+        'Choose payment method (UPI: Google Pay / PhonePe / Paytm / BHIM, or Card) and fill required details.',
+        'Confirm payment to activate premium access and unlock deployment action in Step 10.'
       ],
-      note: 'Transition: Payment success -> Export download / deployment access unlock.',
+      buttons: [
+        { name: 'Free Path', behavior: 'Skip checkout and proceed directly to Step 10 download.', outcome: 'You get Python script, Jupyter notebook, and model artifact files.' },
+        { name: 'Premium Path', behavior: 'Choose deploy option → /premium-upgrade checkout.', outcome: 'After ₹1,499/month payment, premium deployment features activate in Step 10.' },
+        { name: 'Payment Methods', behavior: 'UPI apps or card payment supported.', outcome: 'Payment confirmed and premium access granted immediately.' },
+      ],
+      note: 'Transition: Free path → Step 10 download. Premium path → payment → Step 10 deploy.',
     },
     10: {
-      summary: 'The final step is export. You take the trained artifact out of Ownquesta as either a model file or a Python script that reproduces the workflow, then verify access in My Downloads.',
-      actions: ['Use the download buttons after the payment or access check is complete.', 'Save the .pkl model if you want to deploy the trained artifact.', 'Save the .py script if you want the generated pipeline code for reuse or review.', 'Open /my-downloads to verify or retrieve exported assets later.'],
-      buttons: [
-        { name: 'Download Model', behavior: 'Exports the trained model artifact.', outcome: 'The model can be reused outside the app.' },
-        { name: 'Download Python Script (.py)', behavior: 'Exports the generated pipeline script.', outcome: 'You get a reproducible runnable version of the workflow.' },
+      summary: 'Step 10: Model Export & Deployment (Free & Premium Options). Free users download files locally. Premium users deploy as managed endpoints via MLOps.',
+      actions: [
+        'AFTER TRAINING & STEP 9:',
+        '',
+        'FREE DOWNLOADS (All Users):',
+        '  1. Click "Download Model" → saves trained_model.pkl to your machine.',
+        '  2. Click "Download Python Script" → saves pipeline.py (full reproducible code).',
+        '  3. Click "Download Notebook" → saves pipeline.ipynb (Jupyter notebook format).',
+        '  4. All free exports tracked in /my-downloads for later retrieval.',
+        '',
+        'PREMIUM DEPLOYMENT (After ₹1,499/month Payment):',
+        '  1. Click "Deploy to MLOps" button (after payment activates).',
+        '  2. Model is published to managed Ownquesta MLOps infrastructure.',
+        '  3. Receive unique endpoint URL + API key for real-time predictions.',
+        '  4. View deployment details, metrics, and usage in /my-deployments.',
+        '  5. Make live predictions by sending JSON requests to the endpoint.',
+        '  6. Unlimited monthly API calls included with ₹1,499/month subscription.',
       ],
-      note: 'Transition: Download complete -> optional retrieval from /my-downloads -> flow finished.',
+      buttons: [
+        { name: 'Download Model (.pkl)', behavior: 'Export trained artifact locally.', outcome: 'You can load and reuse this model in Python with sklearn/pickle.' },
+        { name: 'Download Python Script (.py)', behavior: 'Export full pipeline code locally.', outcome: 'Complete reproducible workflow you can run independently.' },
+        { name: 'Download Notebook (.ipynb)', behavior: 'Export as Jupyter notebook locally.', outcome: 'Interactive notebook format with markdown, code, and outputs.' },
+        { name: 'Deploy to MLOps (Premium Only)', behavior: 'Publish model to managed endpoints (requires ₹1,499/month).', outcome: 'Model gets unique REST API endpoint; live predictions via HTTP requests.' },
+      ],
+      note: 'Transition: Free exports → /my-downloads. Premium deploy → /my-deployments → live API inference.',
     },
   };
 
@@ -1744,7 +1768,7 @@ export default function TutorialPage() {
                 {[
                   'The ML Tutorial page maps the full 10-step Ownquesta journey end to end, from Home and Login through AutoML, prediction testing, payment, and final export.',
                   'Every step includes page intent, key UI elements, button behavior, and route transition so users know exactly what happens after each click.',
-                  'Desktop uses a left step rail and mobile uses a bottom step navigator, allowing fast topic jumps without losing context.',
+                  'Desktop uses a left step rail and mobile uses a bottom step navigator, allowing fast step jumps without losing context.',
                   'Each lesson card highlights practical actions, expected outputs, and what to verify before moving to the next stage.',
                   'The tutorial integrates realistic previews for Dashboard, project setup, AutoML Playground, analysis outputs, and model evaluation screens.',
                   'The built-in Questa assistant inside the tutorial can answer flow questions like mode choice, target selection, model picks, and export paths.',
@@ -1958,17 +1982,17 @@ export default function TutorialPage() {
     );
   };
 
-  const topicDescriptions: Record<number, string> = {
-    1: 'Start on the public landing page and decide whether to read, sign in, or get help.',
-    2: 'Use the same auth flow to sign in, register, or recover access.',
-    3: 'See the authenticated home page and jump straight to your workspace.',
-    4: 'Use /dashboard for project actions and /ml-tutorial for guided step-by-step workflow details.',
-    5: 'Switch between guided Easy Mode and notebook-style Code Mode.',
-    6: 'Upload dataset and set prediction target column.',
-    7: 'Run automated analysis and review model suggestions.',
-    8: 'Validate the trained model with real values and metrics.',
-    9: 'Use /premium-upgrade checkout only when an export or deployment action is locked.',
-    10: 'Export model/script and confirm availability in /my-downloads.',
+  const stepDescriptions: Record<number, string> = {
+    1: 'Public entry point. Read product story, sign in, or get help.',
+    2: 'Sign in, register, or recover access via email verification.',
+    3: 'Post-login welcome screen. Personalized greeting and quick access to workspace.',
+    4: '/dashboard (project ops) + /ml-tutorial (step-by-step guidance).',
+    5: 'Easy Mode (point-and-click) vs Code Mode (notebook-style Python).',
+    6: 'Upload CSV/Excel. Select target column. Ready to analyze.',
+    7: 'Auto-analyze dataset. Review top 3 model recommendations.',
+    8: 'Train model. View accuracy metrics. Test predictions live.',
+    9: 'Free: skip. Premium: pay ₹1,499/month for MLOps deployment.',
+    10: 'Free: download .pkl/.py/.ipynb. Premium: deploy as REST API + download.',
   };
 
   return (
@@ -2004,7 +2028,7 @@ export default function TutorialPage() {
                 return (
                   <button key={step.number} onClick={() => scrollToStep(step.number)} className={`w-full text-left px-3.5 py-3 rounded-2xl border transition-all duration-300 flex items-center gap-3.5 ${isActive ? 'bg-violet-500/15 border-violet-400/35 text-white shadow-[0_0_24px_rgba(124,92,191,0.28)]' : 'border-white/10 text-white/45 hover:text-white/80 hover:bg-white/[0.04] hover:border-white/20'}`}>
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm flex-shrink-0 transition-all ${isActive ? 'bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30' : isPast ? 'bg-white/10' : 'bg-white/[0.04] border border-white/10'}`}>{isPast && !isActive ? '✓' : step.icon}</div>
-                    <div className="min-w-0"><div className="text-[10px] text-white/35 font-medium">Topic {step.number}</div><div className="text-xs font-medium line-clamp-2 leading-snug">{step.title}</div></div>
+                    <div className="min-w-0"><div className="text-[10px] text-white/35 font-medium">Step {step.number}</div><div className="text-xs font-medium line-clamp-2 leading-snug">{step.title}</div></div>
                     {isActive && <div className="ml-auto w-1 h-4 rounded-full bg-gradient-to-b from-violet-400 to-fuchsia-400 flex-shrink-0" />}
                   </button>
                 );
@@ -2048,7 +2072,7 @@ export default function TutorialPage() {
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
                 {steps.map((step, index) => (
                   <motion.button
-                    key={`topic-card-${step.number}`}
+                    key={`step-card-${step.number}`}
                     onClick={() => scrollToStep(step.number)}
                     initial={shouldReduceMotion ? false : { opacity: 0, y: 14, scale: 0.98 }}
                     whileInView={shouldReduceMotion ? {} : { opacity: 1, y: 0, scale: 1 }}
@@ -2060,10 +2084,10 @@ export default function TutorialPage() {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-xl group-hover:shadow-[0_0_24px_rgba(124,92,191,0.5)] transition-shadow">{step.icon}</div>
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">Topic {step.number}</span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">Step {step.number}</span>
                     </div>
                     <h3 className="mt-4 text-base font-semibold text-white leading-snug min-h-[48px]">{step.title}</h3>
-                    <p className="mt-2 text-[13px] text-white/60 leading-relaxed min-h-[58px]">{topicDescriptions[step.number]}</p>
+                    <p className="mt-2 text-[13px] text-white/60 leading-relaxed min-h-[58px]">{stepDescriptions[step.number]}</p>
                     <div className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-violet-200 group-hover:text-white transition-colors">
                       <span className="px-2.5 py-1 rounded-full border border-violet-300/30 bg-violet-500/10">Start Learning</span>
                       <span className="group-hover:translate-x-1 transition-transform">→</span>
