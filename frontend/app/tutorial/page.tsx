@@ -313,8 +313,8 @@ function QuestaAgent() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); } };
-  const chatWidth = isExpanded ? 'w-[min(520px,calc(100vw-1rem))] sm:w-[520px]' : 'w-[min(380px,calc(100vw-1rem))] sm:w-[380px]';
-  const chatHeight = isExpanded ? 'h-[min(72vh,640px)] sm:h-[640px]' : 'h-[min(65vh,520px)] sm:h-[520px]';
+  const chatWidth = isExpanded ? 'w-[min(760px,calc(100vw-1rem))] sm:w-[min(760px,calc(100vw-3rem))]' : 'w-[min(480px,calc(100vw-1rem))] sm:w-[480px]';
+  const chatHeight = isExpanded ? 'h-[min(76vh,700px)] sm:h-[700px]' : 'h-[min(68vh,560px)] sm:h-[560px]';
   const statusColor = backendStatus === 'online' ? 'bg-green-400' : backendStatus === 'offline' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse';
   const statusLabel = backendStatus === 'online' ? 'Connected' : backendStatus === 'offline' ? 'Backend offline' : 'Connecting...';
   const statusTextColor = backendStatus === 'online' ? 'text-green-400/70' : backendStatus === 'offline' ? 'text-red-400/70' : 'text-yellow-400/70';
@@ -356,7 +356,7 @@ function QuestaAgent() {
             {messages.map((msg) => (
               <div key={msg.id}>
                 {msg.isTyping ? (<TypingDots />) : msg.role === 'assistant' ? (
-                  <div className="flex items-start gap-2.5 max-w-[88%]">
+                  <div className="flex items-start gap-2.5 max-w-[94%]">
                     <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0 text-sm shadow-lg shadow-violet-500/20 mt-1">✦</div>
                     <div className="bg-white/[0.05] border border-white/[0.08] rounded-2xl rounded-tl-md px-4 py-3">
                       <div className="text-[13px] text-white/85 leading-relaxed" dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }} />
@@ -365,7 +365,7 @@ function QuestaAgent() {
                   </div>
                 ) : (
                   <div className="flex justify-end">
-                    <div className="max-w-[80%] bg-gradient-to-br from-violet-600/80 to-fuchsia-600/80 rounded-2xl rounded-tr-md px-4 py-3 shadow-lg shadow-violet-500/10 border border-violet-400/20">
+                    <div className="max-w-[90%] bg-gradient-to-br from-violet-600/80 to-fuchsia-600/80 rounded-2xl rounded-tr-md px-4 py-3 shadow-lg shadow-violet-500/10 border border-violet-400/20">
                       <p className="text-[13px] text-white leading-relaxed">{msg.content}</p>
                       <p className="text-[10px] text-violet-200/40 mt-1.5 text-right">{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     </div>
@@ -1454,13 +1454,13 @@ export default function TutorialPage() {
     { number: 1, title: 'Home Page (About / Help / Sign In)', icon: '⌂', color: 'from-violet-600/20 to-purple-800/20', accentColor: '#a78bfa', borderColor: 'border-violet-500/40', badge: 'Entry' },
     { number: 2, title: 'Login / Register', icon: '⇥', color: 'from-blue-600/20 to-indigo-800/20', accentColor: '#60a5fa', borderColor: 'border-blue-500/40', badge: 'Auth' },
     { number: 3, title: 'Authenticated Home (/home)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
-    { number: 4, title: 'Dashboard & ML Tutorial', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
+    { number: 4, title: 'Dashboard (/dashboard) & ML Tutorial (/ml-tutorial)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
     { number: 5, title: 'AutoML Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
     { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
     { number: 7, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
     { number: 8, title: 'Prediction Test + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
-    { number: 9, title: 'Payment / Checkout', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
-    { number: 10, title: 'Model / Python Script Export', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
+    { number: 9, title: 'Payment / Checkout (/premium-upgrade when locked)', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
+    { number: 10, title: 'Model / Python Script Export (+ My Downloads)', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1518,14 +1518,14 @@ export default function TutorialPage() {
       note: 'Transition: Authenticated Home (/home) -> Dashboard.',
     },
     4: {
-      summary: 'Step 4 combines two navigation hubs: Dashboard for project operations and ML Tutorial for guided learning. Dashboard manages project creation and progress, while ML Tutorial explains each workflow stage in detail.',
-      actions: ['On Dashboard, scan counters and pipeline stages to understand current project status.', 'Use New Project to start fresh, or open an existing project to continue from saved state.', 'Open ML Tutorial when you want step-by-step guidance on flow, buttons, and expected outcomes before running models.', 'From either hub, continue into AutoML Playground once your project context is ready.'],
+      summary: 'Step 4 combines two navigation hubs: Dashboard (/dashboard) for project operations and ML Tutorial (/ml-tutorial) for guided learning. Dashboard manages project creation and progress, while ML Tutorial explains each workflow stage in detail.',
+      actions: ['On /dashboard, scan counters and pipeline stages to understand current project status.', 'Use New Project to start fresh, or open an existing project to continue from saved state.', 'Open /ml-tutorial when you want step-by-step guidance on flow, buttons, and expected outcomes before running models.', 'From either hub, continue into AutoML Playground once your project context is ready.'],
       buttons: [
         { name: 'New Project', behavior: 'Opens the project creation modal from Dashboard.', outcome: 'You can name the project and set the prediction goal.' },
         { name: 'Open Project', behavior: 'Loads an existing project from Dashboard.', outcome: 'You continue the model workflow from the saved state.' },
         { name: 'Tutorial', behavior: 'Opens the ML Tutorial page from the top navigation.', outcome: 'You get detailed guided instructions for each page and step.' },
       ],
-      note: 'Transition: Dashboard / ML Tutorial -> AutoML Playground.',
+      note: 'Transition: /dashboard or /ml-tutorial -> /automl.',
     },
     5: {
       summary: 'The AutoML Playground is where the model work happens. Easy Mode is a guided workflow, while Code Mode opens the notebook-style environment for manual control.',
@@ -1565,22 +1565,22 @@ export default function TutorialPage() {
       note: 'Transition: Prediction verified -> Payment or export, depending on access.',
     },
     9: {
-      summary: 'Payment only appears when an export is protected. It is the checkout layer for downloads, not part of the core training flow.',
-      actions: ['Open the payment page from a locked download action.', 'Choose the payment method and fill the required details.', 'Confirm payment so the download can start.'],
+      summary: 'Payment only appears when an export is protected. It is the checkout layer for downloads/deployment access, not part of the core training flow.',
+      actions: ['Open the payment page from a locked download action (commonly routed to /premium-upgrade).', 'Choose the payment method and fill the required details.', 'Confirm payment so the download/deployment action can continue.'],
       buttons: [
         { name: 'Choose Plan', behavior: 'Selects the checkout option.', outcome: 'The right download entitlement is prepared.' },
         { name: 'Pay Now', behavior: 'Completes the checkout flow.', outcome: 'The export becomes available after confirmation.' },
       ],
-      note: 'Transition: Payment success -> Export download.',
+      note: 'Transition: Payment success -> Export download / deployment access unlock.',
     },
     10: {
-      summary: 'The final step is export. You take the trained artifact out of Ownquesta as either a model file or a Python script that reproduces the workflow.',
-      actions: ['Use the download buttons after the payment or access check is complete.', 'Save the .pkl model if you want to deploy the trained artifact.', 'Save the .py script if you want the generated pipeline code for reuse or review.'],
+      summary: 'The final step is export. You take the trained artifact out of Ownquesta as either a model file or a Python script that reproduces the workflow, then verify access in My Downloads.',
+      actions: ['Use the download buttons after the payment or access check is complete.', 'Save the .pkl model if you want to deploy the trained artifact.', 'Save the .py script if you want the generated pipeline code for reuse or review.', 'Open /my-downloads to verify or retrieve exported assets later.'],
       buttons: [
         { name: 'Download Model', behavior: 'Exports the trained model artifact.', outcome: 'The model can be reused outside the app.' },
         { name: 'Download Python Script (.py)', behavior: 'Exports the generated pipeline script.', outcome: 'You get a reproducible runnable version of the workflow.' },
       ],
-      note: 'Transition: Download complete -> App user flow finished.',
+      note: 'Transition: Download complete -> optional retrieval from /my-downloads -> flow finished.',
     },
   };
 
@@ -1962,13 +1962,13 @@ export default function TutorialPage() {
     1: 'Start on the public landing page and decide whether to read, sign in, or get help.',
     2: 'Use the same auth flow to sign in, register, or recover access.',
     3: 'See the authenticated home page and jump straight to your workspace.',
-    4: 'Use Dashboard for project actions and ML Tutorial for guided step-by-step workflow details.',
+    4: 'Use /dashboard for project actions and /ml-tutorial for guided step-by-step workflow details.',
     5: 'Switch between guided Easy Mode and notebook-style Code Mode.',
     6: 'Upload dataset and set prediction target column.',
     7: 'Run automated analysis and review model suggestions.',
     8: 'Validate the trained model with real values and metrics.',
-    9: 'Use checkout only when an export is locked.',
-    10: 'Export the model artifact or the generated Python script.',
+    9: 'Use /premium-upgrade checkout only when an export or deployment action is locked.',
+    10: 'Export model/script and confirm availability in /my-downloads.',
   };
 
   return (
