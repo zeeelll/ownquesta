@@ -15,19 +15,31 @@ interface Message {
   isTyping?: boolean;
 }
 
+interface KnowledgeAnswer {
+  patterns: string[];
+  answer: string;
+}
+
 const SUGGESTED_QUESTIONS = [
   'How does Ownquesta work from start to finish?',
+  'What is the full 10-step Ownquesta flow?',
+  'Where should I start as a beginner?',
   'What do I learn in the ML Tutorial?',
+  'What is the difference between dashboard and tutorial?',
   'What happens after I click Analyse?',
   'What is the AutoML Playground?',
   'What is Easy Mode vs Code Mode?',
   'How do I upload my dataset?',
+  'What pages are available in Ownquesta?',
+  'How does payment and export work?',
   'How do I test my model?',
   'Do I need coding knowledge?',
   'How long does training take?',
 ];
 
-const LOCAL_QUICK_ANSWERS = [
+const OWNQUESTA_WEB_CONTEXT = `Ownquesta web app current flow and pages:\n- Public pages: /, /about, /help, /tutorial.\n- Authentication: /login for sign in/register/password reset and then redirect to /home.\n- Authenticated pages: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /my-deployments, /premium-upgrade.\n- Core workflow: mode selection (Easy/Code) -> upload dataset -> set target -> analyse -> review recommendations -> build pipeline -> test prediction -> optional checkout -> export model/script.\n- ML Tutorial gives complete guided explanations for each stage and button behavior.\n- AutoML Playground is the execution workspace where analysis, training, and testing happen.\n- Payment only appears when an export/deployment is locked behind access.\n- Exports include trained model artifacts and Python scripts.\n- User profile supports account updates and security actions.\n- Dashboard is project and navigation hub; tutorial is learning and flow guidance hub.`;
+
+const LOCAL_QUICK_ANSWERS: KnowledgeAnswer[] = [
   {
     patterns: ['how does ownquesta work', 'how does ownquesta work from start to finish', 'what is ownquesta'],
     answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard & ML Tutorial.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
@@ -78,11 +90,126 @@ const LOCAL_QUICK_ANSWERS = [
   },
 ];
 
+const CONTEXTUAL_KNOWLEDGE: KnowledgeAnswer[] = [
+  {
+    patterns: ['full flow', '10 step', 'user flow', 'app flow', 'website flow', 'journey'],
+    answer: `Current Ownquesta journey is: Home -> Login/Register -> Authenticated Home -> Dashboard + ML Tutorial -> AutoML Playground (Easy or Code) -> Upload + Target -> Analyse + Recommendations -> Train + Test -> Optional Payment for locked features -> Export model/script.`,
+  },
+  {
+    patterns: ['pages', 'all pages', 'which page', 'where should i go', 'navigation', 'site map'],
+    answer: `Main pages by purpose:\n1. Public: /, /about, /help, /tutorial.\n2. Auth: /login.\n3. Private workspace: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /my-deployments, /premium-upgrade.\nUse /dashboard as your operations hub and /tutorial or /ml-tutorial when you want guided explanations.`,
+  },
+  {
+    patterns: ['dashboard vs tutorial', 'difference between dashboard and tutorial', 'dashboard and tutorial'],
+    answer: `Dashboard is for doing work (projects, status, moving into AutoML). Tutorial pages are for understanding the workflow (what each button does, what happens next, and best-practice sequence).`,
+  },
+  {
+    patterns: ['where to start', 'beginner', 'first time', 'new user'],
+    answer: `Best starter path:\n1. Open /tutorial for the complete 10-step map.\n2. Sign in at /login.\n3. Go to /dashboard and create/open a project.\n4. Open /automl in Easy Mode.\n5. Upload dataset, set target, and click Analyse.`,
+  },
+  {
+    patterns: ['about page', 'what is in about', 'about ownquesta'],
+    answer: `The About page explains Ownquesta vision, capabilities, who it is for, and why the platform focuses on no-code explainable ML workflows.`,
+  },
+  {
+    patterns: ['help page', 'support', 'faq', 'need help'],
+    answer: `The Help page is for support guidance and issue handling. Use it when you need clarification about steps, troubleshooting, or account/process questions.`,
+  },
+  {
+    patterns: ['profile', 'account settings', 'change password', '2fa'],
+    answer: `Profile page manages personal account controls: update profile info, change password, and security actions like two-factor authentication where enabled.`,
+  },
+  {
+    patterns: ['my downloads', 'download history', 'my-downloads'],
+    answer: `My Downloads tracks and centralizes export access so users can retrieve generated artifacts and related downloadable outputs.`,
+  },
+  {
+    patterns: ['my deployments', 'deployment page', 'my-deployments'],
+    answer: `My Deployments is for managing deployed model endpoints and deployment records after you push models beyond local training.`,
+  },
+  {
+    patterns: ['premium', 'upgrade', 'premium-upgrade', 'paid feature'],
+    answer: `Premium Upgrade handles paid access for advanced capabilities such as locked deployment/export flows. Payment success updates access so protected actions can continue.`,
+  },
+  {
+    patterns: ['payment', 'checkout', 'pay now', 'why payment'],
+    answer: `Payment is only part of the flow when a requested export/deployment action is locked. After successful checkout, the feature unlocks and you can complete export/deployment.`,
+  },
+  {
+    patterns: ['automl playground details', 'what happens in automl', 'automl steps'],
+    answer: `Inside AutoML Playground the sequence is: choose mode -> upload dataset -> set target -> analyse -> review top model suggestions -> build pipeline -> inspect metrics -> run prediction tests -> export artifacts.`,
+  },
+  {
+    patterns: ['easy mode explain', 'easy mode workflow'],
+    answer: `Easy Mode is point-and-click no-code: it guides upload, analysis, model recommendations, training, testing, and export with minimal manual setup.`,
+  },
+  {
+    patterns: ['code mode explain', 'code mode workflow', 'notebook mode'],
+    answer: `Code Mode opens a notebook-like path where you can inspect generated Python, review execution outputs, and customize logic while keeping the same dataset workflow.`,
+  },
+  {
+    patterns: ['analyse button', 'after click analyse', 'analysis stage'],
+    answer: `Analyse triggers automated checks: data quality review, missing-value handling logic, feature processing, and problem-type-aware model recommendations for the next training step.`,
+  },
+  {
+    patterns: ['model recommendation', 'top 3 models', 'why this model'],
+    answer: `Ownquesta proposes top candidate models after analysis. You pick one and continue with Build Pipeline. If results are weak, try another recommended model or adjust settings.`,
+  },
+  {
+    patterns: ['prediction test', 'run prediction', 'inference'],
+    answer: `After training, use the prediction test form with realistic feature values. Run Prediction returns the model output and helps validate whether performance fits your use case.`,
+  },
+  {
+    patterns: ['export model', 'download python', 'artifact export'],
+    answer: `Export options include trained model files and Python scripts for reproducibility. If export is locked, complete checkout first and then retry the download action.`,
+  },
+  {
+    patterns: ['is this current', 'latest flow', 'current process'],
+    answer: `Yes, this tutorial assistant is configured to explain the current Ownquesta web flow used in your app: from onboarding and dashboard routing to AutoML execution, validation, and export.`,
+  },
+];
+
 const normalizeQuestion = (value: string) => value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
 
-const findLocalAnswer = (value: string) => {
+const tokenize = (value: string) => normalizeQuestion(value).split(' ').filter((word) => word.length > 2);
+
+const findQuickAnswer = (value: string) => {
   const normalized = normalizeQuestion(value);
   return LOCAL_QUICK_ANSWERS.find(({ patterns }) => patterns.some((pattern) => normalized.includes(pattern)))?.answer ?? null;
+};
+
+const findContextualAnswer = (value: string) => {
+  const normalized = normalizeQuestion(value);
+  const queryTokens = tokenize(value);
+
+  for (const item of CONTEXTUAL_KNOWLEDGE) {
+    if (item.patterns.some((pattern) => normalized.includes(pattern))) {
+      return item.answer;
+    }
+  }
+
+  if (!queryTokens.length) {
+    return null;
+  }
+
+  let bestScore = 0;
+  let bestAnswer: string | null = null;
+
+  for (const item of CONTEXTUAL_KNOWLEDGE) {
+    const patternTokens = new Set(item.patterns.flatMap((pattern) => tokenize(pattern)));
+    const overlap = queryTokens.filter((token) => patternTokens.has(token)).length;
+    const score = overlap / Math.max(4, queryTokens.length);
+    if (overlap >= 2 && score > bestScore) {
+      bestScore = score;
+      bestAnswer = item.answer;
+    }
+  }
+
+  return bestScore >= 0.35 ? bestAnswer : null;
+};
+
+const findLocalAnswer = (value: string) => {
+  return findQuickAnswer(value) ?? findContextualAnswer(value);
 };
 
 const formatMessage = (text: string) => {
@@ -136,7 +263,7 @@ function QuestaAgent() {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta guide ✦ Ask me about the real app flow, AutoML Playground, uploads, model training, or downloads.", timestamp: new Date() }]);
+      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta guide ✦ Ask me anything about how this website works: pages, flow, AutoML Playground, analysis, payment, exports, or account steps.", timestamp: new Date() }]);
       setHasUnread(false);
     }
     if (isOpen) { setHasUnread(false); setTimeout(() => inputRef.current?.focus(), 300); }
@@ -162,7 +289,17 @@ function QuestaAgent() {
     setIsLoading(true);
     const history = messages.filter((m) => m.id !== 'typing' && m.id !== 'welcome' && !m.isTyping).map((m) => ({ role: m.role, content: m.content }));
     try {
-      const res = await fetch(`${BACKEND_URL}/questa/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: trimmed, history }) });
+      const res = await fetch(`${BACKEND_URL}/questa/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: trimmed,
+          history,
+          source: 'tutorial-page',
+          scope: 'ownquesta-web-flow',
+          context: OWNQUESTA_WEB_CONTEXT,
+        }),
+      });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || `Server error ${res.status}`); }
       const data = await res.json();
       const replyText = data.reply || "I'm sorry, I couldn't process that. Please try again.";
@@ -255,7 +392,7 @@ function QuestaAgent() {
               </div>
             )}
             <div className="flex items-end gap-2 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 focus-within:border-violet-500/40 focus-within:bg-violet-500/[0.03] transition-all">
-              <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask about Ownquesta..." rows={1} disabled={isLoading} className="flex-1 bg-transparent text-[13px] text-white placeholder-white/20 resize-none outline-none leading-relaxed max-h-24 overflow-y-auto disabled:opacity-50" style={{ scrollbarWidth: 'none' }} />
+              <textarea ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Ask how any Ownquesta page or step works..." rows={1} disabled={isLoading} className="flex-1 bg-transparent text-[13px] text-white placeholder-white/20 resize-none outline-none leading-relaxed max-h-24 overflow-y-auto disabled:opacity-50" style={{ scrollbarWidth: 'none' }} />
               <button onClick={() => sendMessage(input)} disabled={!input.trim() || isLoading} className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0 disabled:opacity-30 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all shadow-lg shadow-violet-500/20">
                 <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
               </button>
