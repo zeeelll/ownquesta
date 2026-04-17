@@ -1506,7 +1506,7 @@ export default function TutorialPage() {
         { name: 'Send OTP / Verify OTP', behavior: 'Confirms your email before account creation.', outcome: 'Registration can continue without errors.' },
         { name: 'Forgot Password', behavior: 'Runs OTP-based reset flow.', outcome: 'User recovers account without re-registering.' },
       ],
-      note: 'Transition: Authentication complete -> /home.',
+      note: '',
     },
     3: {
       summary: 'Step 3 is the authenticated home page (/home). It confirms identity and gives direct actions to continue project work.',
@@ -1600,7 +1600,6 @@ export default function TutorialPage() {
         { name: 'Download Model / Download Python Script / Download Notebook', behavior: 'Exports trained assets in free path.', outcome: 'User gets reusable files and can retrieve them from My Downloads.' },
         { name: 'My Downloads', behavior: 'Shows export history with filters/search.', outcome: 'User can audit and retrieve prior exports quickly.' },
         { name: 'My Deployments', behavior: 'Shows deployment link, status, scaling controls, and actions.', outcome: 'User can manage live deployment from one page.' },
-        { name: 'Copy link / Open link / Scale +/-', behavior: 'Supports quick testing and runtime scaling.', outcome: 'Deployment can be tested and scaled for real usage.' },
       ],
       note: 'Transition: workflow complete -> monitor in My Downloads/My Deployments -> use Help when needed.',
     },
