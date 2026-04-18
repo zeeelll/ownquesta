@@ -1659,11 +1659,6 @@ export default function TutorialPage() {
       case 1:
         return (
           <div className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.05),rgba(124,92,191,0.10))] p-6 md:p-7">
-              {detailPill}
-              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
-              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
-            </div>
             <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
               <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
                 <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">{labels.actions}</h4>
