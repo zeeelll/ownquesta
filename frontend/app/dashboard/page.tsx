@@ -1470,7 +1470,6 @@ export default function DashboardPage() {
             { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
             { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
             { label:"My Downloads", icon:<Download size={15} strokeWidth={2}/>, path:"/my-downloads", active:false },
-            { label:"My Deployments", icon:<Rocket size={15} strokeWidth={2}/>, path:"/my-deployments", active:false },
             { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
             ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),
           ] as { label:string; icon:React.ReactNode; path:string; active:boolean }[]).map(item=>(

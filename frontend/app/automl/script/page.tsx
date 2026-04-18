@@ -749,7 +749,7 @@ export default function ScriptPage() {
       price: String(DOWNLOAD_PRICE),
     });
 
-    router.push(`/payment?${params.toString()}`);
+    router.push(`/subscription?${params.toString()}`);
   }, [router, sessionId]);
 
   // ── Download click handlers — downloads are free ──────────────────────────

@@ -894,7 +894,7 @@ export default function LabPage() {
       price: String(MLOPS_DEPLOY_PRICE),
     });
 
-    router.push(`/payment?${params.toString()}`);
+    router.push(`/subscription?${params.toString()}`);
   }, [sid, selectedModel, router, addMsg]);
 
   const provisionMlopsDeployment = useCallback(async (paymentOrderId: string, sessionId: string, model: string) => {
