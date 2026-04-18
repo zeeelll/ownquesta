@@ -22,7 +22,7 @@ interface KnowledgeAnswer {
 
 const SUGGESTED_QUESTIONS = [
   'How does Ownquesta work from start to finish?',
-  'What is the full 10-step Ownquesta flow?',
+  'What is the full 11-step Ownquesta flow?',
   'Where should I start as a beginner?',
   'What do I learn in the ML Tutorial?',
   'What is the difference between dashboard and tutorial?',
@@ -31,18 +31,18 @@ const SUGGESTED_QUESTIONS = [
   'What is Easy Mode vs Code Mode?',
   'How do I upload my dataset?',
   'What pages are available in Ownquesta?',
-  'How does payment and export work?',
+  'How does subscription and export work?',
   'How do I test my model?',
   'Do I need coding knowledge?',
   'How long does training take?',
 ];
 
-const OWNQUESTA_WEB_CONTEXT = `Ownquesta web app current flow and pages:\n- Public pages: /, /about, /help, /tutorial.\n- Authentication: /login for sign in/register/password reset and then redirect to /home.\n- Authenticated pages: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /my-deployments, /premium-upgrade.\n- Core workflow: mode selection (Easy/Code) -> upload dataset -> set target -> analyse -> review recommendations -> build pipeline -> test prediction -> optional checkout -> export model/script.\n- ML Tutorial gives complete guided explanations for each stage and button behavior.\n- AutoML Playground is the execution workspace where analysis, training, and testing happen.\n- Payment only appears when an export/deployment is locked behind access.\n- Exports include trained model artifacts and Python scripts.\n- User profile supports account updates and security actions.\n- Dashboard is project and navigation hub; tutorial is learning and flow guidance hub.`;
+const OWNQUESTA_WEB_CONTEXT = `Ownquesta web app current flow and pages:\n- Public pages: /, /about, /help, /tutorial.\n- Authentication: /login for sign in/register/password reset and then redirect to /home.\n- Authenticated pages: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /subscription.\n- Core workflow: mode selection (Easy/Code) -> upload dataset -> set target -> analyse -> review recommendations -> build pipeline -> test prediction -> review subscription status (if needed) -> export model/script.\n- ML Tutorial gives complete guided explanations for each stage and button behavior.\n- AutoML Playground is the execution workspace where analysis, training, and testing happen.\n- Subscription status is shown on /subscription and updated by admin after verification.\n- Exports include trained model artifacts and Python scripts.\n- User profile supports account updates and security actions.\n- Dashboard is project and navigation hub; tutorial is learning and flow guidance hub.`;
 
 const LOCAL_QUICK_ANSWERS: KnowledgeAnswer[] = [
   {
     patterns: ['how does ownquesta work', 'how does ownquesta work from start to finish', 'what is ownquesta'],
-    answer: `Ownquesta follows this 10-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard & ML Tutorial.\n5. AutoML Playground mode selection.\n6. Upload dataset + target column.\n7. Auto analysis + model suggestions.\n8. Prediction test + accuracy review.\n9. Payment / checkout (when export is locked).\n10. Model or Python script export.`,
+    answer: `Ownquesta follows this 11-step app flow:\n1. Home page.\n2. Sign in / register.\n3. Authenticated home (/home).\n4. Dashboard & ML Tutorial.\n5. AutoML Playground mode selection.\n6. Choose LLM and confirm subscription access if needed.\n7. Upload dataset + target column.\n8. Auto analysis + model suggestions.\n9. Prediction test + accuracy review.\n10. Subscription status review (/subscription) when access needs admin approval.\n11. Model or Python script export from AutoML and My Downloads.`,
   },
   {
     patterns: ['ml tutorial', 'machine learning tutorial', 'what do i learn in the ml tutorial', 'tutorial content'],
@@ -93,11 +93,11 @@ const LOCAL_QUICK_ANSWERS: KnowledgeAnswer[] = [
 const CONTEXTUAL_KNOWLEDGE: KnowledgeAnswer[] = [
   {
     patterns: ['full flow', '10 step', 'user flow', 'app flow', 'website flow', 'journey'],
-    answer: `Current Ownquesta journey is: Home -> Login/Register -> Authenticated Home -> Dashboard + ML Tutorial -> AutoML Playground (Easy or Code) -> Upload + Target -> Analyse + Recommendations -> Train + Test -> Optional Payment for locked features -> Export model/script.`,
+    answer: `Current Ownquesta journey is: Home -> Login/Register -> Authenticated Home -> Dashboard + ML Tutorial -> AutoML Playground (Easy or Code) -> Upload + Target -> Analyse + Recommendations -> Train + Test -> Subscription status check (/subscription when needed) -> Export model/script.`,
   },
   {
     patterns: ['pages', 'all pages', 'which page', 'where should i go', 'navigation', 'site map'],
-    answer: `Main pages by purpose:\n1. Public: /, /about, /help, /tutorial.\n2. Auth: /login.\n3. Private workspace: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /my-deployments, /premium-upgrade.\nUse /dashboard as your operations hub and /tutorial or /ml-tutorial when you want guided explanations.`,
+    answer: `Main pages by purpose:\n1. Public: /, /about, /help, /tutorial.\n2. Auth: /login.\n3. Private workspace: /home, /dashboard, /ml-tutorial, /automl, /profile, /my-downloads, /subscription.\nUse /dashboard as your operations hub and /tutorial or /ml-tutorial when you want guided explanations.`,
   },
   {
     patterns: ['dashboard vs tutorial', 'difference between dashboard and tutorial', 'dashboard and tutorial'],
@@ -105,7 +105,7 @@ const CONTEXTUAL_KNOWLEDGE: KnowledgeAnswer[] = [
   },
   {
     patterns: ['where to start', 'beginner', 'first time', 'new user'],
-    answer: `Best starter path:\n1. Open /tutorial for the complete 10-step map.\n2. Sign in at /login.\n3. Go to /dashboard and create/open a project.\n4. Open /automl in Easy Mode.\n5. Upload dataset, set target, and click Analyse.`,
+    answer: `Best starter path:\n1. Open /tutorial for the complete 11-step map.\n2. Sign in at /login.\n3. Go to /dashboard and create/open a project.\n4. Open /automl in Easy Mode.\n5. Choose LLM, upload dataset, set target, and click Analyse.`,
   },
   {
     patterns: ['about page', 'what is in about', 'about ownquesta'],
@@ -125,15 +125,15 @@ const CONTEXTUAL_KNOWLEDGE: KnowledgeAnswer[] = [
   },
   {
     patterns: ['my deployments', 'deployment page', 'my-deployments'],
-    answer: `My Deployments is for managing deployed model endpoints and deployment records after you push models beyond local training.`,
+    answer: `My Deployments page has been removed from the current app flow. Use /subscription to check membership status and use /my-downloads for exported files.`,
   },
   {
     patterns: ['premium', 'upgrade', 'premium-upgrade', 'paid feature'],
-    answer: `Premium Upgrade handles paid access for advanced capabilities such as locked deployment/export flows. Payment success updates access so protected actions can continue.`,
+    answer: `Subscription access is managed from /subscription and updated by admin verification. If a feature is locked, submit subscription proof and wait for admin approval to activate premium access.`,
   },
   {
     patterns: ['payment', 'checkout', 'pay now', 'why payment'],
-    answer: `Payment is only part of the flow when a requested export/deployment action is locked. After successful checkout, the feature unlocks and you can complete export/deployment.`,
+    answer: `Subscription request is part of the flow when premium access is required. Open /subscription, submit proof, and admin updates membership status in the database after verification.`,
   },
   {
     patterns: ['automl playground details', 'what happens in automl', 'automl steps'],
@@ -161,7 +161,7 @@ const CONTEXTUAL_KNOWLEDGE: KnowledgeAnswer[] = [
   },
   {
     patterns: ['export model', 'download python', 'artifact export'],
-    answer: `Export options include trained model files and Python scripts for reproducibility. If export is locked, complete checkout first and then retry the download action.`,
+    answer: `Export options include trained model files and Python scripts for reproducibility. If export is locked, submit your subscription request and retry after admin approval.`,
   },
   {
     patterns: ['is this current', 'latest flow', 'current process'],
@@ -263,7 +263,7 @@ function QuestaAgent() {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta guide ✦ Ask me anything about how this website works: pages, flow, AutoML Playground, analysis, payment, exports, or account steps.", timestamp: new Date() }]);
+      setMessages([{ id: 'welcome', role: 'assistant', content: "Hi! I'm **Questa**, your Ownquesta guide ✦ Ask me anything about how this website works: pages, flow, AutoML Playground, analysis, subscription, exports, or account steps.", timestamp: new Date() }]);
       setHasUnread(false);
     }
     if (isOpen) { setHasUnread(false); setTimeout(() => inputRef.current?.focus(), 300); }
@@ -1456,11 +1456,12 @@ export default function TutorialPage() {
     { number: 3, title: 'Authenticated Home (/home)', icon: '◉', color: 'from-orange-500/20 to-amber-700/20', accentColor: '#fb923c', borderColor: 'border-orange-500/40', badge: 'Onboarding' },
     { number: 4, title: 'Dashboard (/dashboard) & ML Tutorial (/ml-tutorial)', icon: '▦', color: 'from-purple-600/20 to-pink-800/20', accentColor: '#c084fc', borderColor: 'border-purple-500/40', badge: 'Workspace' },
     { number: 5, title: 'AutoML Playground (Easy / Code Mode)', icon: '◬', color: 'from-pink-500/20 to-rose-700/20', accentColor: '#f472b6', borderColor: 'border-pink-500/40', badge: 'Mode' },
-    { number: 6, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
-    { number: 7, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
-    { number: 8, title: 'Prediction Test + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
-    { number: 9, title: 'Payment / Checkout (/premium-upgrade when locked)', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
-    { number: 10, title: 'Model / Python Script Export (+ My Downloads)', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
+    { number: 6, title: 'Choose LLM + Subscription Detail', icon: '✦', color: 'from-fuchsia-600/20 to-violet-800/20', accentColor: '#d946ef', borderColor: 'border-fuchsia-500/40', badge: 'LLM' },
+    { number: 7, title: 'Upload Dataset + Select Target Column', icon: '⤴', color: 'from-yellow-600/20 to-amber-800/20', accentColor: '#fbbf24', borderColor: 'border-yellow-500/40', badge: 'Data' },
+    { number: 8, title: 'Auto Analysis + Model Suggestions', icon: '∑', color: 'from-cyan-600/20 to-teal-800/20', accentColor: '#67e8f9', borderColor: 'border-cyan-500/40', badge: 'AutoML' },
+    { number: 9, title: 'Prediction Test + Accuracy', icon: '◎', color: 'from-emerald-600/20 to-green-800/20', accentColor: '#4ade80', borderColor: 'border-emerald-500/40', badge: 'Inference' },
+    { number: 10, title: 'Subscription Status & Admin Verification (/subscription)', icon: '$', color: 'from-teal-600/20 to-emerald-800/20', accentColor: '#34d399', borderColor: 'border-teal-500/40', badge: 'Plan' },
+    { number: 11, title: 'Model / Python Script Export (+ My Downloads)', icon: '↓', color: 'from-sky-600/20 to-cyan-800/20', accentColor: '#38bdf8', borderColor: 'border-sky-500/40', badge: 'Export' },
   ];
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -1519,12 +1520,12 @@ export default function TutorialPage() {
       note: 'Transition: /home -> /dashboard.',
     },
     4: {
-      summary: 'Step 4 is dashboard control. Users create projects, continue existing ones, and navigate to ML Tutorial, My Downloads, My Deployments, or Profile from the sidebar.',
-      actions: ['Click New Project to open modal: add Project Name, choose Prediction Goal (Auto-detect, Predict category, Predict number, Group items, Detect anomalies), optional target, then click Launch Project.', 'Use Continue (or View Results for finished projects) on project cards/table to reopen work and route to /automl.', 'Use sidebar shortcuts: ML Tutorial, My Downloads, My Deployments, and Profile to move across lifecycle pages.', 'Beginner flow: open ML Tutorial before changing advanced settings; Know ML flow: create/continue project and move directly into AutoML.', 'Use search/filter in dashboard when managing multiple projects by stage.'],
+      summary: 'Step 4 is dashboard control. Users create projects, continue existing ones, and navigate to ML Tutorial, My Downloads, Subscription, or Profile from the sidebar.',
+      actions: ['Click New Project to open modal: add Project Name, choose Prediction Goal (Auto-detect, Predict category, Predict number, Group items, Detect anomalies), optional target, then click Launch Project.', 'Use Continue (or View Results for finished projects) on project cards/table to reopen work and route to /automl.', 'Use sidebar shortcuts: ML Tutorial, My Downloads, Subscription, and Profile to move across lifecycle pages.', 'Beginner flow: open ML Tutorial before changing advanced settings; Know ML flow: create/continue project and move directly into AutoML.', 'Use search/filter in dashboard when managing multiple projects by stage.'],
       buttons: [
         { name: 'New Project -> Launch Project', behavior: 'Starts a new project and opens AutoML.', outcome: 'Training can start with a clear project setup.' },
         { name: 'Continue / View Results', behavior: 'Opens existing project stage.', outcome: 'User resumes where they left off.' },
-        { name: 'Sidebar (ML Tutorial / My Downloads / My Deployments / Profile)', behavior: 'Navigates to support pages around modeling.', outcome: 'User can learn, retrieve files, monitor deploys, and manage account.' },
+        { name: 'Sidebar (ML Tutorial / My Downloads / Subscription / Profile)', behavior: 'Navigates to support pages around modeling.', outcome: 'User can learn, retrieve files, check membership status, and manage account.' },
       ],
       note: 'Transition: project selected -> AutoML Playground.',
     },
@@ -1539,7 +1540,17 @@ export default function TutorialPage() {
       note: 'Transition: mode selected -> upload dataset.',
     },
     6: {
-      summary: 'Step 6 is dataset onboarding. User uploads file, optionally sets target column, then starts analysis with one clear action button.',
+      summary: 'Step 6 is LLM selection and subscription context. Users choose which LLM experience to use in AutoML guidance and confirm whether subscription access is required.',
+      actions: ['Open the model assistant/LLM selector and choose the LLM mode you want for guidance.', 'Use lightweight/default LLM for fast guidance, and choose advanced LLM only when deeper reasoning is needed.', 'Review subscription status from /subscription before selecting premium-only LLM options.', 'If premium LLM is locked, submit subscription proof and wait for admin verification.', 'After approval, return to AutoML and continue with the chosen LLM path.'],
+      buttons: [
+        { name: 'Choose LLM', behavior: 'Selects the model assistant experience used for guidance and explanations.', outcome: 'AutoML assistant behavior matches your preferred LLM path.' },
+        { name: 'Subscription Page (/subscription)', behavior: 'Shows current membership status and plan details.', outcome: 'User can confirm whether premium LLM access is active.' },
+        { name: 'Submit Subscription Proof', behavior: 'Collects transaction details and screenshot for admin review.', outcome: 'Membership can be upgraded for premium-locked LLM features.' },
+      ],
+      note: 'Transition: LLM selected and access verified -> upload dataset.',
+    },
+    7: {
+      summary: 'Step 7 is dataset onboarding. User uploads file, optionally sets target column, then starts analysis with one clear action button.',
       actions: ['Click Upload CSV / Excel in the AI panel and select CSV, XLSX, or XLS file.', 'After upload confirmation, verify filename and basic structure to ensure correct file was selected.', 'Set target column if you know the prediction field (recommended for beginners).', 'If target is unclear, Know ML users can test auto-detect behavior and compare results.', 'Click Analyse to trigger data checks (quality, feature readiness, modeling suitability).'],
       buttons: [
         { name: 'Upload CSV / Excel', behavior: 'Loads tabular file into project context.', outcome: 'Dataset becomes available for analysis.' },
@@ -1548,8 +1559,8 @@ export default function TutorialPage() {
       ],
       note: 'Transition: data uploaded and target set -> analysis pipeline.',
     },
-    7: {
-      summary: 'Step 7 is data analysis plus model recommendation. Ownquesta explains what it found and presents top model choices with build actions.',
+    8: {
+      summary: 'Step 8 is data analysis plus model recommendation. Ownquesta explains what it found and presents top model choices with build actions.',
       actions: ['Review analysis status: missing values, feature quality, and summary insights from EDA.', 'Check Top 3 recommended models in the AI panel and read the short reason for each.', 'Click Build Pipeline with [Model Name] to start selected model training path.', 'Beginner flow: choose top recommendation first, then compare later if needed.', 'Know ML flow: compare model assumptions and expected behavior before building.', 'Use chat assistant prompts if you need plain-language explanation of model choice.'],
       buttons: [
         { name: 'Build Pipeline with [Model]', behavior: 'Starts selected model pipeline.', outcome: 'Training sequence begins with selected algorithm.' },
@@ -1558,50 +1569,48 @@ export default function TutorialPage() {
       ],
       note: 'Transition: model selected -> feature engineering and training.',
     },
-    8: {
-      summary: 'Step 8 is model validation. Users check training quality, run live predictions, adjust settings, and confirm model readiness.',
+    9: {
+      summary: 'Step 9 is model validation. Users check training quality, run live predictions, adjust settings, and confirm model readiness.',
       actions: ['Review model metrics and reports after training finishes (accuracy or error indicators).', 'Use Test Your Model panel, enter realistic values, then click Run Prediction.', 'Interpret prediction output and confidence/result consistency across multiple test inputs.', 'Open Adjust Settings to tune split/CV-style controls and retrain when results are weak.', 'Beginner flow: keep default settings first and test multiple realistic samples.', 'Know ML flow: tune settings iteratively and compare improvement before final export/deploy decision.'],
       buttons: [
         { name: 'Run Prediction', behavior: 'Runs prediction with the values you entered.', outcome: 'Prediction result appears instantly for review.' },
         { name: 'Adjust Settings', behavior: 'Lets you change evaluation and retraining settings.', outcome: 'Model can be retrained for improved stability.' },
         { name: 'Training Summary', behavior: 'Displays result quality indicators.', outcome: 'User can decide go/no-go for export or deployment.' },
       ],
-      note: 'Transition: model validated -> free download or premium deployment path.',
-    },
-    9: {
-      summary: 'Step 9 is premium checkout (/premium-upgrade) for deployment access. Free users skip checkout and continue to direct downloads.',
-      actions: [
-        'Free path: do not pay; continue to file download options in Step 10.',
-        'Premium path: open /premium-upgrade, confirm product is deployment, and review ₹1,499/month plan.',
-        'Fill user/payment inputs: UPI ID, transaction ID, payment time, and screenshot proof.',
-        'Complete upgrade flow so deployment options become available in your account.',
-        'Beginner flow: use free path first; upgrade only when you need live online deployment.',
-        'Know ML flow: upgrade when model is stable and ready for real app usage.'
-      ],
-      buttons: [
-        { name: 'Premium Upgrade', behavior: 'Opens deployment checkout page.', outcome: 'User can activate paid MLOps access.' },
-        { name: 'UPI App + Transaction Fields', behavior: 'Collects payment details and proof.', outcome: 'Premium access is confirmed after payment.' },
-        { name: 'Complete Upgrade', behavior: 'Finalizes membership upgrade.', outcome: 'Deployment workflow becomes available.' },
-      ],
-      note: 'Transition: free -> Step 10 download, premium -> Step 10 deployment enabled.',
+      note: 'Transition: model validated -> direct export or subscription status path if access is locked.',
     },
     10: {
-      summary: 'Step 10 is final delivery: free users export files and view history in My Downloads; premium users deploy online and manage it in My Deployments.',
+      summary: 'Step 10 is subscription status and admin verification on /subscription when premium access is required.',
       actions: [
-        'Free output: click Download Model to export trained artifact (for local/offline use).',
-        'Free output: click Download Python Script and Download Notebook for reproducible workflow files.',
+        'Open /subscription to view your current status, plan, and expiry.',
+        'If premium access is needed, submit subscription proof (UPI, transaction ID, screenshot) from the subscription page.',
+        'Admin verifies submissions from the Admin panel and updates membership in the database.',
+        'After approval, your membership status becomes active and premium-locked actions are enabled.',
+        'Beginner flow: continue with free exports first, then request subscription only when needed.',
+        'Know ML flow: request subscription after model validation when premium access is required.'
+      ],
+      buttons: [
+        { name: 'Subscription Page (/subscription)', behavior: 'Shows current membership status and plan details.', outcome: 'User can see whether premium access is active.' },
+        { name: 'Submit Subscription Proof', behavior: 'Collects transaction details and screenshot for verification.', outcome: 'Admin can review and approve membership update.' },
+        { name: 'Admin Verification', behavior: 'Approves or rejects the subscription request in Admin panel.', outcome: 'Membership status is updated in database.' },
+      ],
+      note: 'Transition: pending verification -> approved subscription status -> continue export actions.',
+    },
+    11: {
+      summary: 'Step 11 is final delivery: users export files from AutoML and track history in My Downloads.',
+      actions: [
+        'Click Download Model to export trained artifact (for local/offline use).',
+        'Click Download Python Script and Download Notebook for reproducible workflow files.',
         'Open My Downloads to review unlocked items, status, order IDs, formats, and download history.',
-        'Premium output: deploy model and open My Deployments to see deployment link, status, and scale details.',
-        'Use Copy link / Open link actions in My Deployments for quick testing.',
-        'Use Scale -1 / Scale +1 controls within replica limits to adjust live capacity.',
+        'If an export action is locked, check /subscription status and wait for admin approval before retrying.',
         'Final support step: open Help page to report issues or track support ticket status if download/deploy has problems.'
       ],
       buttons: [
-        { name: 'Download Model / Download Python Script / Download Notebook', behavior: 'Exports trained assets in free path.', outcome: 'User gets reusable files and can retrieve them from My Downloads.' },
+        { name: 'Download Model / Download Python Script / Download Notebook', behavior: 'Exports trained assets from AutoML.', outcome: 'User gets reusable files and can retrieve them from My Downloads.' },
         { name: 'My Downloads', behavior: 'Shows export history with filters/search.', outcome: 'User can audit and retrieve prior exports quickly.' },
-        { name: 'My Deployments', behavior: 'Shows deployment link, status, scaling controls, and actions.', outcome: 'User can manage live deployment from one page.' },
+        { name: 'Subscription Page', behavior: 'Shows membership status and admin-managed approval outcome.', outcome: 'User can confirm premium access state when actions are locked.' },
       ],
-      note: 'Transition: workflow complete -> monitor in My Downloads/My Deployments -> use Help when needed.',
+      note: 'Transition: workflow complete -> monitor in My Downloads -> use Subscription/Help when needed.',
     },
   };
 
@@ -1611,11 +1620,12 @@ export default function TutorialPage() {
     3: { summary: 'Handshake check', actions: 'What changes after sign in', buttons: 'Workspace controls', note: 'Route outcome' },
     4: { summary: 'Workspace map', actions: 'How to read the dashboard', buttons: 'Project controls', note: 'Route outcome' },
     5: { summary: 'Mode comparison', actions: 'How to choose a mode', buttons: 'Mode switch', note: 'Route outcome' },
-    6: { summary: 'Field guide', actions: 'Upload sequence', buttons: 'Data controls', note: 'Route outcome' },
-    7: { summary: 'Analysis timeline', actions: 'What the agent does', buttons: 'Analysis controls', note: 'Route outcome' },
-    8: { summary: 'Validation review', actions: 'How to check results', buttons: 'Test controls', note: 'Route outcome' },
-    9: { summary: 'Checkout guide', actions: 'Payment sequence', buttons: 'Checkout controls', note: 'Route outcome' },
-    10: { summary: 'Export guide', actions: 'What gets downloaded', buttons: 'Export controls', note: 'Route outcome' },
+    6: { summary: 'LLM choice', actions: 'How to select LLM', buttons: 'LLM + access controls', note: 'Route outcome' },
+    7: { summary: 'Field guide', actions: 'Upload sequence', buttons: 'Data controls', note: 'Route outcome' },
+    8: { summary: 'Analysis timeline', actions: 'What the agent does', buttons: 'Analysis controls', note: 'Route outcome' },
+    9: { summary: 'Validation review', actions: 'How to check results', buttons: 'Test controls', note: 'Route outcome' },
+    10: { summary: 'Subscription guide', actions: 'Verification sequence', buttons: 'Subscription controls', note: 'Route outcome' },
+    11: { summary: 'Export guide', actions: 'What gets downloaded', buttons: 'Export controls', note: 'Route outcome' },
   };
 
   const renderStepContent = (stepNumber: number, accentColor: string) => {
@@ -1739,7 +1749,7 @@ export default function TutorialPage() {
                     { label: 'Projects', value: '0' },
                     { label: 'Active', value: '0' },
                     { label: 'Completed', value: '2' },
-                    { label: 'Guides', value: '10' },
+                    { label: 'Guides', value: '11' },
                   ].map((stat) => (
                     <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-center min-w-[92px]">
                       <div className="text-xl font-black text-white">{stat.value}</div>
@@ -1763,7 +1773,7 @@ export default function TutorialPage() {
               <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">ML Tutorial page details</h4>
               <div className="mt-4 grid gap-3">
                 {[
-                  'The ML Tutorial page maps the full 10-step Ownquesta journey end to end, from Home and Login through AutoML, prediction testing, payment, and final export.',
+                  'The ML Tutorial page maps the full 11-step Ownquesta journey end to end, from Home and Login through AutoML, LLM choice, prediction testing, subscription checks, and final export.',
                   'Every step includes page intent, key UI elements, button behavior, and route transition so users know exactly what happens after each click.',
                   'Desktop uses a left step rail and mobile uses a bottom step navigator, allowing fast step jumps without losing context.',
                   'Each lesson card highlights practical actions, expected outputs, and what to verify before moving to the next stage.',
@@ -1824,6 +1834,27 @@ export default function TutorialPage() {
       case 6:
         return (
           <div className="space-y-4">
+            <div className="rounded-3xl border border-fuchsia-400/15 bg-fuchsia-500/5 p-6 md:p-7">
+              {detailPill}
+              <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
+              <p className="mt-3 text-sm md:text-base leading-relaxed text-white/65 max-w-3xl">{guide.summary}</p>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[1fr_0.95fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">How to select LLM</h4>
+                <div className="mt-4 grid gap-3">{actionCards}</div>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-7">
+                <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">LLM + access controls</h4>
+                <div className="grid gap-3">{buttonCards}</div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-4">
             <div className="rounded-3xl border border-yellow-400/15 bg-yellow-500/5 p-6 md:p-7">
               {detailPill}
               <h3 className="mt-4 text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
@@ -1842,7 +1873,7 @@ export default function TutorialPage() {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="rounded-3xl border border-cyan-400/15 bg-cyan-500/5 p-6 md:p-7 space-y-4">
@@ -1874,7 +1905,7 @@ export default function TutorialPage() {
           </div>
         );
 
-      case 8:
+      case 9:
         return (
           <div className="space-y-4">
             <div className="rounded-3xl border border-emerald-400/15 bg-emerald-500/5 p-6 md:p-7">
@@ -1898,7 +1929,7 @@ export default function TutorialPage() {
           </div>
         );
 
-      case 9:
+      case 10:
         return (
           <div className="grid gap-4 xl:grid-cols-[1fr_0.95fr]">
             <div className="rounded-3xl border border-teal-400/15 bg-teal-500/5 p-6 md:p-7 space-y-4">
@@ -1906,18 +1937,18 @@ export default function TutorialPage() {
               <h3 className="text-lg md:text-xl font-semibold text-white">{labels.summary}</h3>
               <p className="text-sm md:text-base leading-relaxed text-white/65">{guide.summary}</p>
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                <h5 className="text-sm font-semibold text-white">Payment sequence</h5>
+                <h5 className="text-sm font-semibold text-white">Subscription verification sequence</h5>
                 <div className="mt-3 space-y-2">{actionCards}</div>
               </div>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/[0.025] p-6 md:p-7 space-y-3">
-              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Checkout controls</h4>
+              <h4 className="text-sm uppercase tracking-[0.14em] font-semibold text-white/75">Subscription controls</h4>
               <div className="grid gap-3">{buttonCards}</div>
             </div>
           </div>
         );
 
-      case 10:
+      case 11:
         return (
           <div className="space-y-4">
             <div className="rounded-3xl border border-sky-400/15 bg-sky-500/5 p-6 md:p-7">
@@ -1985,11 +2016,12 @@ export default function TutorialPage() {
     3: 'Use Go to Dashboard, Help, and Profile actions from authenticated /home.',
     4: 'Create/launch project, continue work, and use sidebar routes in /dashboard.',
     5: 'Start AutoML Playground and choose Easy Mode or Code Mode workflow.',
-    6: 'Upload CSV/Excel, set target column, and click Analyse to begin pipeline.',
-    7: 'Review EDA + top model suggestions, then Build Pipeline with selected model.',
-    8: 'Validate metrics, Run Prediction, and tune with Adjust Settings when needed.',
-    9: 'Free users skip checkout; premium users upgrade for deployment at ₹1,499/month.',
-    10: 'Free exports go to My Downloads; premium deploys are managed in My Deployments.',
+    6: 'Choose LLM assistant mode and confirm subscription access for premium LLM options.',
+    7: 'Upload CSV/Excel, set target column, and click Analyse to begin pipeline.',
+    8: 'Review EDA + top model suggestions, then Build Pipeline with selected model.',
+    9: 'Validate metrics, Run Prediction, and tune with Adjust Settings when needed.',
+    10: 'Use /subscription to check status and submit proof when premium access requires admin verification.',
+    11: 'Export files from AutoML and track them in My Downloads; use /subscription for membership status.',
   };
 
   return (
@@ -2063,7 +2095,7 @@ export default function TutorialPage() {
               >
                 <p className="text-[11px] sm:text-xs tracking-[0.18em] uppercase font-semibold text-violet-300/80 mb-3">Tutorial Overview</p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">Ownquesta App User Flow</h1>
-                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, the authenticated Home page, Dashboard, AutoML Playground, payment, and final downloads.</p>
+                <p className="mt-4 text-sm sm:text-base text-white/65 max-w-3xl leading-relaxed">This guide explains each page, how each button works, and how user actions move from Home to Login, the authenticated Home page, Dashboard, AutoML Playground, subscription verification, and final downloads.</p>
               </motion.div>
 
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
