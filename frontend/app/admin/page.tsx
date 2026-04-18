@@ -114,6 +114,10 @@ interface HelpTicket {
     name?: string;
     email?: string;
     role?: string;
+    membershipStatus?: 'free' | 'ownque_user';
+    membershipPlan?: string;
+    membershipUpgradedAt?: string;
+    membershipExpiresAt?: string;
   } | string | null;
 }
 
@@ -146,6 +150,10 @@ interface AdminPayment {
     name?: string;
     email?: string;
     role?: string;
+    membershipStatus?: 'free' | 'ownque_user';
+    membershipPlan?: string;
+    membershipUpgradedAt?: string;
+    membershipExpiresAt?: string;
   } | string | null;
 }
 
@@ -1106,7 +1114,7 @@ export default function AdminPage() {
               { key: 'dashboard', icon: BarChart3, label: 'Dashboard' },
               { key: 'users',     icon: Users,    label: 'User Management' },
               { key: 'projects',  icon: Monitor,  label: 'Projects' },
-              { key: 'payments',  icon: Wallet,   label: 'Payments' },
+              { key: 'payments',  icon: Wallet,   label: 'Subscriptions' },
               { key: 'activities',icon: Activity,  label: 'Activity Log' },
               { key: 'support',   icon: MessageSquare, label: 'Help Requests' },
               { key: 'settings',  icon: Settings,  label: 'Settings' },
@@ -1248,7 +1256,7 @@ export default function AdminPage() {
                   className="quick-action-btn quick-action-emerald flex items-center justify-center space-x-2 h-12"
                 >
                   <Wallet className="h-4 w-4" />
-                  <span>Payments</span>
+                  <span>Subscriptions</span>
                 </Button>
                 <Button
                   onClick={() => setActiveTab('support')}
@@ -1368,9 +1376,9 @@ export default function AdminPage() {
                               <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">Paid: {stats?.downloadPaid || 0}</span>
                               <span className="px-2 py-0.5 rounded-full bg-fuchsia-500/10 text-fuchsia-300 border border-fuchsia-500/30">Deploys: {stats?.deployPaid || 0}</span>
                               {String(user.membershipStatus || 'free').toLowerCase() === 'ownque_user' ? (
-                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">Premium: Active</span>
+                                <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">Subscription: Active</span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-300 border border-slate-500/30">Premium: Free</span>
+                                <span className="px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-300 border border-slate-500/30">Subscription: Free</span>
                               )}
                             </div>
                             <div className="text-[10px] text-slate-500 font-mono">
@@ -1635,8 +1643,8 @@ export default function AdminPage() {
             <div className="panel-card p-6">
               <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
                 <div>
-                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payments Command Center</h3>
-                  <p className="text-slate-500 text-sm font-mono">Track payment transactions, download access logs, and monetization health in one place.</p>
+                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Subscription Command Center</h3>
+                  <p className="text-slate-500 text-sm font-mono">Track subscription records, download access logs, and monetization health in one place.</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="action-chip action-chip-emerald">Success Rate: {paymentInsights.successRate}%</span>
@@ -1647,7 +1655,7 @@ export default function AdminPage() {
 
               {/* Sub-tabs */}
               <div style={{ display: 'flex', gap: 8, marginTop: 20, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 0 }}>
-                {([['subscriptions', '🔐 Subscription Verification', subscriptions.filter(s => s.status === 'pending').length], ['transactions', '💳 Transactions', 0]] as const).map(([key, label, badge]) => (
+                {([['subscriptions', '🔐 Subscription Verification', subscriptions.filter(s => s.status === 'pending').length], ['transactions', '💳 Subscription Records', 0]] as const).map(([key, label, badge]) => (
                   <button key={key} onClick={() => { setPaymentsSubTab(key as any); if (key === 'subscriptions') handleLoadSubscriptions(subStatusFilter); }}
                     style={{ padding: '8px 16px', borderRadius: '8px 8px 0 0', border: 'none', borderBottom: paymentsSubTab === key ? '2px solid #a78bfa' : '2px solid transparent', background: paymentsSubTab === key ? 'rgba(167,139,250,0.1)' : 'transparent', color: paymentsSubTab === key ? '#d8b4fe' : '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
                     {label}
@@ -1662,7 +1670,7 @@ export default function AdminPage() {
               <div className="panel-card p-6" style={{ background: 'rgba(17,7,34,0.6)', border: '1px solid rgba(167,139,250,0.25)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
                   <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#f3e8ff', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    🔐 Subscription Payment Verification
+                    🔐 Subscription Verification
                     <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 999, background: 'rgba(251,191,36,0.15)', color: '#fde68a', border: '1px solid rgba(251,191,36,0.35)' }}>Manual Review</span>
                   </h4>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1680,7 +1688,7 @@ export default function AdminPage() {
 
                 {subscriptions.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '32px 0', color: '#475569', fontSize: 14 }}>
-                    No {subStatusFilter === 'all' ? '' : subStatusFilter} subscription payments found.
+                    No {subStatusFilter === 'all' ? '' : subStatusFilter} subscription records found.
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1702,6 +1710,11 @@ export default function AdminPage() {
                               </div>
                               <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>{user?.email || sub.customerEmail}</div>
                               <div style={{ fontSize: 13, fontWeight: 600, color: '#c4b5fd', marginBottom: 4 }}>{planLabel}</div>
+                              {user && (
+                                <div style={{ fontSize: 11, color: '#fde68a', marginBottom: 4 }}>
+                                  Subscription: {(user.membershipStatus || 'free').toLowerCase() === 'ownque_user' ? 'Active' : 'Free'} · Plan: {user.membershipPlan || '—'} · Expires: {user.membershipExpiresAt ? new Date(user.membershipExpiresAt).toLocaleDateString() : '—'}
+                                </div>
+                              )}
                               <div style={{ fontSize: 11, color: '#64748b' }}>Order: {sub.orderId} · Tx: {sub.transactionId || '—'}</div>
                               <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>UPI: {sub.payerUpiId || '—'} · Submitted: {new Date(sub.createdAt).toLocaleString()}</div>
                             </div>
@@ -1723,7 +1736,7 @@ export default function AdminPage() {
                             <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
                               <button onClick={() => handleApproveSubscription(sub._id)} disabled={busy}
                                 style={{ border: '1px solid rgba(74,222,128,0.45)', background: 'rgba(74,222,128,0.12)', color: '#86efac', borderRadius: 8, padding: '7px 18px', cursor: busy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {busy ? '…' : '✅ Approve'} — Activate Premium
+                                {busy ? '…' : '✅ Approve'} — Update Subscription
                               </button>
                               <button onClick={() => handleRejectSubscription(sub._id)} disabled={busy}
                                 style={{ border: '1px solid rgba(248,113,113,0.4)', background: 'rgba(248,113,113,0.08)', color: '#fca5a5', borderRadius: 8, padding: '7px 14px', cursor: busy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1733,7 +1746,7 @@ export default function AdminPage() {
                           )}
                           {isApproved && (
                             <div style={{ marginTop: 10, fontSize: 12, color: '#4ade80', display: 'flex', alignItems: 'center', gap: 6 }}>
-                              ✅ Approved — user has premium access · Expires: {sub.userId?.membershipExpiresAt ? new Date(sub.userId.membershipExpiresAt).toLocaleDateString() : '—'}
+                              ✅ Approved — user subscription updated · Expires: {sub.userId?.membershipExpiresAt ? new Date(sub.userId.membershipExpiresAt).toLocaleDateString() : '—'}
                             </div>
                           )}
                           {sub.status === 'failed' && (
@@ -1751,7 +1764,7 @@ export default function AdminPage() {
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="stat-label flex items-center"><Wallet className="h-3.5 w-3.5 mr-2" />Total Payments</p>
+                    <p className="stat-label flex items-center"><Wallet className="h-3.5 w-3.5 mr-2" />Total Subscription Records</p>
                     <p className="stat-number">{paymentSummary.total}</p>
                     <p className="stat-sub">Stored records</p>
                   </div>
@@ -1840,7 +1853,7 @@ export default function AdminPage() {
             <div className="panel-card p-6">
               <div className="flex flex-col xl:flex-row gap-4 xl:items-center xl:justify-between">
                 <div>
-                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Payment Transactions</h3>
+                  <h3 className="panel-title mb-1 flex items-center"><Wallet className="h-5 w-5 mr-2 text-cyan-400" />Subscription Transactions</h3>
                   <p className="text-slate-500 text-sm font-mono">Paid transactions plus free/paid download access logs stored in MongoDB.</p>
                 </div>
 
@@ -1894,7 +1907,7 @@ export default function AdminPage() {
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className="action-chip action-chip-purple">Premium payments: {premiumPlanPayments.length}/{filteredPayments.length}</span>
+                <span className="action-chip action-chip-purple">Premium subscriptions: {premiumPlanPayments.length}/{filteredPayments.length}</span>
                 <span className="action-chip action-chip-blue">Free plan access: {freePlanDownloadAccesses.length}/{filteredDownloadAccesses.length}</span>
                 <span className="action-chip action-chip-emerald">Premium plan access: {premiumPlanDownloadAccesses.length}/{filteredDownloadAccesses.length}</span>
                 <span className="action-chip action-chip-purple">Filter: {paymentTypeFilter === 'all' ? 'All types' : paymentTypeLabel(paymentTypeFilter)}</span>
@@ -1910,7 +1923,7 @@ export default function AdminPage() {
 
             <div className="panel-card overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-800/60">
-                <h4 className="text-sm font-semibold text-white">Premium Plan Payment Transactions ({premiumPlanPayments.length})</h4>
+                <h4 className="text-sm font-semibold text-white">Premium Subscription Records ({premiumPlanPayments.length})</h4>
                 <p className="text-xs text-slate-500 font-mono mt-1">Paid checkout records mapped to premium users or premium subscription products.</p>
               </div>
               <div className="overflow-x-auto">
@@ -1946,6 +1959,11 @@ export default function AdminPage() {
                               <div className="text-xs text-slate-500 font-mono">{payment.customerEmail}</div>
                               {linkedUser && (
                                 <div className="text-[11px] text-slate-600 font-mono mt-1">User: {linkedUser.name || linkedUser.email}</div>
+                              )}
+                              {linkedUser && (
+                                <div className="text-[11px] text-amber-200 font-mono mt-1">
+                                  Subscription: {(linkedUser.membershipStatus || 'free').toLowerCase() === 'ownque_user' ? 'Active' : 'Free'} · Plan: {linkedUser.membershipPlan || '—'} · Expires: {linkedUser.membershipExpiresAt ? new Date(linkedUser.membershipExpiresAt).toLocaleDateString() : '—'}
+                                </div>
                               )}
                             </div>
                           </td>
@@ -2677,6 +2695,14 @@ export default function AdminPage() {
                       />
                     </div>
                   ))}
+                  <div className="md:col-span-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">
+                    <div className="font-semibold text-amber-200 mb-1">Current Subscription</div>
+                    <div>Status: {(editingUser.membershipStatus || 'free').toLowerCase() === 'ownque_user' ? 'Active' : 'Free'}</div>
+                    <div>Plan: {editingUser.membershipPlan || '—'}</div>
+                    <div>Upgraded: {editingUser.membershipUpgradedAt ? new Date(editingUser.membershipUpgradedAt).toLocaleDateString() : '—'}</div>
+                    <div>Expires: {editingUser.membershipExpiresAt ? new Date(editingUser.membershipExpiresAt).toLocaleDateString() : '—'}</div>
+                  </div>
+
                   <div className="md:col-span-2">
                     <label className="form-label">Bio</label>
                     <textarea
@@ -2722,7 +2748,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="md:col-span-2 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-xs text-cyan-100">
-                    Premium status set from admin gives this user deployment access for 1 month from save time.
+                    Saving subscription status or plan updates the database immediately and grants deployment access for 1 month when set to premium.
                   </div>
                 </div>
 
