@@ -32,7 +32,7 @@ const features = [
   },
 ];
 
-export default function MyDeploymentsPage() {
+export default function MlopsComingSoonPage() {
   const router = useRouter();
 
   return (
@@ -69,7 +69,7 @@ export default function MyDeploymentsPage() {
         >
           <Logo href="/home" size="md" />
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.back()}
             style={{
               border: '1px solid rgba(216,180,254,0.35)',
               background: 'rgba(30,13,56,0.72)',
@@ -83,7 +83,7 @@ export default function MyDeploymentsPage() {
               fontSize: 14,
             }}
           >
-            <ArrowLeft size={14} /> Dashboard
+            <ArrowLeft size={14} /> Back
           </button>
         </div>
       </header>

@@ -30,6 +30,7 @@ import {
   MessageCircle,
   Microscope,
   Play,
+  Rocket,
   Search,
   Send,
   Settings,
@@ -43,7 +44,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, type AIModel } from '../../lib/aiModels';
+import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, STATIC_MODELS, type AIModel } from '../../lib/aiModels';
 import { trackDownloadAccess, getCurrentUser } from '../../services/api';
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
@@ -304,6 +305,30 @@ function pInputStyle(hasError: boolean): React.CSSProperties {
   return { width: '100%', boxSizing: 'border-box' as const, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: `1px solid ${hasError ? '#f87171' : 'rgba(255,255,255,0.1)'}`, borderRadius: 10, color: '#f1f5f9', fontSize: 13, fontFamily: 'inherit', outline: 'none' };
 }
 
+// ── Model access tiers ────────────────────────────────────────────────────────
+// free      → gpt-4o-mini only (no subscription needed)
+// plan_750  → all GPT models + claude-haiku-4-5
+// plan_1399 → all models including claude-sonnet-4-6, claude-opus-4-6
+const MODEL_TIERS: Record<string, 'free' | 'plan_750' | 'plan_1399'> = {
+  'gpt-4o-mini':      'free',
+  'gpt-4':            'free',
+  'gpt-5-3':          'plan_750',
+  'codex-5-2':        'plan_750',
+  'claude-haiku-4-5': 'plan_750',
+  'claude-sonnet-4-6':'plan_1399',
+  'claude-opus-4-6':  'plan_1399',
+};
+function getModelTier(id: string): 'free' | 'plan_750' | 'plan_1399' {
+  return MODEL_TIERS[id] ?? 'plan_750';
+}
+function modelUnlocked(id: string, status: string, plan: string): boolean {
+  const tier = getModelTier(id);
+  if (tier === 'free') return true;
+  if (status !== 'ownque_user') return false;
+  if (tier === 'plan_750') return true; // both plans cover 750
+  return plan === 'plan_1399';
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function LabPage() {
   const router = useRouter();
@@ -352,8 +377,11 @@ export default function LabPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // AI model selection
-  const [availableModels,  setAvailableModels]  = useState<AIModel[]>([]);
-  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('gpt-4o-mini');
+  const [availableModels,  setAvailableModels]  = useState<AIModel[]>(STATIC_MODELS);
+  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('claude-sonnet-4-6');
+  const [membershipPlan, setMembershipPlan] = useState<string>('');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumModalModel, setPremiumModalModel] = useState<AIModel | null>(null);
 
   // Easy mode
   const [easyMode, setEasyMode] = useState(false);
@@ -383,12 +411,15 @@ export default function LabPage() {
 
   useEffect(() => {
     if (!agentUp) return;
-    fetchAvailableModels(AGENT_URL).then(models => {
-      if (models.length > 0) {
-        setAvailableModels(models);
-        const ids = models.map(m => m.id);
-        setSelectedAiModelId(prev => ids.includes(prev) ? prev : ids[0]);
-      }
+    fetchAvailableModels(AGENT_URL).then(backendModels => {
+      // Merge: STATIC_MODELS as base, override with backend data if available
+      const backendMap = new Map(backendModels.map(m => [m.id, m]));
+      const merged = STATIC_MODELS.map(m => backendMap.get(m.id) ?? m);
+      // Also add any backend-only models not in STATIC_MODELS
+      backendModels.forEach(m => { if (!merged.find(x => x.id === m.id)) merged.push(m); });
+      setAvailableModels(merged);
+      const ids = merged.map(m => m.id);
+      setSelectedAiModelId(prev => ids.includes(prev) ? prev : ids[0]);
     });
   }, [agentUp]);
 
@@ -434,6 +465,7 @@ export default function LabPage() {
       .then((data: any) => {
         const nextStatus = String(data?.user?.membershipStatus || '').toLowerCase() === 'ownque_user' ? 'ownque_user' : 'free';
         setMembershipStatus(nextStatus);
+        setMembershipPlan(String(data?.user?.membershipPlan || ''));
       })
       .catch(() => {
         if (!membershipStatus) setMembershipStatus('free');
@@ -892,25 +924,8 @@ export default function LabPage() {
   }, [addMsg]);
 
   const deployToMlops = useCallback(() => {
-    if (!modelEvaluated) {
-      addMsg({ type: 'error', text: 'Run model evaluation first, then choose a deployment output method.' });
-      return;
-    }
-    if (deployPaid) {
-      router.push('/my-deployments');
-      return;
-    }
-    const session = sid || sidRef.current;
-    if (!session) {
-      addMsg({ type: 'error', text: 'Complete training and evaluation before deploying to MLOps.' });
-      return;
-    }
-    if (membershipStatus === 'ownque_user') {
-      void provisionMlopsDeployment('', session, selectedModel || 'Trained Model');
-      return;
-    }
-    openDeployPaymentPage();
-  }, [modelEvaluated, deployPaid, router, openDeployPaymentPage, addMsg, sid, membershipStatus, provisionMlopsDeployment, selectedModel]);
+    router.push('/mlops-coming-soon');
+  }, [router]);
 
   // ── Download Model click — always free ───────────────────────────────────
   const downloadModel = useCallback(() => {
@@ -921,7 +936,7 @@ export default function LabPage() {
   const handlePaySuccess = useCallback(() => {
     setModelPaid(true);
     setShowPayModal(false);
-    setTimeout(() => void doDownloadModel('paid'), 350);
+    setTimeout(() => void doDownloadModel(), 350);
   }, [doDownloadModel]);
 
   useEffect(() => {
@@ -1015,24 +1030,15 @@ export default function LabPage() {
                 <Code2 size={12} /><span>Python Script</span>
               </button>
 
-              <button onClick={deployToMlops} disabled={deployingMlops}
+              <button onClick={deployToMlops}
                 style={{
                   ...ghostBtn,
-                  color: deployingMlops ? '#475569' : deployPaid ? '#f9a8d4' : '#d8b4fe',
-                  borderColor: deployingMlops ? 'rgba(255,255,255,0.1)' : deployPaid ? 'rgba(244,114,182,0.4)' : 'rgba(192,132,252,0.45)',
-                  background: deployPaid ? 'rgba(244,114,182,0.1)' : 'rgba(192,132,252,0.1)',
+                  color: '#d8b4fe',
+                  borderColor: 'rgba(192,132,252,0.45)',
+                  background: 'rgba(192,132,252,0.1)',
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}>
-                {deployingMlops
-                  ? <><SpinIcon size={10} /><span>Deploying...</span></>
-                  : deployPaid
-                    ? <><Network size={12} /><span>My Deployments</span></>
-                    : <><Lock size={12} /><span>Deploy MLOps</span>
-                        <span style={{ fontSize: 10, padding: '1px 5px', borderRadius: 4, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.35)', color: '#d8b4fe', marginLeft: 2 }}>
-                          ${MLOPS_DEPLOY_PRICE}
-                        </span>
-                      </>
-                }
+                <><Rocket size={12} /><span>Deploy Project</span></>
               </button>
             </>
           )}
@@ -1113,7 +1119,24 @@ export default function LabPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <Bot size={13} />
               <span style={{ fontWeight: 700, fontSize: 13, color: '#bfdbfe' }}>ML Agent</span>
-              <ModelSelector models={availableModels} selectedId={selectedAiModelId} onChange={setSelectedAiModelId} disabled={analyzing || buildingPipeline} />
+              <ModelSelector
+                models={availableModels}
+                selectedId={selectedAiModelId}
+                membershipStatus={membershipStatus}
+                membershipPlan={membershipPlan}
+                onChange={(id) => {
+                  const m = availableModels.find(x => x.id === id);
+                  if (!m) return;
+                  const tier = getModelTier(id);
+                  const hasPlan = membershipStatus === 'ownque_user';
+                  const has1399 = hasPlan && membershipPlan === 'plan_1399';
+                  const has750  = hasPlan;
+                  if (tier === 'plan_1399' && !has1399) { setPremiumModalModel(m); setShowPremiumModal(true); return; }
+                  if (tier === 'plan_750'  && !has750)  { setPremiumModalModel(m); setShowPremiumModal(true); return; }
+                  setSelectedAiModelId(id);
+                }}
+                disabled={analyzing || buildingPipeline}
+              />
             </div>
             <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: 'none' }}
               onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); e.target.value = ''; }} />
@@ -1186,6 +1209,58 @@ export default function LabPage() {
           onClose={() => setShowPayModal(false)}
           onSuccess={handlePaySuccess}
         />
+      )}
+
+      {/* Premium model modal */}
+      {showPremiumModal && premiumModalModel && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          onClick={() => setShowPremiumModal(false)}>
+          <div style={{ background: '#110720', border: '1px solid rgba(192,132,252,0.45)', borderRadius: 20, padding: '28px 28px 24px', maxWidth: 440, width: '100%', boxShadow: '0 24px 80px rgba(0,0,0,0.7)' }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(192,132,252,0.15)', border: '1px solid rgba(192,132,252,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Lock size={18} color="#d8b4fe" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 16, color: '#f3e8ff' }}>Premium Model</div>
+                <div style={{ fontSize: 12, color: '#a78bfa' }}>{premiumModalModel.display_name}</div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 14, color: '#c4b5fd', lineHeight: 1.7, margin: '0 0 18px' }}>
+              <strong style={{ color: '#f5d0fe' }}>{premiumModalModel.display_name}</strong> requires a Premium Subscription to use inside OwnQuesta AutoML Playground.
+            </p>
+
+            {/* Plan benefits */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+              {[
+                { plan: '₹750 / month', desc: 'All GPT models + Claude Haiku 4.5', tier: 'plan_750', color: '#60a5fa' },
+                { plan: '₹1,399 / month', desc: 'All GPT + All Claude models', tier: 'plan_1399', color: '#c084fc', recommended: true },
+              ].map(p => (
+                <div key={p.tier} style={{ border: `1px solid ${p.tier === 'plan_1399' ? 'rgba(192,132,252,0.4)' : 'rgba(96,165,250,0.35)'}`, borderRadius: 10, padding: '10px 14px', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.plan}</div>
+                    <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{p.desc}</div>
+                  </div>
+                  {p.recommended && <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 999, background: 'rgba(192,132,252,0.2)', color: '#d8b4fe', fontWeight: 700 }}>Recommended</span>}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => { setShowPremiumModal(false); router.push('/subscription'); }}
+                style={{ flex: 1, background: 'linear-gradient(135deg, rgba(124,58,237,0.85), rgba(109,40,217,0.85))', border: '1px solid rgba(192,132,252,0.5)', color: '#f5d0fe', borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+                <Rocket size={14} /> Upgrade to Premium
+              </button>
+              <button
+                onClick={() => setShowPremiumModal(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#94a3b8', borderRadius: 10, padding: '10px 16px', fontSize: 14, cursor: 'pointer' }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1952,16 +2027,15 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
                 <span style={{ fontSize: 11, color: '#2dd4bf' }}>Free download (.ipynb, .py, and trained model)</span>
               </button>
 
-              <button onClick={onDeployMlops} disabled={!modelEvaluated || deployingMlops}
+              <button onClick={onDeployMlops}
                 style={{
-                  padding: '12px', borderRadius: 11, textAlign: 'left', cursor: (!modelEvaluated || deployingMlops) ? 'not-allowed' : 'pointer',
-                  background: deployPaid ? 'linear-gradient(135deg,rgba(168,85,247,0.22),rgba(236,72,153,0.22))' : 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(236,72,153,0.15))',
+                  padding: '12px', borderRadius: 11, textAlign: 'left', cursor: 'pointer',
+                  background: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(236,72,153,0.15))',
                   border: '1px solid rgba(216,180,254,0.45)', color: '#e9d5ff',
                   display: 'flex', flexDirection: 'column', gap: 5,
                 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13 }}><Network size={14} /> Deploy MLOps</span>
-                <span style={{ fontSize: 11, color: '#f5d0fe' }}>Production deployment with monitoring and autoscaling</span>
-                {!deployPaid && <span style={{ fontSize: 11, color: '#d8b4fe' }}>Deploy unlock • ${mlopsDeployPrice}</span>}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13 }}><Rocket size={14} /> Deploy Project</span>
+                <span style={{ fontSize: 11, color: '#f5d0fe' }}>MLOps deployment — coming soon from OwnQuesta</span>
               </button>
             </div>
             {deployInfo?.endpointUrl && (
@@ -2044,14 +2118,9 @@ function EasyModePanel({ analysisStage, uploadedFilename, cells, analyzing, buil
             style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(96,165,250,0.14),rgba(59,130,246,0.14))', border: '1px solid rgba(96,165,250,0.45)', color: '#60a5fa', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
             <Code2 size={18} /><span>Open Python Script Editor</span>
           </button>
-          <button onClick={onDeployMlops} disabled={deployingMlops || !modelEvaluated}
-            style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: (deployingMlops || !modelEvaluated) ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,rgba(168,85,247,0.16),rgba(236,72,153,0.16))', border: '1px solid rgba(216,180,254,0.45)', color: '#e9d5ff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
-            {deployingMlops
-              ? <><SpinIcon size={14} /><span>Provisioning MLOps...</span></>
-              : deployPaid
-                ? <><Network size={18} /><span>Manage MLOps Deployment</span></>
-                : <><Lock size={18} /><span>Deploy MLOps</span><span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: 'rgba(216,180,254,0.15)', border: '1px solid rgba(216,180,254,0.35)', color: '#d8b4fe' }}>${mlopsDeployPrice}</span></>
-            }
+          <button onClick={onDeployMlops}
+            style={{ width: '100%', padding: '13px', borderRadius: 12, cursor: 'pointer', background: 'linear-gradient(135deg,rgba(168,85,247,0.16),rgba(236,72,153,0.16))', border: '1px solid rgba(216,180,254,0.45)', color: '#e9d5ff', fontSize: 14, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'all 0.2s' }}>
+            <><Rocket size={18} /><span>Deploy Project</span></>
           </button>
           <p style={{ margin: 0, fontSize: 11, color: '#475569', textAlign: 'center' }}>Run, edit, and export your pipeline as <code style={{ fontFamily: 'monospace' }}>.py</code> or <code style={{ fontFamily: 'monospace' }}>.ipynb</code></p>
         </div>
@@ -2310,7 +2379,7 @@ function AutoMlIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-function ModelSelector({ models, selectedId, onChange, disabled }: { models: AIModel[]; selectedId: string; onChange: (id: string) => void; disabled?: boolean; }) {
+function ModelSelector({ models, selectedId, onChange, disabled, membershipStatus = '', membershipPlan = '' }: { models: AIModel[]; selectedId: string; onChange: (id: string) => void; disabled?: boolean; membershipStatus?: string; membershipPlan?: string; }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -2324,7 +2393,7 @@ function ModelSelector({ models, selectedId, onChange, disabled }: { models: AIM
   const anthropicModels = models.filter(m => m.provider === 'anthropic');
   const providerIcon = (p: string) => p === 'anthropic' ? <Diamond size={8} /> : <Hexagon size={8} />;
   const providerColor = (p: string) => p === 'anthropic' ? '#d4a0ff' : '#4ade80';
-  if (!models.length) return <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>GPT-4o-mini</span>;
+  if (!models.length) return <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, background: 'rgba(110,84,200,0.2)', border: '1px solid rgba(110,84,200,0.35)', color: '#a87edf' }}>Sonnet 4.6</span>;
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button onClick={() => !disabled && setOpen(o => !o)}
@@ -2334,30 +2403,33 @@ function ModelSelector({ models, selectedId, onChange, disabled }: { models: AIM
         <ChevronDown size={10} style={{ opacity: 0.7, marginLeft: 1, transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </button>
       {open && (
-        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 9999, background: '#13141f', border: '1px solid rgba(110,84,200,0.35)', borderRadius: 10, padding: '6px 0', minWidth: 220, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
-          {openaiModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#4ade80', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Hexagon size={8} /> OpenAI</div>{openaiModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
+        <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 9999, background: '#13141f', border: '1px solid rgba(110,84,200,0.35)', borderRadius: 10, padding: '6px 0', minWidth: 240, maxHeight: 340, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+          {openaiModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#4ade80', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Hexagon size={8} /> OpenAI</div>{openaiModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} membershipStatus={membershipStatus} membershipPlan={membershipPlan} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
           {openaiModels.length > 0 && anthropicModels.length > 0 && <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '5px 0' }} />}
-          {anthropicModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#d4a0ff', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Diamond size={8} /> Anthropic</div>{anthropicModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
+          {anthropicModels.length > 0 && (<><div style={{ padding: '4px 12px 3px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#d4a0ff', opacity: 0.7, display: 'flex', alignItems: 'center', gap: 4 }}><Diamond size={8} /> Anthropic</div>{anthropicModels.map(m => <ModelOption key={m.id} m={m} selectedId={selectedId} membershipStatus={membershipStatus} membershipPlan={membershipPlan} onChange={id => { onChange(id); setOpen(false); }} />)}</>)}
         </div>
       )}
     </div>
   );
 }
 
-function ModelOption({ m, selectedId, onChange }: { m: AIModel; selectedId: string; onChange: (id: string) => void; }) {
-  const used = getModelUsageCount(m.id);
-  const exhausted = m.free_quota !== null && used >= m.free_quota;
-  const remaining = m.free_quota !== null ? Math.max(0, m.free_quota - used) : null;
+function ModelOption({ m, selectedId, onChange, membershipStatus = '', membershipPlan = '' }: { m: AIModel; selectedId: string; onChange: (id: string) => void; membershipStatus?: string; membershipPlan?: string; }) {
   const isSelected = m.id === selectedId;
+  const unlocked = modelUnlocked(m.id, membershipStatus, membershipPlan);
+  const tier = getModelTier(m.id);
+  const tierLabel = tier === 'plan_1399' ? '₹1,399' : tier === 'plan_750' ? '₹750' : null;
   return (
-    <button disabled={exhausted} onClick={() => !exhausted && onChange(m.id)}
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '7px 12px', background: isSelected ? 'rgba(110,84,200,0.2)' : 'transparent', border: 'none', cursor: exhausted ? 'not-allowed' : 'pointer', color: exhausted ? '#3a3d55' : isSelected ? '#c4b5fd' : '#94a3b8', textAlign: 'left', fontFamily: 'inherit', gap: 8, transition: 'background 0.12s' }}
-      onMouseEnter={e => { if (!exhausted && !isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
-      onMouseLeave={e => { if (!exhausted && !isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-      <span style={{ fontSize: 12, fontWeight: isSelected ? 700 : 400, flex: 1 }}>{m.display_name}</span>
+    <button onClick={() => onChange(m.id)}
+      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '7px 12px', background: isSelected ? 'rgba(110,84,200,0.2)' : 'transparent', border: 'none', cursor: 'pointer', color: !unlocked ? '#4a4d6a' : isSelected ? '#c4b5fd' : '#94a3b8', textAlign: 'left', fontFamily: 'inherit', gap: 8, transition: 'background 0.12s' }}
+      onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
+      onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = isSelected ? 'rgba(110,84,200,0.2)' : 'transparent'; }}>
+      <span style={{ fontSize: 12, fontWeight: isSelected ? 700 : 400, flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+        {!unlocked && <Lock size={10} color="#6366f1" style={{ flexShrink: 0 }} />}
+        {m.display_name}
+      </span>
       <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-        {remaining !== null && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700, background: exhausted ? 'rgba(239,68,68,0.1)' : 'rgba(74,222,128,0.1)', color: exhausted ? '#ef4444' : '#4ade80', border: `1px solid ${exhausted ? 'rgba(239,68,68,0.3)' : 'rgba(74,222,128,0.3)'}` }}>{exhausted ? 'used up' : `${remaining} left`}</span>}
-        {isSelected && <Check size={10} color="#a87edf" />}
+        {!unlocked && tierLabel && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700, background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>{tierLabel}</span>}
+        {isSelected && unlocked && <Check size={10} color="#a87edf" />}
       </span>
     </button>
   );

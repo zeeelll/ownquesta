@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats, getAdminPayments } from "@/services/api";
+import { getAllUsers, deleteUser, makeUserAdmin, removeUserAdmin, updateUser, registerAdmin, registerUser, getUserActivities, getAllActivities, getAdminHelpTickets, getAdminProjects, getAdminProjectStats, getAdminPayments, getAdminSubscriptionPayments, approveSubscriptionPayment, rejectSubscriptionPayment } from "@/services/api";
 import Button from '../components/Button';
 import Logo from '../components/Logo';
 import {
@@ -354,6 +354,10 @@ export default function AdminPage() {
   const [projectError, setProjectError] = useState('');
   const [supportError, setSupportError] = useState('');
   const [paymentError, setPaymentError] = useState('');
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subStatusFilter, setSubStatusFilter] = useState<string>('pending');
+  const [subActionLoading, setSubActionLoading] = useState<string>('');
+  const [paymentsSubTab, setPaymentsSubTab] = useState<'transactions' | 'subscriptions'>('subscriptions');
   const [showActivities, setShowActivities] = useState(false);
   const [activityView, setActivityView] = useState<'user' | 'all'>('all');
   const [searchTerm, setSearchTerm] = useState("");
@@ -408,6 +412,7 @@ export default function AdminPage() {
     }
     if (activeTab === 'payments' && payments.length === 0) {
       handleLoadPayments();
+      handleLoadSubscriptions('pending');
     }
     if (activeTab === 'support' && helpTickets.length === 0) {
       handleLoadHelpTickets();
@@ -957,6 +962,43 @@ export default function AdminPage() {
       setPaymentError(err.message || 'Failed to load payments');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleLoadSubscriptions = async (status = subStatusFilter) => {
+    setSubActionLoading('load');
+    try {
+      const res = await getAdminSubscriptionPayments(status);
+      setSubscriptions(res.payments || []);
+    } catch {
+      setSubscriptions([]);
+    } finally {
+      setSubActionLoading('');
+    }
+  };
+
+  const handleApproveSubscription = async (id: string) => {
+    setSubActionLoading(id);
+    try {
+      await approveSubscriptionPayment(id);
+      await handleLoadSubscriptions();
+    } catch (e: any) {
+      alert(e?.message || 'Failed to approve');
+    } finally {
+      setSubActionLoading('');
+    }
+  };
+
+  const handleRejectSubscription = async (id: string) => {
+    if (!confirm('Reject this subscription payment?')) return;
+    setSubActionLoading(id);
+    try {
+      await rejectSubscriptionPayment(id);
+      await handleLoadSubscriptions();
+    } catch (e: any) {
+      alert(e?.message || 'Failed to reject');
+    } finally {
+      setSubActionLoading('');
     }
   };
 
@@ -1602,9 +1644,110 @@ export default function AdminPage() {
                   <span className="action-chip action-chip-purple">Revenue: ₹{paymentSummary.revenueInr.toFixed(2)}</span>
                 </div>
               </div>
+
+              {/* Sub-tabs */}
+              <div style={{ display: 'flex', gap: 8, marginTop: 20, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 0 }}>
+                {([['subscriptions', '🔐 Subscription Verification', subscriptions.filter(s => s.status === 'pending').length], ['transactions', '💳 Transactions', 0]] as const).map(([key, label, badge]) => (
+                  <button key={key} onClick={() => { setPaymentsSubTab(key as any); if (key === 'subscriptions') handleLoadSubscriptions(subStatusFilter); }}
+                    style={{ padding: '8px 16px', borderRadius: '8px 8px 0 0', border: 'none', borderBottom: paymentsSubTab === key ? '2px solid #a78bfa' : '2px solid transparent', background: paymentsSubTab === key ? 'rgba(167,139,250,0.1)' : 'transparent', color: paymentsSubTab === key ? '#d8b4fe' : '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {label}
+                    {badge > 0 && <span style={{ background: '#ef4444', color: '#fff', borderRadius: 999, padding: '1px 6px', fontSize: 10, fontWeight: 800 }}>{badge}</span>}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-6">
+            {/* Subscription Verification Panel */}
+            {paymentsSubTab === 'subscriptions' && (
+              <div className="panel-card p-6" style={{ background: 'rgba(17,7,34,0.6)', border: '1px solid rgba(167,139,250,0.25)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+                  <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#f3e8ff', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    🔐 Subscription Payment Verification
+                    <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 999, background: 'rgba(251,191,36,0.15)', color: '#fde68a', border: '1px solid rgba(251,191,36,0.35)' }}>Manual Review</span>
+                  </h4>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {(['pending', 'paid', 'failed', 'all'] as const).map(s => (
+                      <button key={s} onClick={() => { setSubStatusFilter(s); handleLoadSubscriptions(s); }}
+                        style={{ padding: '5px 12px', borderRadius: 8, border: `1px solid ${subStatusFilter === s ? 'rgba(167,139,250,0.6)' : 'rgba(255,255,255,0.12)'}`, background: subStatusFilter === s ? 'rgba(167,139,250,0.18)' : 'transparent', color: subStatusFilter === s ? '#d8b4fe' : '#64748b', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit', textTransform: 'capitalize' }}>
+                        {s}
+                      </button>
+                    ))}
+                    <button onClick={() => handleLoadSubscriptions(subStatusFilter)} style={{ padding: '5px 12px', borderRadius: 8, border: '1px solid rgba(96,165,250,0.4)', background: 'rgba(96,165,250,0.1)', color: '#93c5fd', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
+                      {subActionLoading === 'load' ? 'Loading…' : '↻ Refresh'}
+                    </button>
+                  </div>
+                </div>
+
+                {subscriptions.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#475569', fontSize: 14 }}>
+                    No {subStatusFilter === 'all' ? '' : subStatusFilter} subscription payments found.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {subscriptions.map((sub: any) => {
+                      const user = sub.userId && typeof sub.userId === 'object' ? sub.userId : null;
+                      const isPending = sub.status === 'pending';
+                      const isApproved = sub.status === 'paid';
+                      const statusColor = isPending ? '#fbbf24' : isApproved ? '#4ade80' : '#f87171';
+                      const statusBg = isPending ? 'rgba(251,191,36,0.1)' : isApproved ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)';
+                      const planLabel = sub.planType === 'plan_1399' ? '₹1,399 / month (Pro)' : sub.planType === 'plan_750' ? '₹750 / month (Starter)' : sub.planType;
+                      const busy = subActionLoading === sub._id;
+                      return (
+                        <div key={sub._id} style={{ border: `1px solid ${isPending ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 14, padding: '16px 18px', background: 'rgba(255,255,255,0.02)' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1, minWidth: 220 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                <span style={{ fontWeight: 700, fontSize: 14, color: '#f3e8ff' }}>{user?.name || sub.customerName || 'Unknown'}</span>
+                                <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 999, background: statusBg, color: statusColor, fontWeight: 700, textTransform: 'capitalize' }}>{sub.status}</span>
+                              </div>
+                              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 4 }}>{user?.email || sub.customerEmail}</div>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: '#c4b5fd', marginBottom: 4 }}>{planLabel}</div>
+                              <div style={{ fontSize: 11, color: '#64748b' }}>Order: {sub.orderId} · Tx: {sub.transactionId || '—'}</div>
+                              <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>UPI: {sub.payerUpiId || '—'} · Submitted: {new Date(sub.createdAt).toLocaleString()}</div>
+                            </div>
+
+                            {/* Screenshot */}
+                            <div style={{ flexShrink: 0 }}>
+                              {sub.paymentScreenshot?.dataUrl ? (
+                                <a href={sub.paymentScreenshot.dataUrl} target="_blank" rel="noopener noreferrer">
+                                  <img src={sub.paymentScreenshot.dataUrl} alt="screenshot" style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer' }} />
+                                </a>
+                              ) : (
+                                <div style={{ width: 90, height: 90, borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#475569' }}>No screenshot</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          {isPending && (
+                            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                              <button onClick={() => handleApproveSubscription(sub._id)} disabled={busy}
+                                style={{ border: '1px solid rgba(74,222,128,0.45)', background: 'rgba(74,222,128,0.12)', color: '#86efac', borderRadius: 8, padding: '7px 18px', cursor: busy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {busy ? '…' : '✅ Approve'} — Activate Premium
+                              </button>
+                              <button onClick={() => handleRejectSubscription(sub._id)} disabled={busy}
+                                style={{ border: '1px solid rgba(248,113,113,0.4)', background: 'rgba(248,113,113,0.08)', color: '#fca5a5', borderRadius: 8, padding: '7px 14px', cursor: busy ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {busy ? '…' : '❌ Reject'}
+                              </button>
+                            </div>
+                          )}
+                          {isApproved && (
+                            <div style={{ marginTop: 10, fontSize: 12, color: '#4ade80', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              ✅ Approved — user has premium access · Expires: {sub.userId?.membershipExpiresAt ? new Date(sub.userId.membershipExpiresAt).toLocaleDateString() : '—'}
+                            </div>
+                          )}
+                          {sub.status === 'failed' && (
+                            <div style={{ marginTop: 10, fontSize: 12, color: '#f87171' }}>❌ Rejected</div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {paymentsSubTab === 'transactions' && (<><div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-8 gap-6">
               <div className="stat-card stat-card-blue">
                 <div className="flex items-center justify-between">
                   <div>
@@ -2028,6 +2171,7 @@ export default function AdminPage() {
                 </div>
               )}
             </div>
+            </>)}
           </div>
         )}
 
