@@ -6,6 +6,7 @@ const requireAdmin = require("../middleware/admin.middleware");
 const adminController = require("../controllers/admin.controller");
 const authController = require("../controllers/auth.controller");
 const helpController = require("../controllers/help.controller");
+const subscriptionController = require("../controllers/subscription.controller");
 
 router.use(requireAuth); // All admin routes require authentication
 router.use(requireAdmin); // All admin routes require admin role
@@ -29,6 +30,11 @@ router.get("/projects/stats", adminController.getProjectStats);
 
 // Payment routes
 router.get("/payments", adminController.getAllPayments);
+
+// Subscription verification routes
+router.get("/payments/subscriptions", subscriptionController.getSubscriptionPayments);
+router.put("/payments/:id/approve", subscriptionController.approveSubscription);
+router.put("/payments/:id/reject", subscriptionController.rejectSubscription);
 
 // Admin registration endpoint
 router.post("/register-admin", authController.registerAdmin);

@@ -4,6 +4,7 @@ const router = require("express").Router();
 const requireAuth = require("../middleware/auth.middleware");
 const ActivityService = require("../services/activity.service");
 const userAssetsController = require("../controllers/userAssets.controller");
+const subscriptionController = require("../controllers/subscription.controller");
 
 router.get("/dashboard", requireAuth, (req, res) => {
   res.json({ message: "Welcome Dashboard ✅", user: req.user });
@@ -56,5 +57,9 @@ router.post("/membership/upgrade", requireAuth, userAssetsController.upgradeMemb
 router.get("/deployments", requireAuth, userAssetsController.getMyDeployments);
 router.post("/deployments/provision", requireAuth, userAssetsController.provisionDeployment);
 router.patch("/deployments/:id/scale", requireAuth, userAssetsController.scaleDeployment);
+
+// Subscription routes
+router.post("/subscription/submit", requireAuth, subscriptionController.submitSubscription);
+router.get("/subscription/status", requireAuth, subscriptionController.getSubscriptionStatus);
 
 module.exports = router;

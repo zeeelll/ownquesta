@@ -243,6 +243,38 @@ export async function getUserProjectsForAdmin(userId: string) {
   return api(`/api/admin/users/${userId}/projects`);
 }
 
+// Subscription APIs
+export async function submitSubscription(payload: {
+  planType: 'plan_750' | 'plan_1399';
+  customerName?: string;
+  customerEmail?: string;
+  transactionId: string;
+  payerUpiId?: string;
+  paymentTime?: string;
+  paymentScreenshot?: { fileName?: string; mimeType?: string; dataUrl?: string };
+}) {
+  return api('/api/user/subscription/submit', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export async function getSubscriptionStatus() {
+  return api('/api/user/subscription/status');
+}
+
+export async function getAdminSubscriptionPayments(status?: string) {
+  const params = new URLSearchParams();
+  if (status && status !== 'all') params.append('status', status);
+  const q = params.toString();
+  return api(`/api/admin/payments/subscriptions${q ? `?${q}` : ''}`);
+}
+
+export async function approveSubscriptionPayment(id: string) {
+  return api(`/api/admin/payments/${id}/approve`, { method: 'PUT' });
+}
+
+export async function rejectSubscriptionPayment(id: string) {
+  return api(`/api/admin/payments/${id}/reject`, { method: 'PUT' });
+}
+
 // Gen agent (explain) — proxies to backend /api/gen/explain
 export async function explainModelViaGen(best_model: any, eda_result?: any, goal?: any, processed_sample?: any, model_summaries?: any) {
   return api('/api/gen/explain', {

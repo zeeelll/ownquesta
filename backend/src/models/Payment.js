@@ -10,10 +10,11 @@ const paymentSchema = new mongoose.Schema(
     product: { type: String, default: "trained-model" },
     productType: {
       type: String,
-      enum: ["model", "py", "ipynb", "deploy", "other"],
+      enum: ["model", "py", "ipynb", "deploy", "subscription", "other"],
       default: "model",
       index: true,
     },
+    planType: { type: String, enum: ["", "plan_750", "plan_1399"], default: "" },
     modelName: { type: String, default: "Trained Model" },
     method: { type: String, default: "N/A" },
     gateway: { type: String, default: "RAZORPAY" },
@@ -31,7 +32,7 @@ const paymentSchema = new mongoose.Schema(
     amountInr: { type: Number, required: true, min: 0 },
     status: {
       type: String,
-      enum: ["created", "paid", "failed"],
+      enum: ["created", "pending", "paid", "failed"],
       default: "paid",
       index: true,
     },
