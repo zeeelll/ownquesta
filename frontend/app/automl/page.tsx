@@ -805,9 +805,13 @@ export default function LabPage() {
   const openScriptEditor = useCallback(() => {
     const session = sid || sidRef.current; if (!session) return;
     const cellCodes = cellsRef.current.map(c => c.code).filter(Boolean);
-    localStorage.setItem('automl_script_session', JSON.stringify({ sessionId: session, cells: cellCodes }));
+    localStorage.setItem('automl_script_session', JSON.stringify({
+      sessionId: session,
+      cells: cellCodes,
+      selectedAiModelId,
+    }));
     router.push('/automl/script');
-  }, [sid, router]);
+  }, [sid, router, selectedAiModelId]);
 
   // ── Download Model (actual logic, always free) ────────────────────────────
   const doDownloadModel = useCallback(async () => {

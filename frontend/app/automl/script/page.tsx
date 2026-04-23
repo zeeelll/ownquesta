@@ -6,7 +6,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { fetchAvailableModels, type AIModel } from '../../../lib/aiModels';
-import { trackDownloadAccess } from '../../../services/api';
+import { getCurrentUser, trackDownloadAccess } from '../../../services/api';
 
 const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
 const LAB_URL   = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
@@ -43,6 +43,28 @@ function triggerDownload(content: string, filename: string, mime = 'text/plain')
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
 type DownloadType = 'py' | 'ipynb';
+
+const MODEL_TIERS: Record<string, 'free' | 'plan_750' | 'plan_1399'> = {
+  'gpt-4o-mini': 'free',
+  'gpt-4': 'free',
+  'gpt-5-3': 'plan_750',
+  'codex-5-2': 'plan_750',
+  'claude-haiku-4-5': 'plan_750',
+  'claude-sonnet-4-6': 'plan_1399',
+  'claude-opus-4-6': 'plan_1399',
+};
+
+function getModelTier(id: string): 'free' | 'plan_750' | 'plan_1399' {
+  return MODEL_TIERS[id] ?? 'plan_750';
+}
+
+function modelUnlocked(id: string, status: string, plan: string): boolean {
+  const tier = getModelTier(id);
+  if (tier === 'free') return true;
+  if (status !== 'ownque_user') return false;
+  if (tier === 'plan_750') return true;
+  return plan === 'plan_1399';
+}
 
 // ── Payment config — adjust price / label as needed ──────────────────────────
 const DOWNLOAD_PRICE = 2.99;
@@ -501,6 +523,8 @@ export default function ScriptPage() {
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [modelDropOpen, setModelDropOpen] = useState(false);
   const modelDropRef = useRef<HTMLDivElement>(null);
+  const [membershipPlan, setMembershipPlan] = useState('');
+  const [membershipStatus, setMembershipStatus] = useState<'free' | 'ownque_user' | ''>('');
 
   // Payment modal state
   const [payModal,   setPayModal]   = useState<DownloadType | null>(null);
@@ -513,8 +537,15 @@ export default function ScriptPage() {
     const raw = localStorage.getItem('automl_script_session');
     if (!raw) { setScript('# No session data found. Go back to the AutoML Playground and click "Python Script".'); return; }
     try {
-      const { sessionId: sid, cells } = JSON.parse(raw) as { sessionId: string; cells: string[] };
+      const { sessionId: sid, cells, selectedAiModelId } = JSON.parse(raw) as {
+        sessionId: string;
+        cells: string[];
+        selectedAiModelId?: string;
+      };
       setSessionId(sid);
+      if (selectedAiModelId) {
+        setSelectedModel(selectedAiModelId);
+      }
       fetch(`${AGENT_URL}/v2/generate-script`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -577,6 +608,35 @@ export default function ScriptPage() {
     });
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem('ownquesta_user_access');
+        if (cached) {
+          const parsed = JSON.parse(cached) as { membershipStatus?: string; membershipPlan?: string };
+          if (String(parsed.membershipStatus || '').toLowerCase() === 'ownque_user') {
+            setMembershipStatus('ownque_user');
+          }
+          if (parsed.membershipPlan) {
+            setMembershipPlan(String(parsed.membershipPlan));
+          }
+        }
+      } catch {
+        // ignore invalid cache
+      }
+    }
+
+    getCurrentUser()
+      .then((data: any) => {
+        const nextStatus = String(data?.user?.membershipStatus || '').toLowerCase() === 'ownque_user' ? 'ownque_user' : 'free';
+        setMembershipStatus(nextStatus);
+        setMembershipPlan(String(data?.user?.membershipPlan || ''));
+      })
+      .catch(() => {
+        setMembershipStatus(prev => prev || 'free');
+      });
+  }, []);
+
   useEffect(() => { outputEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [output]);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMsgs]);
 
@@ -634,7 +694,7 @@ export default function ScriptPage() {
     setDlNotebook(true);
     try {
       const raw = localStorage.getItem('automl_script_session');
-      const cells = raw ? (JSON.parse(raw) as { cells: string[] }).cells : [script];
+      const cells = raw ? (JSON.parse(raw) as { cells?: string[] }).cells ?? [script] : [script];
       const res = await fetch(`${AGENT_URL}/v2/generate-notebook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -823,6 +883,13 @@ export default function ScriptPage() {
   }, [chatInput, chatBusy, sessionId, script, selectedModel]);
 
   const selectedModelObj = models.find(m => m.id === selectedModel);
+  const activeTier = getModelTier(selectedModel);
+  const subscriptionLabel = membershipStatus === 'ownque_user'
+    ? membershipPlan === 'plan_1399'
+      ? 'customer_pro'
+      : 'customer_premium'
+    : 'free_user';
+  const tierHint = activeTier === 'free' ? 'Free Model' : activeTier === 'plan_750' ? 'Needs ₹750' : 'Needs ₹1399';
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const S = {
@@ -945,12 +1012,15 @@ export default function ScriptPage() {
           {/* Chat header with model selector */}
           <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 14 }}>🤖</span>
-            <span style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>AI Assistant</span>
+            <span style={{ fontWeight: 700, fontSize: 13 }}>ML Agent</span>
 
             {/* Model picker */}
-            <div ref={modelDropRef} style={{ position: 'relative' }}>
+            <div ref={modelDropRef} style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 999, border: '1px solid rgba(16,185,129,0.35)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', whiteSpace: 'nowrap', fontWeight: 700 }}>
+                {subscriptionLabel}
+              </span>
               <button onClick={() => setModelDropOpen(o => !o)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(110,84,200,0.4)', background: 'rgba(110,84,200,0.12)', color: '#c4b5fd', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, border: '1px solid rgba(110,84,200,0.35)', background: 'rgba(110,84,200,0.18)', color: '#c4b5fd', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'uppercase' }}>
                 {selectedModelObj?.short_name ?? selectedModel}
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ transform: modelDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M5 7L1 3h8L5 7z"/></svg>
               </button>
@@ -962,16 +1032,58 @@ export default function ScriptPage() {
                     if (!group.length) return null;
                     return (
                       <div key={provider}>
-                        <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#f97316' : '#60a5fa' }}>
-                          {provider === 'anthropic' ? 'Anthropic' : 'OpenAI'}
+                        <div style={{ padding: '6px 12px 4px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#d4a0ff' : '#4ade80', opacity: 0.78 }}>
+                          {provider === 'anthropic' ? '◈ ANTHROPIC' : '⬢ OPENAI'}
                         </div>
-                        {group.map(m => (
-                          <button key={m.id} onClick={() => { setSelectedModel(m.id); setModelDropOpen(false); }}
-                            style={{ width: '100%', textAlign: 'left', padding: '7px 12px', background: m.id === selectedModel ? 'rgba(110,84,200,0.2)' : 'none', border: 'none', color: m.id === selectedModel ? '#c4b5fd' : '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span>{m.short_name}</span>
-                            {m.id === selectedModel && <span style={{ color: '#a87edf' }}>✓</span>}
-                          </button>
-                        ))}
+                        {group.map(m => {
+                          const unlocked = modelUnlocked(m.id, membershipStatus, membershipPlan);
+                          const tier = getModelTier(m.id);
+                          const tierLabel = tier === 'plan_1399' ? '₹1,399' : tier === 'plan_750' ? '₹750' : null;
+                          const isSelected = m.id === selectedModel;
+                          return (
+                            <button
+                              key={m.id}
+                              onClick={() => {
+                                if (!unlocked) {
+                                  setModelDropOpen(false);
+                                  const params = new URLSearchParams({
+                                    source: 'automl-script-chat',
+                                    model: m.display_name,
+                                    requiredPlan: tier,
+                                  });
+                                  router.push(`/subscription?${params.toString()}`);
+                                  return;
+                                }
+                                setSelectedModel(m.id);
+                                setModelDropOpen(false);
+                              }}
+                              style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '7px 12px',
+                                background: isSelected ? 'rgba(110,84,200,0.2)' : 'none',
+                                border: 'none',
+                                color: !unlocked ? '#4a4d6a' : isSelected ? '#c4b5fd' : '#94a3b8',
+                                fontSize: 12,
+                                cursor: 'pointer',
+                                fontFamily: 'inherit',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 8,
+                              }}
+                            >
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {!unlocked && <span style={{ color: '#6366f1', fontSize: 10 }}>🔒</span>}
+                                <span style={{ fontWeight: isSelected ? 700 : 400 }}>{m.display_name}</span>
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                {!unlocked && tierLabel && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700, background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>{tierLabel}</span>}
+                                {isSelected && unlocked && <span style={{ color: '#a87edf' }}>✓</span>}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
                     );
                   })}
