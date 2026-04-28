@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, STATIC_MODELS, type AIModel } from '../../lib/aiModels';
-import { trackDownloadAccess, getCurrentUser } from '../../services/api';
+import { trackDownloadAccess, getCurrentUser, getMyProjects } from '../../services/api';
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
 const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
@@ -92,6 +92,15 @@ interface AnalysisData { problem_type: string; target_column: string; dataset_su
 type MsgType = 'welcome' | 'info' | 'analysis' | 'models' | 'fe' | 'pipeline' | 'user' | 'ai' | 'error' | 'insight' | 'predict_form' | 'guard' | 'eda_summary';
 type GuardStep = 'analyzing' | 'searching' | 'fixing' | 'success' | 'failed';
 interface ChatMsg { id: string; type: MsgType; text?: string; analysis?: AnalysisData; models?: ModelSuggestion[]; fe?: { code: string; output: string; error: string | null }; reasoning?: string; guardStep?: GuardStep; guardCode?: string; edaSummary?: { summary: string; featureImportance: string; preprocessing: string }; }
+type AutoMlAnalysisStage = 'idle' | 'analyzed' | 'pipeline_built';
+
+function mapProjectStageToAnalysisStage(stage?: string): AutoMlAnalysisStage {
+  if (stage === 'pipeline_built') return 'pipeline_built';
+  if (stage === 'analyzed') return 'analyzed';
+  if (['trained', 'evaluated', 'completed'].includes(stage || '')) return 'pipeline_built';
+  if (['eda_completed', 'model_selected', 'training'].includes(stage || '')) return 'analyzed';
+  return 'idle';
+}
 
 // ── Guard helper ──────────────────────────────────────────────────────────────
 function lastErrLine(preview: unknown): string {
@@ -499,6 +508,110 @@ export default function LabPage() {
       if (savedCells) { try { const cs = JSON.parse(savedCells) as Cell[]; if (cs.length > 0) setCells(cs); } catch { /* corrupt */ } }
     } catch { /* corrupt */ }
   }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
+    if (localStorage.getItem('automl_active_state')) return;
+
+    let cancelled = false;
+
+    const restoreFromBackend = async () => {
+      try {
+        const data = await getMyProjects(25) as { projects?: Array<{
+          sessionId?: string;
+          name?: string;
+          stage?: string;
+          targetColumn?: string;
+          selectedModel?: string;
+          dataset?: { filename?: string; filePath?: string };
+        }> };
+
+        if (cancelled) return;
+
+        const projects = (data.projects || []).filter(project => !!project.sessionId);
+        const resumeProject = projects.find(project => project.stage && project.stage !== 'initialized') || projects[0];
+        if (!resumeProject?.sessionId) return;
+
+        const restoreFromProject = () => {
+          sidRef.current = resumeProject.sessionId;
+          setSid(resumeProject.sessionId);
+          setAnalysisStage(mapProjectStageToAnalysisStage(resumeProject.stage));
+          setSelectedModel(resumeProject.selectedModel || null);
+          setUploadedFilename(resumeProject.dataset?.filename || null);
+          setUploadedFilePath(resumeProject.dataset?.filePath || null);
+          setTargetCol(resumeProject.targetColumn || '');
+          setModelEvaluated(['evaluated', 'completed'].includes(resumeProject.stage || ''));
+        };
+
+        restoreFromProject();
+
+        try {
+          const contextRes = await fetch(`${AGENT_URL}/v2/context/${resumeProject.sessionId}`);
+          if (contextRes.ok) {
+            const context = await contextRes.json() as {
+              filename?: string;
+              file_path?: string;
+              target_column?: string;
+              selected_model?: string | null;
+              feature_columns?: string[];
+              stage?: string;
+              problem_type?: string;
+              dataset_summary?: string;
+              feature_analysis?: string;
+              feature_engineering_reasoning?: string;
+              missing_values_note?: string;
+              eda_summary?: string;
+            };
+
+            if (context.selected_model) setSelectedModel(context.selected_model);
+            if (context.filename) setUploadedFilename(context.filename);
+            if (context.file_path) setUploadedFilePath(context.file_path);
+            if (context.target_column) setTargetCol(context.target_column);
+            if (context.stage) setAnalysisStage(mapProjectStageToAnalysisStage(context.stage));
+            if (context.stage === 'pipeline_built') setModelEvaluated(true);
+            if (context.feature_columns?.length) {
+              setFeatureColumns(context.feature_columns);
+              setPredictInputs(Object.fromEntries(context.feature_columns.map((column) => [column, ''])));
+            }
+          }
+        } catch {
+          // Fall back to the project record when the agent context cannot be loaded.
+        }
+
+        const savedState = {
+          sid: resumeProject.sessionId,
+          analysisStage: mapProjectStageToAnalysisStage(resumeProject.stage),
+          selectedModel: resumeProject.selectedModel || null,
+          featureColumns: [] as string[],
+          uploadedFilename: resumeProject.dataset?.filename || null,
+          uploadedFilePath: resumeProject.dataset?.filePath || null,
+          targetCol: resumeProject.targetColumn || '',
+          predictInputs: {},
+          modelEvaluated: ['evaluated', 'completed'].includes(resumeProject.stage || ''),
+        };
+        localStorage.setItem('automl_active_state', JSON.stringify(savedState));
+
+        addMsg({
+          type: 'info',
+          text: [
+            `**Resumed "${resumeProject.name || resumeProject.dataset?.filename || 'your project'}"**`,
+            `Last saved stage: *${(resumeProject.stage || 'initialized').replace(/_/g, ' ')}*`,
+            '',
+            '> Your saved AutoML session was restored from your account.',
+            '> Continue from the last completed step instead of starting over.',
+          ].join('\n'),
+        });
+      } catch {
+        // No saved backend project to restore.
+      }
+    };
+
+    void restoreFromBackend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [addMsg]);
 
   useEffect(() => {
     const raw = localStorage.getItem('mlContinueProject');

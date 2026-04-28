@@ -123,6 +123,13 @@ export async function getCurrentUser() {
   return api('/api/auth/me');
 }
 
+export async function getMyProjects(limit?: number) {
+  const params = new URLSearchParams();
+  if (limit) params.append('limit', limit.toString());
+  const query = params.toString();
+  return api(`/api/user/projects${query ? `?${query}` : ''}`);
+}
+
 export async function upgradeMembership(payload: {
   plan?: string;
   amountInr?: number;
