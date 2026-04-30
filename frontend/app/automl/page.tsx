@@ -531,8 +531,8 @@ export default function LabPage() {
         if (!resumeProject?.sessionId) return;
 
         const restoreFromProject = () => {
-          sidRef.current = resumeProject.sessionId;
-          setSid(resumeProject.sessionId);
+          sidRef.current = resumeProject.sessionId ?? null;
+          setSid(resumeProject.sessionId ?? null);
           setAnalysisStage(mapProjectStageToAnalysisStage(resumeProject.stage));
           setSelectedModel(resumeProject.selectedModel || null);
           setUploadedFilename(resumeProject.dataset?.filename || null);
@@ -640,7 +640,7 @@ export default function LabPage() {
               predictInputs?: Record<string, string>;
               modelEvaluated?: boolean;
             };
-            if (savedState.sid === proj.sessionId) {
+            // Always restore — even if session IDs differ, prefer backend project data
               if (savedState.analysisStage) setAnalysisStage(savedState.analysisStage);
               if (savedState.selectedModel) setSelectedModel(savedState.selectedModel);
               if (savedState.featureColumns?.length) {
@@ -648,7 +648,6 @@ export default function LabPage() {
                 setPredictInputs(savedState.predictInputs || Object.fromEntries(savedState.featureColumns.map((c: string) => [c, ''])));
               }
               if (savedState.modelEvaluated) setModelEvaluated(true);
-            }
           } catch {
             // ignore corrupt active state
           }
@@ -662,7 +661,7 @@ export default function LabPage() {
       if (proj.filename)    setUploadedFilename(proj.filename);
       if (proj.filePath)    setUploadedFilePath(proj.filePath);
       if (proj.targetColumn) setTargetCol(proj.targetColumn);
-      setAnalysisStage(prev => (prev === 'idle' ? mapStageToUi(stage) : prev));
+      setAnalysisStage(mapStageToUi(stage));
       if (['evaluated', 'completed'].includes(stage)) setModelEvaluated(true);
 
       const hint: Record<string, string> = {
@@ -780,6 +779,19 @@ export default function LabPage() {
       const r = await fetch(`${LAB_URL}/upload`, { method: 'POST', body: form });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json(); setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
+      if (d.s3_url && session) {
+        try {
+          const s3Form = new FormData();
+          s3Form.append('file', file);
+          await fetch(`${BACKEND_URL}/api/user/projects/upload/dataset/${session}`, {
+            method: 'POST',
+            credentials: 'include',
+            body: s3Form,
+          });
+        } catch (s3Err) {
+          console.warn('S3 project save failed:', s3Err);
+        }
+      }
       addMsg({ type: 'info', text: `**${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
       saveLabProjectToDashboard(d.filename);
       updateProjectProgress('dataset_uploaded', { name: newProjectNameRef.current || d.filename.replace(/\.[^/.]+$/, ''), dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() } });
