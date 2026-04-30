@@ -5,3 +5,11 @@ backend/.env
 frontend/.env
 .env.local
 .env.production
+node_modules/
+.next/
+*.env
+.env.*
+!.env.example
+build.log
+*.swp
+EOF
