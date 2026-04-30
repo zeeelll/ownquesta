@@ -163,3 +163,48 @@ router.delete("/:id", requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+
+const { uploadDataset } = require("../config/multer");
+
+router.post("/upload/dataset/:sessionId", requireAuth, uploadDataset.single("file"), async (req, res) => {
+
+  try {
+
+    const s3Url = req.file.location;
+
+    const project = await Project.findOneAndUpdate(
+
+      { userId: req.user._id, sessionId: req.params.sessionId },
+
+      {
+
+        $set: {
+
+          "dataset.filename": req.file.originalname,
+
+          "dataset.filePath": s3Url,
+
+          "dataset.sizeKb": Math.round(req.file.size / 1024),
+
+          "dataset.fileType": req.file.mimetype,
+
+          stage: "dataset_uploaded",
+
+        }
+
+      },
+
+      { new: true }
+
+    );
+
+    res.json({ success: true, url: s3Url, project });
+
+  } catch (err) {
+
+    res.status(500).json({ error: err.message });
+
+  }
+
+});
+

@@ -498,7 +498,8 @@ export default function ScriptPage() {
 
   // Models
   const [models,        setModels]        = useState<AIModel[]>([]);
-  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const savedSession = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('automl_active_state') || '{}') : {};
+  const [selectedModel, setSelectedModel] = useState(savedSession.selectedModel || 'gpt-4o-mini');
   const [modelDropOpen, setModelDropOpen] = useState(false);
   const modelDropRef = useRef<HTMLDivElement>(null);
 
@@ -572,7 +573,7 @@ export default function ScriptPage() {
     fetchAvailableModels(AGENT_URL).then(m => {
       if (m.length > 0) {
         setModels(m);
-        setSelectedModel(prev => m.some(x => x.id === prev) ? prev : m[0].id);
+        setSelectedModel((prev: string) => m.some(x => x.id === prev) ? prev : m[0].id);
       }
     });
   }, []);
@@ -947,37 +948,11 @@ export default function ScriptPage() {
             <span style={{ fontSize: 14 }}>🤖</span>
             <span style={{ fontWeight: 700, fontSize: 13, flex: 1 }}>AI Assistant</span>
 
-            {/* Model picker */}
-            <div ref={modelDropRef} style={{ position: 'relative' }}>
-              <button onClick={() => setModelDropOpen(o => !o)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(110,84,200,0.4)', background: 'rgba(110,84,200,0.12)', color: '#c4b5fd', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-                {selectedModelObj?.short_name ?? selectedModel}
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ transform: modelDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M5 7L1 3h8L5 7z"/></svg>
-              </button>
+            {/* Model: auto-selected from AutoML page */}
+            <span style={{ padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(110,84,200,0.4)', background: 'rgba(110,84,200,0.12)', color: '#c4b5fd', fontSize: 11, fontWeight: 600 }}>
+              {selectedModelObj?.short_name ?? selectedModel}
+            </span>
 
-              {modelDropOpen && models.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'rgba(10,12,28,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, minWidth: 200, zIndex: 200, overflow: 'hidden', backdropFilter: 'blur(16px)' }}>
-                  {['openai', 'anthropic'].map(provider => {
-                    const group = models.filter(m => m.provider === provider);
-                    if (!group.length) return null;
-                    return (
-                      <div key={provider}>
-                        <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#f97316' : '#60a5fa' }}>
-                          {provider === 'anthropic' ? 'Anthropic' : 'OpenAI'}
-                        </div>
-                        {group.map(m => (
-                          <button key={m.id} onClick={() => { setSelectedModel(m.id); setModelDropOpen(false); }}
-                            style={{ width: '100%', textAlign: 'left', padding: '7px 12px', background: m.id === selectedModel ? 'rgba(110,84,200,0.2)' : 'none', border: 'none', color: m.id === selectedModel ? '#c4b5fd' : '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span>{m.short_name}</span>
-                            {m.id === selectedModel && <span style={{ color: '#a87edf' }}>✓</span>}
-                          </button>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Messages */}

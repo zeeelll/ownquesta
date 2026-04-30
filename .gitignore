@@ -1,10 +1,4 @@
-# env files
-.env
-*.env
-backend/.env
-frontend/.env
-.env.local
-.env.production
+
 node_modules/
 .next/
 *.env
@@ -12,4 +6,3 @@ node_modules/
 !.env.example
 build.log
 *.swp
-EOF

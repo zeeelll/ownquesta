@@ -380,7 +380,7 @@ export default function HelpPage() {
       formData.append('stepsTried', 'Submitted from Help page contact form.');
       proofFiles.forEach((file) => formData.append('proof', file));
 
-      const response = await fetch('/api/help', {
+      const response = await fetch(`${BACKEND_URL}/api/help`,  {
         method: 'POST',
         body: formData,
       });

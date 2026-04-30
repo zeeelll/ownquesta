@@ -63,3 +63,26 @@ router.post("/subscription/submit", requireAuth, subscriptionController.submitSu
 router.get("/subscription/status", requireAuth, subscriptionController.getSubscriptionStatus);
 
 module.exports = router;
+
+const { uploadUserProfile } = require("../config/multer");
+
+const User = require("../models/User");
+
+router.post("/upload/avatar", requireAuth, uploadUserProfile.single("file"), async (req, res) => {
+
+  try {
+
+    const s3Url = req.file.location;
+
+    await User.findByIdAndUpdate(req.user._id, { avatar: s3Url });
+
+    res.json({ success: true, avatar: s3Url });
+
+  } catch (err) {
+
+    res.status(500).json({ error: err.message });
+
+  }
+
+});
+
