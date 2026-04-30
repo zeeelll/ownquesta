@@ -319,7 +319,7 @@ function pInputStyle(hasError: boolean): React.CSSProperties {
 // plan_1399 → all models including claude-sonnet-4-6, claude-opus-4-6
 const MODEL_TIERS: Record<string, 'free' | 'plan_750' | 'plan_1399'> = {
   'gpt-4o-mini':      'free',
-  'gpt-4':            'free',
+  'gpt-4.1-mini':     'free',
   'gpt-5-3':          'plan_750',
   'codex-5-2':        'plan_750',
   'claude-sonnet':'plan_1399',
