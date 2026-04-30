@@ -1153,22 +1153,22 @@ with torch.no_grad():
 							{
 								name: 'Underfitting',
 								color: '#f87171',
-								train: [0.78, 0.79, 0.80, 0.80, 0.81],
-								val: [0.77, 0.78, 0.79, 0.79, 0.80],
+								train: [0.88, 0.86, 0.84, 0.83, 0.82],
+								val:   [0.89, 0.87, 0.85, 0.84, 0.83],
 								note: 'Both curves high & close — model too simple',
 							},
 							{
 								name: 'Good Fit',
 								color: '#34d399',
-								train: [0.85, 0.82, 0.80, 0.79, 0.78],
-								val: [0.88, 0.84, 0.81, 0.80, 0.79],
+								train: [0.92, 0.74, 0.60, 0.52, 0.48],
+								val:   [0.94, 0.78, 0.64, 0.56, 0.53],
 								note: 'Both converge to low error — ideal',
 							},
 							{
 								name: 'Overfitting',
 								color: '#fb923c',
-								train: [0.95, 0.92, 0.88, 0.82, 0.75],
-								val: [0.89, 0.91, 0.94, 0.96, 0.98],
+								train: [0.91, 0.70, 0.52, 0.38, 0.25],
+								val:   [0.92, 0.76, 0.70, 0.78, 0.90],
 								note: 'Val rises while train falls — memorising noise',
 							},
 						],
@@ -1845,50 +1845,94 @@ function VisualChart({ data }: { data: any }) {
 	}
 
 	if (data.type === 'learning_curves') {
-		const epochs = [1, 2, 3, 4, 5];
+		const W = 220; const H = 110; const PAD = { t: 10, r: 10, b: 28, l: 28 };
+		const chartW = W - PAD.l - PAD.r;
+		const chartH = H - PAD.t - PAD.b;
+		const n = 5;
+
+		function pts(vals: number[], allVals: number[]) {
+			const lo = Math.min(...allVals); const hi = Math.max(...allVals);
+			const span = hi - lo || 0.1;
+			return vals.map((v, j) => {
+				const x = PAD.l + (j / (n - 1)) * chartW;
+				const y = PAD.t + (1 - (v - lo) / span) * chartH;
+				return `${x.toFixed(1)},${y.toFixed(1)}`;
+			}).join(' ');
+		}
+
 		return (
-			<div className="grid gap-3 sm:grid-cols-3">
+			<div className="grid gap-4 sm:grid-cols-3">
 				{data.scenarios.map((sc: any, i: number) => {
-					const maxErr = Math.max(...sc.train, ...sc.val);
-					const minErr = Math.min(...sc.train, ...sc.val);
-					const range = maxErr - minErr || 1;
+					const allVals = [...sc.train, ...sc.val];
+					const lo = Math.min(...allVals); const hi = Math.max(...allVals);
+					const span = hi - lo || 0.1;
+					const yTicks = [lo, lo + span * 0.5, hi];
+
 					return (
-						<div key={i} className="rounded-xl border border-white/10 bg-white/5 p-3">
-							<h5 className="text-xs font-bold mb-2" style={{ color: sc.color }}>{sc.name}</h5>
-							<div className="relative h-24">
-								<svg width="100%" height="100%" viewBox="0 0 100 80">
-									{/* Train line */}
-									<polyline
-										fill="none"
-										strokeWidth="2"
-										stroke={sc.color}
-										strokeOpacity="1"
-										points={sc.train.map((v: number, j: number) =>
-											`${j * 25},${80 - ((v - minErr) / range) * 70}`
-										).join(' ')}
-									/>
-									{/* Val line */}
-									<polyline
-										fill="none"
-										strokeWidth="2"
-										stroke={sc.color}
-										strokeOpacity="0.4"
-										strokeDasharray="4"
-										points={sc.val.map((v: number, j: number) =>
-											`${j * 25},${80 - ((v - minErr) / range) * 70}`
-										).join(' ')}
-									/>
-								</svg>
-							</div>
-							<div className="flex gap-3 mt-1">
-								<span className="flex items-center gap-1 text-[9px] text-slate-400">
-									<span className="inline-block w-4 h-0.5" style={{ backgroundColor: sc.color }} /> Train
+						<div key={i} style={{
+							borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)',
+							background: 'rgba(255,255,255,0.04)', padding: '14px 14px 10px',
+							display: 'flex', flexDirection: 'column', gap: 8,
+						}}>
+							<div style={{ fontSize: 11, fontWeight: 700, color: sc.color, letterSpacing: '0.03em' }}>{sc.name}</div>
+
+							<svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', overflow: 'visible' }}>
+								{/* Grid lines */}
+								{[0, 0.5, 1].map((t, gi) => {
+									const y = PAD.t + (1 - t) * chartH;
+									return (
+										<g key={gi}>
+											<line x1={PAD.l} y1={y} x2={PAD.l + chartW} y2={y} stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+											<text x={PAD.l - 4} y={y + 3.5} textAnchor="end" fontSize="7" fill="rgba(255,255,255,0.3)" fontFamily="monospace">
+												{(lo + t * span).toFixed(2)}
+											</text>
+										</g>
+									);
+								})}
+
+								{/* X axis */}
+								<line x1={PAD.l} y1={PAD.t + chartH} x2={PAD.l + chartW} y2={PAD.t + chartH} stroke="rgba(255,255,255,0.12)" strokeWidth="1"/>
+
+								{/* X labels */}
+								{[1,2,3,4,5].map((ep, j) => (
+									<text key={j} x={PAD.l + (j/(n-1))*chartW} y={H - 4} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)" fontFamily="monospace">
+										{ep}
+									</text>
+								))}
+
+								{/* Val line (behind) */}
+								<polyline
+									fill="none" strokeWidth="2" stroke={sc.color} strokeOpacity="0.45"
+									strokeDasharray="5 3" strokeLinecap="round" strokeLinejoin="round"
+									points={pts(sc.val, allVals)}
+								/>
+								{/* Train line */}
+								<polyline
+									fill="none" strokeWidth="2.5" stroke={sc.color} strokeOpacity="1"
+									strokeLinecap="round" strokeLinejoin="round"
+									points={pts(sc.train, allVals)}
+								/>
+
+								{/* Dots on train */}
+								{sc.train.map((v: number, j: number) => {
+									const x = PAD.l + (j / (n - 1)) * chartW;
+									const y = PAD.t + (1 - (v - lo) / span) * chartH;
+									return <circle key={j} cx={x} cy={y} r="2.5" fill={sc.color}/>;
+								})}
+							</svg>
+
+							{/* Legend */}
+							<div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+								<span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: 'rgba(255,255,255,0.5)' }}>
+									<span style={{ width: 16, height: 2, background: sc.color, borderRadius: 1, display: 'inline-block' }}/>
+									Train
 								</span>
-								<span className="flex items-center gap-1 text-[9px] text-slate-400">
-									<span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: sc.color }} /> Val
+								<span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: 'rgba(255,255,255,0.5)' }}>
+									<span style={{ width: 16, height: 0, borderTop: `2px dashed ${sc.color}`, opacity: 0.5, display: 'inline-block' }}/>
+									Val
 								</span>
 							</div>
-							<p className="text-[9px] text-slate-500 mt-1">{sc.note}</p>
+							<p style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', lineHeight: 1.4, margin: 0 }}>{sc.note}</p>
 						</div>
 					);
 				})}
