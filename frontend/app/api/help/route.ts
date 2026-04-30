@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       pageArea: String(formData.get('pageArea') ?? 'Other').trim(),
       severity: String(formData.get('severity') ?? 'medium').trim(),
       subject: String(formData.get('subject') ?? '').trim(),
-      description: String(formData.get('description') ?? '').trim(),
+      description: String(formData.get('description') || formData.get('message') || '').trim(),
       stepsTried: String(formData.get('stepsTried') ?? '').trim(),
       submittedFrom: 'help_page',
       proofFiles: formData
