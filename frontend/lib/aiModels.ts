@@ -57,6 +57,7 @@ export const STATIC_MODELS: AIModel[] = [
   // ── OpenAI ────────────────────────────────────────────────────────────────
   { id: 'codex-5-2',   display_name: 'Codex 5.2',   short_name: 'Codex 5.2',   provider: 'openai', free_quota: 0    },
   { id: 'gpt-5-3',     display_name: 'GPT 5.3',     short_name: 'GPT 5.3',     provider: 'openai', free_quota: null },
-  { id: 'gpt-4',       display_name: 'GPT-4',       short_name: 'GPT-4',       provider: 'openai', free_quota: null },
+  { id: 'gpt-4.1-mini', display_name: 'GPT-4.1 Mini', short_name: 'GPT-4.1 Mini', provider: 'openai', free_quota: null },
   { id: 'gpt-4o-mini', display_name: 'GPT-4o Mini', short_name: 'GPT-4o Mini', provider: 'openai', free_quota: null },
 ];
+

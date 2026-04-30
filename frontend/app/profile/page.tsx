@@ -107,32 +107,44 @@ export default function ProfilePage() {
   }, []);
 
   const handleChange = (key: string, value: string) => {
-    setProfile((prev: any) => ({ ...prev, [key]: value }));
   };
 
-  const handleAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be <5MB');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const avatarData = reader.result as string;
-      handleChange('avatar', avatarData);
-      localStorage.setItem('userAvatar', avatarData);
-      saveAvatar(avatarData); // save in background
-      router.push('/profile/avatar');
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Upload to S3 via backend
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${BACKEND_URL}/api/user/upload/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.avatar) {
+        handleChange('avatar', data.avatar);
+        localStorage.setItem('userAvatar', data.avatar);
+        saveAvatar(data.avatar);
+        router.push('/profile/avatar');
+      } else {
+        alert('Failed to upload avatar. Please try again.');
+      }
+    } catch (err) {
+      console.error('Failed to upload avatar', err);
+      alert('Failed to upload avatar. Please try again.');
+    }
   };
 
   const handleRemoveAvatar = () => {
-    handleChange('avatar', DEFAULT_AVATAR);
-    localStorage.setItem('userAvatar', DEFAULT_AVATAR);
-    saveAvatar(DEFAULT_AVATAR); // save in background
-    router.push('/profile/avatar');
+    handleChange("avatar", DEFAULT_AVATAR);
+    localStorage.setItem("userAvatar", DEFAULT_AVATAR);
+    saveAvatar(DEFAULT_AVATAR);
+    router.push("/profile/avatar");
   };
 
   const save = async () => {
@@ -517,32 +529,6 @@ export default function ProfilePage() {
                         Remove
                       </button>
                     </div>
-                  </div>
-                </div>
-
-                {/* Subscription Section */}
-                <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-5 sm:p-6">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-indigo-300">Subscription</p>
-                      <h3 className="mt-1 text-xl font-semibold text-white">
-                        {isPremiumUser ? 'Premium Active' : 'Free Plan'}
-                      </h3>
-                      <div className="mt-3 grid gap-1 text-sm text-slate-300">
-                        <p>Status: <span className="font-semibold text-white">{String(profile?.membershipStatus || 'free').toUpperCase()}</span></p>
-                        <p>Plan: <span className="font-semibold text-white">{String(profile?.membershipPlan || 'premium-monthly').toUpperCase()}</span></p>
-                        <p>Upgraded: <span className="font-semibold text-white">{profile?.membershipUpgradedAt ? new Date(profile.membershipUpgradedAt).toLocaleDateString() : 'N/A'}</span></p>
-                        <p>Expires: <span className="font-semibold text-white">{profile?.membershipExpiresAt ? new Date(profile.membershipExpiresAt).toLocaleDateString() : 'N/A'}</span></p>
-                      </div>
-                     
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => router.push('/payment?source=profile&product=mlops-deploy&model=Trained%20Model&returnTo=/profile')}
-                      className="px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold transition-all duration-300"
-                    >
-                      {isPremiumUser ? 'Open Payment Page' : 'Get Subscription'}
-                    </button>
                   </div>
                 </div>
 
