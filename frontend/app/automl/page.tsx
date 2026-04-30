@@ -385,7 +385,7 @@ export default function LabPage() {
 
   // AI model selection
   const [availableModels,  setAvailableModels]  = useState<AIModel[]>(STATIC_MODELS);
-  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('gpt-4');
+  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('gpt-4o-mini'); // default
   const [membershipPlan, setMembershipPlan] = useState<string>('');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumModalModel, setPremiumModalModel] = useState<AIModel | null>(null);
