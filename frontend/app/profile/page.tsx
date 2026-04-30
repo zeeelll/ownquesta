@@ -107,32 +107,44 @@ export default function ProfilePage() {
   }, []);
 
   const handleChange = (key: string, value: string) => {
-    setProfile((prev: any) => ({ ...prev, [key]: value }));
   };
 
-  const handleAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+const handleAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       alert('Image must be <5MB');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const avatarData = reader.result as string;
-      handleChange('avatar', avatarData);
-      localStorage.setItem('userAvatar', avatarData);
-      saveAvatar(avatarData); // save in background
-      router.push('/profile/avatar');
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Upload to S3 via backend
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${BACKEND_URL}/api/user/upload/avatar`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.avatar) {
+        handleChange('avatar', data.avatar);
+        localStorage.setItem('userAvatar', data.avatar);
+        saveAvatar(data.avatar);
+        router.push('/profile/avatar');
+      } else {
+        alert('Failed to upload avatar. Please try again.');
+      }
+    } catch (err) {
+      console.error('Failed to upload avatar', err);
+      alert('Failed to upload avatar. Please try again.');
+    }
   };
 
   const handleRemoveAvatar = () => {
-    handleChange('avatar', DEFAULT_AVATAR);
-    localStorage.setItem('userAvatar', DEFAULT_AVATAR);
-    saveAvatar(DEFAULT_AVATAR); // save in background
-    router.push('/profile/avatar');
+    handleChange("avatar", DEFAULT_AVATAR);
+    localStorage.setItem("userAvatar", DEFAULT_AVATAR);
+    saveAvatar(DEFAULT_AVATAR);
+    router.push("/profile/avatar");
   };
 
   const save = async () => {

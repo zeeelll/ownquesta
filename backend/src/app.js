@@ -19,6 +19,7 @@ const genRoutes = require("./routes/gen.routes");
 const projectRoutes = require("./routes/project.routes");
 const helpRoutes = require("./routes/help.routes");
 const paymentsRoutes = require("./routes/payments.routes");
+const adminS3Routes = require("./routes/admin.s3.routes");
 
 require("./config/passport");
 
@@ -27,10 +28,10 @@ const app = express();
 app.use(express.json({ limit: "15mb" }));
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL || "http://localhost:3000",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000"
-];
+  'http://localhost:3000',
+  'http://13.203.138.131:3000',
+  'https://ownquesta.com'  // add your actual domain
+]
 
 app.use(
   cors({
@@ -83,4 +84,5 @@ app.use("/api/gen", genRoutes);
 app.use("/api/user/projects", projectRoutes);
 app.use("/api/help", helpRoutes);
 app.use("/api/payments", paymentsRoutes);
+app.use("/api/admin", adminS3Routes);
 module.exports = app;

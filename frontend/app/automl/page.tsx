@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 
 import { fetchAvailableModels, canUseModel, recordModelUsage, getModelUsageCount, STATIC_MODELS, type AIModel } from '../../lib/aiModels';
-import { trackDownloadAccess, getCurrentUser } from '../../services/api';
+import { trackDownloadAccess, getCurrentUser, getMyProjects } from '../../services/api';
 
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || 'http://127.0.0.1:8010';
 const AGENT_URL = process.env.NEXT_PUBLIC_LAB_AGENT_URL || 'http://127.0.0.1:8020';
@@ -92,6 +92,15 @@ interface AnalysisData { problem_type: string; target_column: string; dataset_su
 type MsgType = 'welcome' | 'info' | 'analysis' | 'models' | 'fe' | 'pipeline' | 'user' | 'ai' | 'error' | 'insight' | 'predict_form' | 'guard' | 'eda_summary';
 type GuardStep = 'analyzing' | 'searching' | 'fixing' | 'success' | 'failed';
 interface ChatMsg { id: string; type: MsgType; text?: string; analysis?: AnalysisData; models?: ModelSuggestion[]; fe?: { code: string; output: string; error: string | null }; reasoning?: string; guardStep?: GuardStep; guardCode?: string; edaSummary?: { summary: string; featureImportance: string; preprocessing: string }; }
+type AutoMlAnalysisStage = 'idle' | 'analyzed' | 'pipeline_built';
+
+function mapProjectStageToAnalysisStage(stage?: string): AutoMlAnalysisStage {
+  if (stage === 'pipeline_built') return 'pipeline_built';
+  if (stage === 'analyzed') return 'analyzed';
+  if (['trained', 'evaluated', 'completed'].includes(stage || '')) return 'pipeline_built';
+  if (['eda_completed', 'model_selected', 'training'].includes(stage || '')) return 'analyzed';
+  return 'idle';
+}
 
 // ── Guard helper ──────────────────────────────────────────────────────────────
 function lastErrLine(preview: unknown): string {
@@ -307,16 +316,14 @@ function pInputStyle(hasError: boolean): React.CSSProperties {
 
 // ── Model access tiers ────────────────────────────────────────────────────────
 // free      → gpt-4o-mini only (no subscription needed)
-// plan_750  → all GPT models + claude-haiku-4-5
 // plan_1399 → all models including claude-sonnet-4-6, claude-opus-4-6
 const MODEL_TIERS: Record<string, 'free' | 'plan_750' | 'plan_1399'> = {
   'gpt-4o-mini':      'free',
-  'gpt-4':            'free',
+  'gpt-4.1-mini':     'free',
   'gpt-5-3':          'plan_750',
   'codex-5-2':        'plan_750',
-  'claude-haiku-4-5': 'plan_750',
-  'claude-sonnet-4-6':'plan_1399',
-  'claude-opus-4-6':  'plan_1399',
+  'claude-sonnet':'plan_1399',
+  'claude-opus':  'plan_1399',
 };
 function getModelTier(id: string): 'free' | 'plan_750' | 'plan_1399' {
   return MODEL_TIERS[id] ?? 'plan_750';
@@ -378,7 +385,7 @@ export default function LabPage() {
 
   // AI model selection
   const [availableModels,  setAvailableModels]  = useState<AIModel[]>(STATIC_MODELS);
-  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('claude-sonnet-4-6');
+  const [selectedAiModelId, setSelectedAiModelId] = useState<string>('gpt-4o-mini'); // default
   const [membershipPlan, setMembershipPlan] = useState<string>('');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumModalModel, setPremiumModalModel] = useState<AIModel | null>(null);
@@ -501,6 +508,110 @@ export default function LabPage() {
   }, []);
 
   useEffect(() => {
+    if (localStorage.getItem('mlContinueProject') || localStorage.getItem('mlNewProject')) return;
+    if (localStorage.getItem('automl_active_state')) return;
+
+    let cancelled = false;
+
+    const restoreFromBackend = async () => {
+      try {
+        const data = await getMyProjects(25) as { projects?: Array<{
+          sessionId?: string;
+          name?: string;
+          stage?: string;
+          targetColumn?: string;
+          selectedModel?: string;
+          dataset?: { filename?: string; filePath?: string };
+        }> };
+
+        if (cancelled) return;
+
+        const projects = (data.projects || []).filter(project => !!project.sessionId);
+        const resumeProject = projects.find(project => project.stage && project.stage !== 'initialized') || projects[0];
+        if (!resumeProject?.sessionId) return;
+
+        const restoreFromProject = () => {
+          sidRef.current = resumeProject.sessionId ?? null;
+          setSid(resumeProject.sessionId ?? null);
+          setAnalysisStage(mapProjectStageToAnalysisStage(resumeProject.stage));
+          setSelectedModel(resumeProject.selectedModel || null);
+          setUploadedFilename(resumeProject.dataset?.filename || null);
+          setUploadedFilePath(resumeProject.dataset?.filePath || null);
+          setTargetCol(resumeProject.targetColumn || '');
+          setModelEvaluated(['evaluated', 'completed'].includes(resumeProject.stage || ''));
+        };
+
+        restoreFromProject();
+
+        try {
+          const contextRes = await fetch(`${AGENT_URL}/v2/context/${resumeProject.sessionId}`);
+          if (contextRes.ok) {
+            const context = await contextRes.json() as {
+              filename?: string;
+              file_path?: string;
+              target_column?: string;
+              selected_model?: string | null;
+              feature_columns?: string[];
+              stage?: string;
+              problem_type?: string;
+              dataset_summary?: string;
+              feature_analysis?: string;
+              feature_engineering_reasoning?: string;
+              missing_values_note?: string;
+              eda_summary?: string;
+            };
+
+            if (context.selected_model) setSelectedModel(context.selected_model);
+            if (context.filename) setUploadedFilename(context.filename);
+            if (context.file_path) setUploadedFilePath(context.file_path);
+            if (context.target_column) setTargetCol(context.target_column);
+            if (context.stage) setAnalysisStage(mapProjectStageToAnalysisStage(context.stage));
+            if (context.stage === 'pipeline_built') setModelEvaluated(true);
+            if (context.feature_columns?.length) {
+              setFeatureColumns(context.feature_columns);
+              setPredictInputs(Object.fromEntries(context.feature_columns.map((column) => [column, ''])));
+            }
+          }
+        } catch {
+          // Fall back to the project record when the agent context cannot be loaded.
+        }
+
+        const savedState = {
+          sid: resumeProject.sessionId,
+          analysisStage: mapProjectStageToAnalysisStage(resumeProject.stage),
+          selectedModel: resumeProject.selectedModel || null,
+          featureColumns: [] as string[],
+          uploadedFilename: resumeProject.dataset?.filename || null,
+          uploadedFilePath: resumeProject.dataset?.filePath || null,
+          targetCol: resumeProject.targetColumn || '',
+          predictInputs: {},
+          modelEvaluated: ['evaluated', 'completed'].includes(resumeProject.stage || ''),
+        };
+        localStorage.setItem('automl_active_state', JSON.stringify(savedState));
+
+        addMsg({
+          type: 'info',
+          text: [
+            `**Resumed "${resumeProject.name || resumeProject.dataset?.filename || 'your project'}"**`,
+            `Last saved stage: *${(resumeProject.stage || 'initialized').replace(/_/g, ' ')}*`,
+            '',
+            '> Your saved AutoML session was restored from your account.',
+            '> Continue from the last completed step instead of starting over.',
+          ].join('\n'),
+        });
+      } catch {
+        // No saved backend project to restore.
+      }
+    };
+
+    void restoreFromBackend();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [addMsg]);
+
+  useEffect(() => {
     const raw = localStorage.getItem('mlContinueProject');
     if (!raw) return;
     localStorage.removeItem('mlContinueProject');
@@ -529,7 +640,7 @@ export default function LabPage() {
               predictInputs?: Record<string, string>;
               modelEvaluated?: boolean;
             };
-            if (savedState.sid === proj.sessionId) {
+            // Always restore — even if session IDs differ, prefer backend project data
               if (savedState.analysisStage) setAnalysisStage(savedState.analysisStage);
               if (savedState.selectedModel) setSelectedModel(savedState.selectedModel);
               if (savedState.featureColumns?.length) {
@@ -537,7 +648,6 @@ export default function LabPage() {
                 setPredictInputs(savedState.predictInputs || Object.fromEntries(savedState.featureColumns.map((c: string) => [c, ''])));
               }
               if (savedState.modelEvaluated) setModelEvaluated(true);
-            }
           } catch {
             // ignore corrupt active state
           }
@@ -551,7 +661,7 @@ export default function LabPage() {
       if (proj.filename)    setUploadedFilename(proj.filename);
       if (proj.filePath)    setUploadedFilePath(proj.filePath);
       if (proj.targetColumn) setTargetCol(proj.targetColumn);
-      setAnalysisStage(prev => (prev === 'idle' ? mapStageToUi(stage) : prev));
+      setAnalysisStage(mapStageToUi(stage));
       if (['evaluated', 'completed'].includes(stage)) setModelEvaluated(true);
 
       const hint: Record<string, string> = {
@@ -669,6 +779,19 @@ export default function LabPage() {
       const r = await fetch(`${LAB_URL}/upload`, { method: 'POST', body: form });
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
       const d = await r.json(); setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
+      if (d.s3_url && session) {
+        try {
+          const s3Form = new FormData();
+          s3Form.append('file', file);
+          await fetch(`${BACKEND_URL}/api/user/projects/upload/dataset/${session}`, {
+            method: 'POST',
+            credentials: 'include',
+            body: s3Form,
+          });
+        } catch (s3Err) {
+          console.warn('S3 project save failed:', s3Err);
+        }
+      }
       addMsg({ type: 'info', text: `**${d.filename}** uploaded (${d.size_kb} KB). Set the target column (optional) then click **Analyse**.` });
       saveLabProjectToDashboard(d.filename);
       updateProjectProgress('dataset_uploaded', { name: newProjectNameRef.current || d.filename.replace(/\.[^/.]+$/, ''), dataset: { filename: d.filename, filePath: d.file_path, sizeKb: d.size_kb, fileType: d.filename.split('.').pop() } });

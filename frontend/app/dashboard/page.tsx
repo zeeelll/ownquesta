@@ -33,8 +33,17 @@ import {
   X,
   Zap,
 } from "lucide-react";
-
 const LAB_URL = process.env.NEXT_PUBLIC_LAB_URL || "http://localhost:8010";
+
+
+          <button
+            onClick={() => router.back()}
+            className="nav-pill nav-pill-accent"
+            aria-label="Go back"
+          >
+            <ChevronLeft size={14} strokeWidth={2.2} />
+            Back
+          </button>
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Dataset {

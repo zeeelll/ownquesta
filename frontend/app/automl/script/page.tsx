@@ -520,7 +520,8 @@ export default function ScriptPage() {
 
   // Models
   const [models,        setModels]        = useState<AIModel[]>([]);
-  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const savedSession = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('automl_active_state') || '{}') : {};
+  const [selectedModel, setSelectedModel] = useState(savedSession.selectedModel || 'gpt-4o-mini');
   const [modelDropOpen, setModelDropOpen] = useState(false);
   const modelDropRef = useRef<HTMLDivElement>(null);
   const [membershipPlan, setMembershipPlan] = useState('');
@@ -603,7 +604,7 @@ export default function ScriptPage() {
     fetchAvailableModels(AGENT_URL).then(m => {
       if (m.length > 0) {
         setModels(m);
-        setSelectedModel(prev => m.some(x => x.id === prev) ? prev : m[0].id);
+        setSelectedModel((prev: string) => m.some(x => x.id === prev) ? prev : m[0].id);
       }
     });
   }, []);
@@ -1015,12 +1016,9 @@ export default function ScriptPage() {
             <span style={{ fontWeight: 700, fontSize: 13 }}>ML Agent</span>
 
             {/* Model picker */}
-            <div ref={modelDropRef} style={{ position: 'relative', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 9, padding: '2px 6px', borderRadius: 999, border: '1px solid rgba(16,185,129,0.35)', background: 'rgba(16,185,129,0.1)', color: '#6ee7b7', whiteSpace: 'nowrap', fontWeight: 700 }}>
-                {subscriptionLabel}
-              </span>
+            <div ref={modelDropRef} style={{ position: 'relative' }}>
               <button onClick={() => setModelDropOpen(o => !o)}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 8px', borderRadius: 20, border: '1px solid rgba(110,84,200,0.35)', background: 'rgba(110,84,200,0.18)', color: '#c4b5fd', fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer', fontFamily: 'inherit', textTransform: 'uppercase' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 8, border: '1px solid rgba(110,84,200,0.4)', background: 'rgba(110,84,200,0.12)', color: '#c4b5fd', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
                 {selectedModelObj?.short_name ?? selectedModel}
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" style={{ transform: modelDropOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}><path d="M5 7L1 3h8L5 7z"/></svg>
               </button>
@@ -1032,58 +1030,16 @@ export default function ScriptPage() {
                     if (!group.length) return null;
                     return (
                       <div key={provider}>
-                        <div style={{ padding: '6px 12px 4px', fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#d4a0ff' : '#4ade80', opacity: 0.78 }}>
-                          {provider === 'anthropic' ? '◈ ANTHROPIC' : '⬢ OPENAI'}
+                        <div style={{ padding: '6px 12px 4px', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: provider === 'anthropic' ? '#f97316' : '#60a5fa' }}>
+                          {provider === 'anthropic' ? 'Anthropic' : 'OpenAI'}
                         </div>
-                        {group.map(m => {
-                          const unlocked = modelUnlocked(m.id, membershipStatus, membershipPlan);
-                          const tier = getModelTier(m.id);
-                          const tierLabel = tier === 'plan_1399' ? '₹1,399' : tier === 'plan_750' ? '₹750' : null;
-                          const isSelected = m.id === selectedModel;
-                          return (
-                            <button
-                              key={m.id}
-                              onClick={() => {
-                                if (!unlocked) {
-                                  setModelDropOpen(false);
-                                  const params = new URLSearchParams({
-                                    source: 'automl-script-chat',
-                                    model: m.display_name,
-                                    requiredPlan: tier,
-                                  });
-                                  router.push(`/subscription?${params.toString()}`);
-                                  return;
-                                }
-                                setSelectedModel(m.id);
-                                setModelDropOpen(false);
-                              }}
-                              style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '7px 12px',
-                                background: isSelected ? 'rgba(110,84,200,0.2)' : 'none',
-                                border: 'none',
-                                color: !unlocked ? '#4a4d6a' : isSelected ? '#c4b5fd' : '#94a3b8',
-                                fontSize: 12,
-                                cursor: 'pointer',
-                                fontFamily: 'inherit',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 8,
-                              }}
-                            >
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                {!unlocked && <span style={{ color: '#6366f1', fontSize: 10 }}>🔒</span>}
-                                <span style={{ fontWeight: isSelected ? 700 : 400 }}>{m.display_name}</span>
-                              </span>
-                              <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                {!unlocked && tierLabel && <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 20, fontWeight: 700, background: 'rgba(99,102,241,0.12)', color: '#818cf8', border: '1px solid rgba(99,102,241,0.3)' }}>{tierLabel}</span>}
-                                {isSelected && unlocked && <span style={{ color: '#a87edf' }}>✓</span>}
-                              </span>
-                            </button>
-                          );
-                        })}
+                        {group.map(m => (
+                          <button key={m.id} onClick={() => { setSelectedModel(m.id); setModelDropOpen(false); }}
+                            style={{ width: '100%', textAlign: 'left', padding: '7px 12px', background: m.id === selectedModel ? 'rgba(110,84,200,0.2)' : 'none', border: 'none', color: m.id === selectedModel ? '#c4b5fd' : '#94a3b8', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>{m.short_name}</span>
+                            {m.id === selectedModel && <span style={{ color: '#a87edf' }}>✓</span>}
+                          </button>
+                        ))}
                       </div>
                     );
                   })}
