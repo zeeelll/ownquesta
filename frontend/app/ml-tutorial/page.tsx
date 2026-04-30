@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -29,7 +29,7 @@ import {
 	ChevronDown,
 	ChevronUp,
 } from 'lucide-react';
-import Logo from '../components/Logo';
+import DashboardShell from '../components/DashboardShell';
 
 /* ─────────────────────────── types ─────────────────────────── */
 type SectionType =
@@ -2334,7 +2334,8 @@ export default function MLTutorialPage() {
 	const ActiveIcon = activeStepData.icon;
 
 	return (
-		<main className="min-h-screen lg:h-screen lg:overflow-hidden bg-[radial-gradient(circle_at_top,#172047_0%,#080b1f_45%,#050712_100%)] text-[#edf2ff] font-chillax">
+		<DashboardShell activePath="/ml-tutorial" contentOverflow="hidden">
+		<main className="flex-1 h-full overflow-hidden bg-[radial-gradient(circle_at_top,#172047_0%,#080b1f_45%,#050712_100%)] text-[#edf2ff] font-chillax">
 			<div className="pointer-events-none absolute inset-0 overflow-hidden">
 				<div className="absolute -top-40 -left-24 h-96 w-96 rounded-full bg-cyan-500/15 blur-3xl" />
 				<div className="absolute top-24 right-0 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl sm:h-[28rem] sm:w-[28rem]" />
@@ -2342,18 +2343,6 @@ export default function MLTutorialPage() {
 			</div>
 
 			<div className="relative flex h-full w-full flex-col">
-				{/* Header */}
-				<header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-black/70 px-4 py-3 backdrop-blur-xl sm:px-6">
-					<div className="flex items-center gap-4">
-						<Logo href="/home" size="md" showText={true} variant="light" />
-					</div>
-					<Link
-						href="/dashboard"
-						className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition-colors duration-200 hover:border-white/25 hover:bg-white/10 hover:text-white"
-					>
-						Dashboard
-					</Link>
-				</header>
 
 				{/* Body */}
 				<section className="flex flex-1 flex-col gap-0 lg:min-h-0 lg:grid lg:grid-cols-[380px_minmax(0,1fr)]">
@@ -2498,5 +2487,6 @@ export default function MLTutorialPage() {
 				</section>
 			</div>
 		</main>
+		</DashboardShell>
 	);
 }

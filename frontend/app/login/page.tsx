@@ -49,6 +49,7 @@ export default function LoginPage() {
   const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<{ authenticated: boolean; name?: string; avatar?: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // OTP expiry timer
   function OtpExpiryInfo() {
@@ -70,6 +71,8 @@ export default function LoginPage() {
       </div>
     );
   }
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/auth/me`, { credentials: 'include', headers: { Accept: 'application/json' } })
@@ -302,6 +305,8 @@ export default function LoginPage() {
     setSignUpOtpMessage('');
     setSignUpOtpSuccess(false);
   }, [signUpEmail]);
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-3 sm:p-5 md:p-8 relative overflow-x-hidden font-chillax" style={{ background: 'radial-gradient(ellipse at top left, #1a1040 0%, #0a0b14 55%, #0e1020 100%)' }}>

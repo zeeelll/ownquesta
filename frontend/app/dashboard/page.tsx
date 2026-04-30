@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   Circle,
-  Download,
   Folder,
   Hash,
   Hexagon,
@@ -475,6 +474,7 @@ const STYLES = `
     height:100vh; position:sticky; top:0;
     display:flex; flex-direction:column;
     background:rgba(7,7,7,0.97);
+    will-change:width; transform:translateZ(0);
     border-right:1px solid var(--rim0);
     backdrop-filter:blur(24px);
     transition:width 0.26s cubic-bezier(0.4,0,0.2,1);
@@ -1460,7 +1460,6 @@ export default function DashboardPage() {
           {([
             { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
             { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
-            { label:"My Downloads", icon:<Download size={15} strokeWidth={2}/>, path:"/my-downloads", active:false },
             { label:"My Deployments", icon:<Rocket size={15} strokeWidth={2}/>, path:"/my-deployments", active:false },
             { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
             ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),

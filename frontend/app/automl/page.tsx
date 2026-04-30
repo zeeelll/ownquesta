@@ -772,12 +772,21 @@ export default function LabPage() {
 
   // ── Upload ────────────────────────────────────────────────────────────────
   const handleFileSelect = useCallback(async (file: File) => {
+    const MAX_FILE_MB = 50;
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      setUploadErr(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_FILE_MB} MB.`);
+      return;
+    }
     const session = await getSession(); if (!session) return;
     setUploading(true); setUploadErr(null);
     const form = new FormData(); form.append('session_id', session); form.append('file', file);
     try {
       const r = await fetch(`${LAB_URL}/upload`, { method: 'POST', body: form });
-      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`); }
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({}));
+        if (r.status === 413) throw new Error('File is too large for the server. Please use a smaller dataset (under 50 MB).');
+        throw new Error(e.detail || `HTTP ${r.status}`);
+      }
       const d = await r.json(); setUploadedFilename(d.filename); setUploadedFilePath(d.file_path);
       if (d.s3_url && session) {
         try {
