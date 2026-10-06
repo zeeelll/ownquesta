@@ -27,11 +27,14 @@ const app = express();
 
 app.use(express.json({ limit: "15mb" }));
 
+// Extra origins (comma-separated) can be supplied via ALLOWED_ORIGINS, e.g. the EC2 public URL.
 const allowedOrigins = [
   'http://localhost:3000',
   'http://13.203.138.131:3000',
-  'https://ownquesta.com'  // add your actual domain
-]
+  'https://ownquesta.com',  // add your actual domain
+  process.env.FRONTEND_URL,
+  ...(process.env.ALLOWED_ORIGINS || '').split(',').map((o) => o.trim()),
+].filter(Boolean)
 
 app.use(
   cors({

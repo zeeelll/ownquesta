@@ -1,0 +1,16 @@
+[Unit]
+Description=Ownquesta agents API (also spawns lab-backend :8010 and lab-agent :8020)
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/opt/ownquesta/ownquesta_agents
+EnvironmentFile=/opt/ownquesta/ownquesta_agents/.env
+ExecStart=/opt/ownquesta/ownquesta_agents/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+# Make sure the spawned lab-backend / lab-agent children die with the parent.
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target
