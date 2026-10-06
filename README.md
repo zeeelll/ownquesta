@@ -1,6 +1,33 @@
-# Ownquesta Project - Multi-Service Setup
+# Ownquesta
 
-Complete guide for managing multiple repositories and services in the Ownquesta project.
+**Build ML models from scratch, on one platform, with AI agents by your side.**
+
+## 💡 What is Ownquesta?
+
+Ownquesta is an **AutoML platform** built for junior ML engineers and early-stage teams. The idea is simple: you should be able to go from raw data to a working ML model **without constantly switching between an ML tool and a separate AI chatbot** to ask what to do next.
+
+Ownquesta brings both into a single place. You build the model yourself, step by step, while built-in AI agents help you understand your data, choose an approach, and generate and explain the code along the way. You stay in control and you learn how the model is actually built, instead of getting a black box.
+
+## 🎯 Why Ownquesta?
+
+Most beginners learning ML today work like this: open a notebook, get stuck, copy the problem into an AI chat, paste the answer back, repeat. Ownquesta removes that back-and-forth by putting the guidance right inside the ML workflow.
+
+**Who it's for:**
+- **Junior ML developers** who want to learn how ML models are built and coded, not just get a result
+- **Startups** that need to build and test ML models quickly without a large ML team
+
+## 🧭 Vision & Roadmap
+
+The long-term goal is to grow Ownquesta from a learning-friendly AutoML tool into a platform that can handle **large-scale ML workflows end to end**, all in one place.
+
+Planned next steps:
+- **Deep Learning support** — bring DL model building into the same guided workflow
+- **One-click deployment** — deploy your trained model directly from Ownquesta, in an automated way
+- **More AI agents** — agent features are developed in the separate [ownquesta_agents](https://github.com/zeeelll/ownquesta_agents) repository
+
+> **Status:** Ownquesta is a personal project. Active development is currently on hold due to other work commitments, but the vision above is where it's headed.
+
+---
 
 ## 📁 Project Structure
 
@@ -52,7 +79,8 @@ npm run dev
 ```bash
 cd agent-backend
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 python main.py
 ```
@@ -61,7 +89,8 @@ python main.py
 ```bash
 cd data-processing
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 pip install -r requirements.txt
 python main.py
 ```
@@ -108,3 +137,8 @@ export const dataProcessingAPI = async (endpoint: string, options?: RequestInit)
   const response = await fetch(`${DATA_URL}${endpoint}`, options);
   return response.json();
 };
+```
+
+## 🤖 Related Repositories
+
+- [ownquesta_agents](https://github.com/zeeelll/ownquesta_agents) — the AI agent service (ML Assistant) that powers Ownquesta's guided model building
