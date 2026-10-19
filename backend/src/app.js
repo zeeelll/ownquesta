@@ -71,7 +71,7 @@ app.use(
         }),
     cookie: {
       httpOnly: true,
-      secure: false,
+      secure: (process.env.FRONTEND_URL || '').startsWith('https'),
       maxAge: 1000 * 60 * 60 * 24 * 7
     }
   })
