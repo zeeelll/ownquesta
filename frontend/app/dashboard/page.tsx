@@ -7,7 +7,6 @@ import Logo from "../components/Logo";
 import {
   AlertTriangle,
   ArrowRight,
-  BookOpen,
   Bot,
   Brain,
   Check,
@@ -1459,7 +1458,6 @@ export default function DashboardPage() {
         <nav style={{ padding:"0 8px", flex:1, display:"flex", flexDirection:"column", gap:2 }}>
           {([
             { label:"Dashboard",   icon:<LayoutDashboard size={15} strokeWidth={2}/>, path:"/dashboard", active:true  },
-            { label:"ML Tutorial", icon:<BookOpen        size={15} strokeWidth={2}/>, path:"/ml-tutorial",active:false },
             { label:"My Deployments", icon:<Rocket size={15} strokeWidth={2}/>, path:"/my-deployments", active:false },
             { label:"Profile",     icon:<User            size={15} strokeWidth={2}/>, path:"/profile",   active:false },
             ...(user.role==="admin" ? [{ label:"Admin", icon:<Wrench size={15} strokeWidth={2}/>, path:"/admin", active:false }] : []),

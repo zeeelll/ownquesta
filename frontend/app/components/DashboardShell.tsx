@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Logo from "./Logo";
-import { BookOpen, ChevronLeft, LayoutDashboard, Rocket, User, Wrench } from "lucide-react";
+import { ChevronLeft, LayoutDashboard, Rocket, User, Wrench } from "lucide-react";
 
 const SHELL_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
@@ -61,7 +61,6 @@ export default function DashboardShell({ children, activePath, userRole, content
 
   const navItems = [
     { label: "Dashboard",      icon: <LayoutDashboard size={15} strokeWidth={2}/>, path: "/dashboard" },
-    { label: "ML Tutorial",    icon: <BookOpen        size={15} strokeWidth={2}/>, path: "/ml-tutorial" },
     { label: "My Deployments", icon: <Rocket          size={15} strokeWidth={2}/>, path: "/my-deployments" },
     { label: "Profile",        icon: <User            size={15} strokeWidth={2}/>, path: "/profile" },
     ...(userRole === "admin" ? [{ label: "Admin", icon: <Wrench size={15} strokeWidth={2}/>, path: "/admin" }] : []),
