@@ -6,3 +6,11 @@ node_modules/
 !.env.example
 build.log
 *.swp
+
+# Python / misc
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+backend/uploads/
+*.log

@@ -1,7 +1,7 @@
 // Script to make a user admin
 require("dotenv").config();
 const mongoose = require("mongoose");
-const User = require("./src/models/User");
+const User = require("../src/models/User");
 
 async function makeAdmin(email) {
   try {
@@ -26,7 +26,7 @@ async function makeAdmin(email) {
   }
 }
 
-// Run with: node make-admin.js user@example.com
+// Run from backend/: node scripts/make-admin.js user@example.com
 const email = process.argv[2];
 if (!email) {
   console.log("Usage: node make-admin.js <email>");

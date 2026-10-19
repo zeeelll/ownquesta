@@ -1,5 +1,7 @@
 # Ownquesta
 
+![CI](https://github.com/zeeelll/ownquesta/actions/workflows/ci.yml/badge.svg)
+
 **Build ML models from scratch, on one platform, with AI agents by your side.**
 
 ## 💡 What is Ownquesta?
@@ -32,112 +34,52 @@ Planned next steps:
 ## 📁 Project Structure
 
 ```
-Fnal_ownquesta/
-├── backend/                 # Node.js/Express API
-├── frontend/                # Next.js Web App
-├── agent-backend/           # FastAPI Agent Service
-├── data-processing/         # Data Processing Service
-├── docker-compose.yml       # Orchestrate all services
-├── .env.example             # Environment template
-└── README.md
+ownquesta/
+├── frontend/        # Next.js web app
+├── backend/         # Node.js / Express API (auth, users, payments, S3 uploads)
+├── lab-agent/       # Lab agent service (Docker setup)
+├── lab-backend/     # Code-execution service (Docker setup)
+├── mlops-template/  # Inference API + Kubernetes manifests, deployed via GitHub Actions
+├── docs/            # Implementation notes
+└── .github/workflows/
+```
+
+> The actively developed lab/agent services live in [ownquesta_agents](https://github.com/zeeelll/ownquesta_agents).
+
+## 🏗️ Architecture
+
+```
+Browser ─► Nginx (HTTPS) ─┬─► Next.js frontend    :3000
+                          ├─► Express backend     :5000 ─► MongoDB Atlas, S3
+                          └─► FastAPI agents      :8000 ─► lab backend :8010 / lab agent :8020
 ```
 
 ## 🚀 Quick Start
 
-### Option 1: Using Docker Compose (Recommended)
+**Prerequisites:** Node 22+, Python 3.12 with [uv](https://docs.astral.sh/uv/), and a MongoDB connection string.
 
 ```bash
-cd Fnal_ownquesta
+# Backend  (copy .env.example to .env and set MONGODB_URI + SESSION_SECRET)
+cd backend && npm install && npm run dev
 
-# Start all services
-docker-compose up -d
+# Frontend
+cd frontend && npm install && npm run dev
 
-# View logs
-docker-compose logs -f
-
-# Stop all services
-docker-compose down
+# Agents  (from the ownquesta_agents repo; set OPENAI_API_KEY in .env)
+uv sync && uv run uvicorn main:app --port 8000   # also starts the lab services
 ```
 
-### Option 2: Run Services Individually
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3000 |
+| Backend | http://localhost:5000 |
+| Agents API | http://localhost:8000 |
 
-**Terminal 1 - Backend:**
-```bash
-cd backend
-npm install
-npm run dev
-```
+The frontend falls back to these localhost URLs. For another host, set `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_LAB_URL` and `NEXT_PUBLIC_LAB_AGENT_URL` before `npm run build`.
 
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## ☁️ Deployment
 
-**Terminal 3 - Agent Backend:**
-```bash
-cd agent-backend
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
-pip install -r requirements.txt
-python main.py
-```
-
-**Terminal 4 - Data Processing:**
-```bash
-cd data-processing
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
-pip install -r requirements.txt
-python main.py
-```
-
-## 📡 Service URLs
-
-| Service | URL | Port | Type |
-|---------|-----|------|------|
-| Frontend | http://localhost:3000 | 3000 | Next.js |
-| Backend | http://localhost:5000 | 5000 | Node.js |
-| Agent API | http://localhost:8000 | 8000 | FastAPI |
-| Data Processing | http://localhost:8001 | 8001 | FastAPI |
-| MongoDB | mongodb://localhost:27017 | 27017 | Database |
-| Redis | redis://localhost:6379 | 6379 | Cache |
-
-## 🔗 Service Communication
-
-### From Frontend to Backend
-```typescript
-// services/api.ts
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-export const api = async (endpoint: string, options?: RequestInit) => {
-  const response = await fetch(`${API_URL}${endpoint}`, options);
-  return response.json();
-};
-```
-
-### From Frontend to Agent
-```typescript
-const AGENT_URL = process.env.NEXT_PUBLIC_AGENT_URL || 'http://localhost:8000';
-
-export const agentAPI = async (endpoint: string, options?: RequestInit) => {
-  const response = await fetch(`${AGENT_URL}${endpoint}`, options);
-  return response.json();
-};
-```
-
-### From Frontend to Data Processing
-```typescript
-const DATA_URL = process.env.NEXT_PUBLIC_DATA_PROCESS_URL || 'http://localhost:8001';
-
-export const dataProcessingAPI = async (endpoint: string, options?: RequestInit) => {
-  const response = await fetch(`${DATA_URL}${endpoint}`, options);
-  return response.json();
-};
-```
+Runs on a single EC2 instance behind Nginx with Let's Encrypt HTTPS. The frontend and backend run under PM2; the agents run as a sandboxed systemd service under an unprivileged user. CI runs on GitHub Actions.
 
 ## 🤖 Related Repositories
 
