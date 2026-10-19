@@ -25,13 +25,17 @@ require("./config/passport");
 
 const app = express();
 
+// Running behind Nginx
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "15mb" }));
 
 const allowedOrigins = [
   'http://localhost:3000',
   'http://13.203.138.131:3000',
-  'https://ownquesta.com'  // add your actual domain
-]
+  'https://ownquesta.com',  // add your actual domain
+  process.env.FRONTEND_URL  // e.g. http://<elastic-ip> in production
+].filter(Boolean)
 
 app.use(
   cors({
